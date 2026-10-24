@@ -1,44 +1,39 @@
-(define (domain elevators08)
+(define (domain scanalyzer3d)
   (:requirements :strips :typing)
 
   (:types
-    count elevator passenger - object
-    fast-elevator slow-elevator - elevator
+    car physical_entity segment - object
   )
 
   (:predicates
-    (at ?e - object ?c - count)
-    (has ?e - elevator ?n - count)
-    (can-hold ?e - elevator ?n - count)
-    (reachable ?e - elevator ?c - count)
-    (next-to ?c1 - count ?c2 - count)
-    (above ?c1 - count ?c2 - count)
-    (boarded ?p - passenger ?e - elevator)
-    (passengers ?e - elevator ?n - count)
+    (CYCLE-2 ?a - segment ?b - segment)
+    (CYCLE-2-WITH-ANALYSIS ?a - segment ?b - segment)
+    (on ?car - car ?seg - segment)
+    (analyzed ?car - car)
   )
 
-  (:action move_slow_elevator
-    :parameters (?e - slow-elevator ?from - count ?to - count)
-    :precondition (and (at ?e ?from) (above ?from ?to) (reachable ?e ?to))
-    :effect (and (at ?e ?to) (not (at ?e ?from)))
+  (:action analyze_cycle_length_2
+    :parameters (?c - car ?d - car ?a - segment ?b - segment)
+    :precondition (and (CYCLE-2-WITH-ANALYSIS ?a ?b) (on ?c ?a) (on ?d ?b))
+    :effect (and (on ?c ?b) (on ?d ?a) (analyzed ?c) (not (on ?c ?a)) (not (on ?d ?b)))
   )
 
-  (:action move_fast_elevator
-    :parameters (?e - fast-elevator ?from - count ?to - count)
-    :precondition (and (at ?e ?from) (above ?from ?to) (reachable ?e ?to))
-    :effect (and (at ?e ?to) (not (at ?e ?from)))
+  (:action analyze_cycle_length_4
+    :parameters (?e - car ?f - car ?g - car ?h - car ?a - segment ?b - segment ?c - segment ?d - segment)
+    :precondition (and (CYCLE-2-WITH-ANALYSIS ?a ?b) (on ?e ?a) (on ?f ?b) (on ?g ?c) (on ?h ?d))
+    :effect (and (on ?e ?d) (on ?f ?a) (on ?g ?b) (on ?h ?c) (analyzed ?e) (not (on ?e ?a)) (not (on ?f ?b)) (not (on ?g ?c)) (not (on ?h ?d)))
   )
 
-  (:action board_passenger
-    :parameters (?p - passenger ?e - elevator ?c - count ?d - count ?e_count - count)
-    :precondition (and (at ?e ?c) (at ?p ?c) (passengers ?e ?d) (next-to ?d ?e_count) (can-hold ?e ?e_count))
-    :effect (and (boarded ?p ?e) (passengers ?e ?e_count) (not (at ?p ?c)) (not (passengers ?e ?d)))
+  (:action rotate_cars_length_2
+    :parameters (?c - car ?d - car ?a - segment ?b - segment)
+    :precondition (and (CYCLE-2 ?a ?b) (on ?c ?a) (on ?d ?b))
+    :effect (and (on ?c ?b) (on ?d ?a) (not (on ?c ?a)) (not (on ?d ?b)))
   )
 
-  (:action leave_elevator
-    :parameters (?p - passenger ?e - elevator ?c - count ?d - count ?e_count - count)
-    :precondition (and (at ?e ?c) (boarded ?p ?e) (passengers ?e ?d) (next-to ?e_count ?d) (reachable ?e ?c))
-    :effect (and (at ?p ?c) (passengers ?e ?e_count) (not (boarded ?p ?e)) (not (passengers ?e ?d)))
+  (:action rotate_cars_length_4
+    :parameters (?e - car ?f - car ?g - car ?h - car ?a - segment ?b - segment ?c - segment ?d - segment)
+    :precondition (and (CYCLE-2-WITH-ANALYSIS ?a ?b) (on ?e ?a) (on ?f ?b) (on ?g ?c) (on ?h ?d))
+    :effect (and (on ?e ?d) (on ?f ?a) (on ?g ?b) (on ?h ?c) (not (on ?e ?a)) (not (on ?f ?b)) (not (on ?g ?c)) (not (on ?h ?d)))
   )
 
 )

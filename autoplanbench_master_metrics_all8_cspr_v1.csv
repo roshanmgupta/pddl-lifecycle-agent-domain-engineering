@@ -1,0 +1,30 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+gripper,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000164,40.32,20280,1537,21817,0.003964,A.2: Refined Success via Feedback Loops,RECOVERED,
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,0.9549,1.0,0.8933,0.9714,1.0,1.0,0,0,0,0,16,16,0.013555,54.22,36977,2991,39968,0.007341,A.2: Refined Success via Feedback Loops,RECOVERED,
+satellite,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,0.9667,1.0,0.9,1.0,1.0,1.0,0,0,0,0,5,5,0.000901,49.36,35296,2583,37879,0.006844,A.2: Refined Success via Feedback Loops,RECOVERED,
+rovers,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.9164,0.9714,0.8889,0.8889,1.0,1.0,0,0,0,0,0,0,3e-05,189.34,137827,17079,154906,0.030921,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+barman14-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,False,6,False,5,0.7554,0.8579,0.725,0.6833,1.0,1.0,0,0,0,0,17,17,0.009134,244.52,146712,18399,165111,0.033046,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT,"Plan Transfer Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Type-checking grasp ...action passes type checking. Type-checking leave ...action passes ty"
+elevators08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.8803,0.8631,0.8333,0.9444,1.0,1.0,0,0,0,0,0,0,7.2e-05,112.38,109883,8917,118800,0.021833,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+floortile,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,0.8413,1.0,1.0,0.5238,1.0,1.0,0,0,0,0,8,8,0.000335,73.93,45181,4400,49581,0.009417,A.2: Refined Success via Feedback Loops,RECOVERED,
+parking,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.7833,0.95,0.45,0.95,1.0,1.0,0,0,0,0,0,0,1.7e-05,171.84,141039,12083,153122,0.028406,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"

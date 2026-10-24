@@ -1,0 +1,5 @@
+(paint_tile robot1 tile_1-2 tile_2-2 white)
+(paint_tile robot2 tile_1-1 tile_2-1 black)
+(paint_tile robot2 tile_1-1 tile_1-2 black)
+(paint_tile robot1 tile_1-2 tile_1-1 white)
+; cost = 4 (unit cost)

@@ -1,0 +1,130 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+gripper,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,0.2667,0.1333,0.5,0.1667,1.0,1.0,0,0,0,0,5,5,0.000495,16.17,4509,708,5217,0.001101,A.2: Refined Success via Feedback Loops,RECOVERED,
+gripper,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,0.2667,0.1333,0.5,0.1667,1.0,1.0,0,0,0,0,5,5,0.000311,13.47,4509,708,5217,0.001101,A.2: Refined Success via Feedback Loops,RECOVERED,
+gripper,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,0.2963,0.2222,0.5,0.1667,1.0,1.0,0,0,0,0,0,0,0.0,53.23,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+gripper,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,0.2963,0.2222,0.5,0.1667,1.0,1.0,0,0,0,0,0,0,0.0,5.16,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.023923,45.08,22156,2615,24771,0.004892,A.2: Refined Success via Feedback Loops,RECOVERED,
+depot,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,5,False,4,0.9867,1.0,0.96,1.0,1.0,1.0,0,0,0,0,0,0,6.8e-05,135.58,48630,7490,56120,0.011789,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit"
+depot,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,54.41,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+depot,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,7.95,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+satellite,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,0.4233,0.37,0.4,0.5,1.0,1.0,0,0,0,0,5,5,0.0005,14.46,4608,868,5476,0.001212,A.2: Refined Success via Feedback Loops,RECOVERED,
+satellite,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,0.4233,0.37,0.4,0.5,1.0,1.0,0,0,0,0,5,5,0.000298,13.64,4608,868,5476,0.001212,A.2: Refined Success via Feedback Loops,RECOVERED,
+satellite,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,0.6367,0.61,0.6,0.7,1.0,1.0,0,0,0,0,0,0,0.0,46.11,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+satellite,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,0.6367,0.61,0.6,0.7,1.0,1.0,0,0,0,0,0,0,0.0,6.39,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+rovers,CLOSED_LOOP_AST_AGENT,ELICITATION,False,False,False,False,False,False,5,False,4,0.5277,0.8054,0.3333,0.4444,1.0,1.0,0,0,0,0,0,0,0.0,173.55,112662,12905,125567,0.024642,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"VAL Error: Type-checking navigate_rover
+...action passes type checking.
+Type-checking sample_soil
+...action passes type checking.
+Type-checking sample_rock
+...action passes type checking.
+Type-checkin"
+rovers,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,5,False,4,0.5833,0.8054,0.5,0.4444,1.0,1.0,0,0,0,0,0,0,0.000248,157.85,56426,11618,68044,0.015435,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit"
+rovers,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.7148,0.7556,0.6667,0.7222,1.0,1.0,0,0,0,0,0,0,0.0,102.84,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+rovers,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.6927,0.6892,0.6667,0.7222,1.0,1.0,0,0,0,0,0,0,0.0,20.64,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+barman14-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,True,1,False,0,0.6064,0.6107,0.6528,0.5556,1.0,1.0,0,0,0,0,24,24,2.177323,31.0,6360,2371,8731,0.002377,A.2: Refined Success via Feedback Loops,RECOVERED,
+barman14-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,5,False,4,0.6151,0.5786,0.6944,0.5722,1.0,1.0,0,0,0,0,0,0,0.0,179.78,55692,13213,68905,0.016282,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,VAL Error: VAL Parser Crash (exit code 3221225477): Syntax violation detected. Check for undeclared variables or inline type annotations in action expressions.
+barman14-bfs,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.6581,0.6576,0.7361,0.5806,1.0,1.0,0,0,0,0,0,0,0.0,79.87,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+barman14-bfs,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.69,0.6977,0.6667,0.7056,1.0,1.0,0,0,0,0,0,0,0.0,14.15,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+elevators08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,True,1,False,0,0.4876,0.3796,0.8333,0.25,1.0,1.0,0,0,0,0,15,15,0.005335,27.04,5550,1816,7366,0.001922,A.2: Refined Success via Feedback Loops,RECOVERED,
+elevators08,ABLATION_NO_TRIAGE,ELICITATION,False,True,True,True,False,True,1,False,0,0.4046,0.2972,0.8333,0.0833,1.0,1.0,0,0,0,0,15,15,0.004765,24.8,5550,1816,7366,0.001922,A.2: Refined Success via Feedback Loops,RECOVERED,
+elevators08,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.4046,0.2972,0.8333,0.0833,1.0,1.0,0,0,0,0,0,0,0.0,97.95,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+elevators08,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.337,0.2611,0.5,0.25,0.8,1.0,0,0,0,0,0,0,0.0,16.95,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+floortile,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,True,1,False,0,0.6905,0.5,1.0,0.5714,1.0,1.0,0,0,0,0,8,8,0.000509,41.29,27109,3341,30450,0.006071,A.2: Refined Success via Feedback Loops,RECOVERED,
+floortile,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,5,False,4,0.6905,0.5,1.0,0.5714,1.0,1.0,0,0,0,0,0,0,5.9e-05,124.0,51138,8858,59996,0.012986,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit"
+floortile,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,0.6984,0.5238,1.0,0.5714,1.0,1.0,0,0,0,0,0,0,0.0,92.41,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+floortile,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,0.6984,0.5238,1.0,0.5714,1.0,1.0,0,0,0,0,0,0,0.0,19.07,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+parking11,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,0.1666,0.0,0.5,0.0,1.0,1.0,0,0,0,0,43,43,2.530576,29.4,5056,1148,6204,0.001447,A.2: Refined Success via Feedback Loops,RECOVERED,
+parking11,ABLATION_NO_TRIAGE,ELICITATION,False,True,True,True,False,True,1,False,0,0.1666,0.0,0.5,0.0,1.0,1.0,0,0,0,0,15,15,0.100224,24.83,5056,1190,6246,0.001472,A.2: Refined Success via Feedback Loops,RECOVERED,
+parking11,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,0.1666,0.0,0.5,0.0,1.0,1.0,0,0,0,0,0,0,0.0,55.96,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+parking11,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,0.1666,0.0,0.5,0.0,1.0,1.0,0,0,0,0,0,0,0.0,9.82,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+goldminer,CLOSED_LOOP_AST_AGENT,ELICITATION,False,False,False,False,False,False,5,False,4,0.1865,0.1786,0.381,0.0,1.0,1.0,0,0,0,0,0,0,0.0,159.41,101401,11043,112444,0.021836,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,VAL Error: VAL Parser Crash (exit code 3221225477): Syntax violation detected. Check for undeclared variables or inline type annotations in action expressions.
+goldminer,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,5,False,4,0.3929,0.3214,0.5,0.3571,1.0,1.0,0,0,0,0,0,0,0.0,111.75,42802,7868,50670,0.011141,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"VAL Error: Type-checking move_robot
+...action passes type checking.
+Type-checking pick_up_laser
+Object with unknown type: laser
+
+Errors: 0, warnings: 3
+
+Error: Error in type-checking!"
+goldminer,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,0.6929,0.8452,0.5714,0.6619,1.0,1.0,0,0,0,0,0,0,0.0,60.38,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+goldminer,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,0.7024,0.8452,0.5714,0.6905,1.0,1.0,0,0,0,0,0,0,0.0,12.38,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+transport08-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,0.5265,0.746,0.3333,0.5,1.0,1.0,0,0,0,0,5,5,0.001471,14.75,4803,936,5739,0.001282,A.2: Refined Success via Feedback Loops,RECOVERED,
+transport08-bfs,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,0.4709,0.5794,0.3333,0.5,1.0,1.0,0,0,0,0,5,5,0.000446,13.29,4803,931,5734,0.001279,A.2: Refined Success via Feedback Loops,RECOVERED,
+transport08-bfs,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.8241,0.8056,1.0,0.6667,1.0,1.0,0,0,0,0,0,0,0.0,49.21,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+transport08-bfs,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,0.8241,0.8056,1.0,0.6667,1.0,1.0,0,0,0,0,0,0,0.0,7.13,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+scanalyzer08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,0.8333,0.5,1.0,1.0,1.0,1.0,0,0,0,0,6,6,0.002783,21.99,5733,1529,7262,0.001777,A.2: Refined Success via Feedback Loops,RECOVERED,
+scanalyzer08,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,0.8333,0.5,1.0,1.0,1.0,1.0,0,0,0,0,6,6,0.001829,22.71,5733,1529,7262,0.001777,A.2: Refined Success via Feedback Loops,RECOVERED,
+scanalyzer08,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,0.8333,0.5,1.0,1.0,1.0,1.0,0,0,0,0,6,6,0.001376,15.28,0,0,0,0.0,A.2: Refined Success via Feedback Loops,RECOVERED,
+scanalyzer08,ZERO_SHOT,ELICITATION,False,True,True,True,False,True,1,False,0,0.8333,0.5,1.0,1.0,1.0,1.0,0,0,0,0,6,6,0.002103,14.98,0,0,0,0.0,A.2: Refined Success via Feedback Loops,RECOVERED,
+visitall,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,True,1,False,0,0.5,0.5,1.0,0.0,1.0,1.0,0,0,0,0,3,3,0.000174,9.04,4311,473,4784,0.00093,A.2: Refined Success via Feedback Loops,RECOVERED,
+visitall,ABLATION_NO_TRIAGE,ELICITATION,False,True,True,True,False,True,1,False,0,0.5,0.5,1.0,0.0,1.0,1.0,0,0,0,0,3,3,0.000302,8.68,4311,473,4784,0.00093,A.2: Refined Success via Feedback Loops,RECOVERED,
+visitall,ABLATION_NO_AST,ELICITATION,False,True,True,True,False,False,2,False,1,0.5,0.5,1.0,0.0,1.0,1.0,0,0,0,0,3,3,0.000214,13.68,0,0,0,0.0,A.2: Refined Success via Feedback Loops,RECOVERED,
+visitall,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,0.5,0.5,1.0,0.0,1.0,1.0,0,0,0,0,0,0,0.0,6.33,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+pipesworld-notankage04-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,5,False,4,0.4679,0.3205,0.75,0.3333,1.0,1.0,0,0,0,0,0,0,4.5e-05,221.46,141643,16924,158567,0.031401,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit"
+pipesworld-notankage04-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,5,False,4,0.418,0.3205,0.6,0.3333,1.0,1.0,0,0,0,0,0,0,0.0,168.77,52276,11824,64100,0.014936,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"VAL Error: Type-checking push-start-pipe
+...action passes type checking.
+Type-checking push-end-pipe
+...action passes type checking.
+Type-checking pop-start-pipe
+...action passes type checking.
+Type-c"
+pipesworld-notankage04-bfs,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.632,0.6294,0.6,0.6667,1.0,1.0,0,0,0,0,0,0,0.0,144.05,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+pipesworld-notankage04-bfs,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.5076,0.5226,0.6667,0.3333,1.0,1.0,0,0,0,0,0,0,0.0,23.03,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+woodworking08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,5,False,4,0.0337,0.1012,0.0,0.0,1.0,1.0,0,0,0,0,0,0,2.5e-05,284.16,178697,22841,201538,0.040509,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit"
+woodworking08,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,5,False,4,0.0594,0.1012,0.0769,0.0,1.0,1.0,0,0,0,0,0,0,1.4e-05,219.72,73472,18967,92439,0.022401,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit"
+woodworking08,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.4091,0.3555,0.5641,0.3077,0.8182,1.0,0,0,0,0,0,0,0.0,143.12,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+woodworking08,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.4694,0.3314,0.5385,0.5385,1.0,1.0,0,0,0,0,0,0,0.0,31.76,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+tpp06-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,False,False,2,True,1,0.9375,0.8125,1.0,1.0,1.0,1.0,0,0,0,0,0,0,1.6e-05,55.69,39236,3579,42815,0.008033,A.2: Refined Success via Feedback Loops,RECOVERED,
+tpp06-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,5,False,4,0.5694,0.75,0.25,0.7084,1.0,1.0,0,0,0,0,0,0,2.4e-05,96.96,47510,5994,53504,0.010723,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit"
+tpp06-bfs,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,0.75,0.625,1.0,0.625,1.0,1.0,0,0,0,0,0,0,0.0,49.55,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+tpp06-bfs,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,0.9375,0.8125,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,10.06,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+pegsol08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,0.8296,1.0,0.5556,0.9333,1.0,1.0,0,0,0,0,9,9,0.000746,77.67,33198,6379,39577,0.008807,A.2: Refined Success via Feedback Loops,RECOVERED,
+pegsol08,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,5,False,4,0.8667,1.0,0.6667,0.9333,1.0,1.0,0,0,0,0,0,0,5.1e-05,234.84,69861,18086,87947,0.021331,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit"
+pegsol08,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,2.3e-05,160.92,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+pegsol08,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,3.6e-05,26.39,0,0,0,0.0,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+nomystery11-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,85.42,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Failed to parse LLM output into schema UnifiedBlueprint.
+Received: '{\n  ""domain"": {\n    ""domain_name"": ""nomyst"
+nomystery11-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,83.79,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Failed to parse LLM output into schema UnifiedBlueprint.
+Received: '{\n  ""domain"": {\n    ""domain_name"": ""nomyst"
+nomystery11-bfs,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.7963,0.8333,0.6667,0.8889,1.0,1.0,0,0,0,0,0,0,0.0,200.84,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+nomystery11-bfs,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.7963,0.8333,0.6667,0.8889,1.0,1.0,0,0,0,0,0,0,0.0,81.37,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,

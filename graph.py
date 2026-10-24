@@ -12,12 +12,12 @@ from tools.symbolic_oracles import run_val_validator, run_fast_downward
 class AgentState(TypedDict, total=False):
     requirements: str
     pddl_domain_blueprint: dict
-    pddl_problem_blueprint: dict
     initial_pddl_domain_blueprint: dict
     generated_domain_pddl: str
     generated_problem_pddl: str
     initial_domain_pddl: str
     initial_problem_pddl: str
+    reference_domain_pddl: str
     is_evolution_task: bool
     is_synthetic_repair: bool
     skip_elicitation: bool
@@ -49,18 +49,14 @@ def run_full_validation_node(state: AgentState) -> AgentState:
         pddl_code = state.get("initial_domain_pddl", "")
         state["generated_domain_pddl"] = pddl_code
 
-    problem_pddl_code = state.get("generated_problem_pddl")
-    if not problem_pddl_code and state.get("initial_problem_pddl"):
-        problem_pddl_code = state.get("initial_problem_pddl", "")
+    problem_pddl_code = state.get("initial_problem_pddl") or state.get("generated_problem_pddl") or ""
+    if problem_pddl_code:
         state["generated_problem_pddl"] = problem_pddl_code
-    
-    # Ensure AST blueprints exist for triage & repair
+
+    # Ensure Domain AST blueprint exists for triage & repair
     if not state.get("pddl_domain_blueprint") and pddl_code:
         from tools.blueprint_parser import parse_pddl_domain_to_blueprint
         state["pddl_domain_blueprint"] = parse_pddl_domain_to_blueprint(pddl_code)
-    if not state.get("pddl_problem_blueprint") and problem_pddl_code:
-        from tools.blueprint_parser import parse_pddl_problem_to_blueprint
-        state["pddl_problem_blueprint"] = parse_pddl_problem_to_blueprint(problem_pddl_code)
 
     # Save temporary domain file to disk
     from config.paths import get_temp_domain_path, get_temp_problem_path
@@ -87,15 +83,47 @@ def run_full_validation_node(state: AgentState) -> AgentState:
         state["node_latencies"] = latencies
         return state
 
-    # -- Oracle 2: Fast Downward for Solvability Check & Plan Synthesis --
+    # -- Oracle 2 & 3: Fast Downward for Solvability Check & Closed-Loop Plan Transfer Soundness --
     if temp_problem_file:
         from tools.symbolic_oracles import run_fast_downward_with_plan
-        plan_res = run_fast_downward_with_plan(temp_domain_file, temp_problem_file)
+        from config.paths import get_temp_domain_path
+        ref_dom_code = state.get("reference_domain_pddl")
+        ref_dom_file = None
+        if ref_dom_code:
+            ref_dom_file = get_temp_domain_path().replace(".pddl", "_ref.pddl")
+            with open(ref_dom_file, "w", encoding="utf-8") as rf:
+                rf.write(ref_dom_code)
+
+        plan_res = run_fast_downward_with_plan(temp_domain_file, temp_problem_file, ground_truth_domain_path=ref_dom_file)
         state["generated_plan_result"] = plan_res
         
         if not plan_res["is_solvable"]:
             fd_log = plan_res.get("raw_fd_log", "")
-            err_msg = "Planner Error: Could not find a plan. " + fd_log
+            if plan_res.get("timed_out"):
+                # Search budget exhausted: NOT a proof of unsolvability, so it must not be
+                # reported as "Could not find a plan" (which triage treats as a proven deadlock).
+                err_msg = "Planner Error: " + fd_log
+            else:
+                err_msg = "Planner Error: Could not find a plan. " + fd_log
+            state["verification_errors"] = [err_msg]
+            if not state.get("initial_verification_errors"):
+                state["initial_verification_errors"] = [err_msg]
+            latencies = state.get("node_latencies", {})
+            latencies["validate"] = round(latencies.get("validate", 0.0) + (time.time() - start_t), 3)
+            state["node_latencies"] = latencies
+            return state
+
+        # -- Oracle 3: Plan Transfer Soundness (PTS) Check on Reference Domain --
+        if ref_dom_file and not plan_res.get("semantic_soundness_valid"):
+            import re
+            clean_val_log = re.sub(r"\s+", " ", plan_res.get("semantic_soundness_log", "")).strip()[:1000]
+            err_msg = (
+                f"Plan Transfer Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, "
+                f"but failed execution when transferred to reference domain D_gold on problem P_gold! "
+                f"VAL Oracle Diagnostic Trace: {clean_val_log}\n"
+                f"Action schemas in D_gen are likely missing necessary preconditions (trivial model trap) "
+                f"or producing effects that violate physical domain invariants."
+            )
             state["verification_errors"] = [err_msg]
             if not state.get("initial_verification_errors"):
                 state["initial_verification_errors"] = [err_msg]

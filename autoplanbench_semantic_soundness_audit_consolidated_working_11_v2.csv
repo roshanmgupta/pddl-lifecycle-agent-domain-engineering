@@ -1,0 +1,5 @@
+domain,agent_type,gold_operator_count,generated_operator_count,matched_operator_count,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,val_internal_valid,val_standard_transfer_valid,semantic_verdict,action_bijection_mapping
+gripper,CLOSED_LOOP_AST_AGENT,3,3,3,1.0,1.0,1.0,1.0,1.0,True,True,SOUND_AND_CONVERSANT,"{""move_robot"": ""move"", ""pick_object"": ""pick"", ""drop_object"": ""drop""}"
+visitall,CLOSED_LOOP_AST_AGENT,1,1,1,1.0,1.0,1.0,1.0,1.0,True,True,SOUND_AND_CONVERSANT,"{""move_robot"": ""move""}"
+satellite,CLOSED_LOOP_AST_AGENT,5,5,5,0.9778,1.0,0.9333,1.0,1.0,True,True,SOUND_AND_CONVERSANT,"{""turn-satellite"": ""turn_to"", ""switch-on-instrument"": ""switch_on"", ""switch-off-instrument"": ""switch_off"", ""calibrate-instrument"": ""calibrate"", ""take-image"": ""take_image""}"
+transport08-bfs,CLOSED_LOOP_AST_AGENT,3,3,3,1.0,1.0,1.0,1.0,1.0,False,False,SOUND_AND_CONVERSANT,"{""drive_vehicle"": ""drive"", ""pick_up_package"": ""pick-up"", ""drop_package"": ""drop""}"

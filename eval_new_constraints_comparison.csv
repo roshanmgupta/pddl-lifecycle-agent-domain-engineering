@@ -1,0 +1,18 @@
+domain,old_syntax,new_syntax,old_solved,new_solved,old_val_valid,new_val_valid,old_transfer,new_transfer,old_iters,new_iters,old_macro_f1,new_macro_f1,c1_caught,c2_caught,c3_caught,status
+gripper,True,True,True,True,True,True,False,False,1,1,0.2667,0.4222,0,0,0,IMPROVED (HIGHER F1)
+depot,True,False,True,False,True,False,False,False,1,5,1.0,0.0,0,0,0,REGRESSED
+satellite,True,True,True,True,True,True,False,False,1,1,0.62,0.0963,0,0,0,STABLE
+rovers,True,True,True,True,True,True,False,False,3,4,0.3512,0.1534,0,0,0,STABLE
+barman14-bfs,True,True,True,True,True,True,False,False,1,3,0.5978,0.0694,0,0,0,STABLE
+elevators08,True,True,True,True,True,True,False,False,1,1,0.4139,0.0694,0,0,0,STABLE
+floortile,True,True,True,True,True,True,False,False,1,3,0.6905,0.1088,0,0,0,STABLE
+parking11,True,True,False,False,False,False,False,False,5,1,0.1666,0.0,0,0,0,STABLE
+goldminer,True,True,True,True,True,True,False,False,2,1,0.1786,0.0159,0,0,0,STABLE
+transport08-bfs,True,True,True,True,True,True,False,False,1,1,0.4709,0.6111,0,0,0,IMPROVED (HIGHER F1)
+scanalyzer08,True,True,True,False,True,False,False,False,1,5,0.8333,0.1167,0,0,0,REGRESSED
+visitall,True,True,True,True,True,True,False,False,1,1,0.5,0.3333,0,0,0,STABLE
+pipesworld-notankage04-bfs,False,False,False,False,False,False,False,False,5,5,0.4679,0.0,0,0,0,STABLE
+woodworking08,False,False,False,False,False,False,False,False,5,5,0.1615,0.0256,0,0,0,STABLE
+tpp06-bfs,True,False,True,False,True,False,False,False,1,5,0.9375,0.1726,0,0,0,REGRESSED
+pegsol08,True,False,True,False,True,False,False,False,2,5,0.737,0.0,0,0,0,REGRESSED
+nomystery11-bfs,True,True,True,True,True,True,False,False,1,1,0.8968,0.582,0,0,0,STABLE

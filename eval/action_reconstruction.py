@@ -142,10 +142,12 @@ def compute_operator_structural_f1(op_gen: StripsOperator, op_gt: StripsOperator
     # Arithmetic mean across the 3 physical STRIPS components (no arbitrary magic weights)
     structural_f1 = round((pre_f1 + add_f1 + del_f1) / 3.0, 4)
 
-    # Morphological name similarity
-    n1 = op_gen.name.lower().replace("-", "_")
-    n2 = op_gt.name.lower().replace("-", "_")
-    name_similarity = round(difflib.SequenceMatcher(None, n1, n2).ratio(), 4)
+    # Morphological name similarity: Word-token Jaccard (handles inverted token order like move_slow_elevator_up vs move-up-slow) + substring ratio
+    w1 = set(re.findall(r"[a-z0-9]+", op_gen.name.lower()))
+    w2 = set(re.findall(r"[a-z0-9]+", op_gt.name.lower()))
+    token_jaccard = len(w1 & w2) / len(w1 | w2) if (w1 and w2) else 0.0
+    seq_ratio = difflib.SequenceMatcher(None, op_gen.name.lower().replace("-", "_"), op_gt.name.lower().replace("-", "_")).ratio()
+    name_similarity = round(0.7 * token_jaccard + 0.3 * seq_ratio, 4)
 
     # Arity alignment
     arity_match = 1.0 if op_gen.arity == op_gt.arity else 0.5
@@ -243,10 +245,143 @@ def kuhn_munkres_max_bipartite_matching(weight_matrix: List[List[float]]) -> Lis
     return matches
 
 
+def extract_declared_predicate_signatures(pddl_text: str) -> Dict[str, List[str]]:
+    """
+    Extracts declared predicate symbols mapped to their list of normalized parameter types
+    from (:predicates ...) in a PDDL domain string.
+    """
+    clean_text = re.sub(r";.*$", "", pddl_text, flags=re.MULTILINE)
+    pred_block_m = re.search(r"\(:predicates\s+(.*?)\)\s*\(:", clean_text, re.DOTALL | re.IGNORECASE)
+    if not pred_block_m:
+        pred_block_m = re.search(r"\(:predicates\s+(.*)\)", clean_text, re.DOTALL | re.IGNORECASE)
+    if not pred_block_m:
+        return {}
+
+    sigs: Dict[str, List[str]] = {}
+    for m in re.finditer(r"\(\s*([a-zA-Z][a-zA-Z0-9_\-]*)(.*?)\)", pred_block_m.group(1), re.DOTALL):
+        pname = normalize_predicate_token(m.group(1))
+        if pname in ["and", "or", "not", "when", "forall", "exists"]:
+            continue
+        raw_params = m.group(2).strip()
+        if not raw_params:
+            sigs[pname] = []
+            continue
+        tokens = raw_params.split()
+        param_types: List[str] = []
+        cur_vars: List[str] = []
+        i = 0
+        while i < len(tokens):
+            if tokens[i] == "-":
+                ptype = normalize_predicate_token(tokens[i + 1]) if i + 1 < len(tokens) else "object"
+                for _ in cur_vars:
+                    param_types.append(ptype)
+                cur_vars = []
+                i += 2
+            elif tokens[i].startswith("?"):
+                cur_vars.append(tokens[i])
+                i += 1
+            else:
+                i += 1
+        for _ in cur_vars:
+            param_types.append("object")
+        sigs[pname] = param_types
+    return sigs
+
+
+def align_predicate_vocabulary_kuhn_munkres(
+    gt_pddl: str,
+    generated_pddl: str,
+    gt_operators: List[StripsOperator],
+    gen_operators: List[StripsOperator]
+) -> Dict[str, str]:
+    """
+    Computes an optimal 1-to-1 bijection from generated predicate symbols to ground-truth
+    predicate symbols using Kuhn-Munkres Maximum Weight Bipartite Matching.
+    - Predicates that already match identically by normalized symbol are fixed as identity mappings.
+    - Remaining unmatched predicates (e.g., internal fluents not appearing in P_gold :init/:goal)
+      are matched strictly across equal-arity predicates based on:
+        1) Parameter-type signature compatibility (multiset/positional type overlap),
+        2) STRIPS state-transition role compatibility (precondition / add / delete occurrence),
+        3) Morphological name similarity.
+    """
+    gt_sigs = extract_declared_predicate_signatures(gt_pddl)
+    gen_sigs = extract_declared_predicate_signatures(generated_pddl)
+
+    all_gt_preds: Set[str] = set(gt_sigs.keys())
+    all_gen_preds: Set[str] = set(gen_sigs.keys())
+    for op in gt_operators:
+        all_gt_preds |= op.preconditions | op.add_effects | op.delete_effects
+    for op in gen_operators:
+        all_gen_preds |= op.preconditions | op.add_effects | op.delete_effects
+
+    pred_map: Dict[str, str] = {}
+    exact_matches = all_gt_preds & all_gen_preds
+    for p in exact_matches:
+        pred_map[p] = p
+
+    unmatched_gen = sorted(all_gen_preds - exact_matches)
+    unmatched_gt = sorted(all_gt_preds - exact_matches)
+    if not unmatched_gen or not unmatched_gt:
+        return pred_map
+
+    def _transition_roles(pred: str, ops: List[StripsOperator]) -> Tuple[int, int, int]:
+        pre_c = sum(1 for op in ops if pred in op.preconditions)
+        add_c = sum(1 for op in ops if pred in op.add_effects)
+        del_c = sum(1 for op in ops if pred in op.delete_effects)
+        return (1 if pre_c > 0 else 0, 1 if add_c > 0 else 0, 1 if del_c > 0 else 0)
+
+    weight_matrix: List[List[float]] = []
+    for p_gen in unmatched_gen:
+        row: List[float] = []
+        t_gen = gen_sigs.get(p_gen)
+        r_gen = _transition_roles(p_gen, gen_operators)
+        for p_gt in unmatched_gt:
+            t_gt = gt_sigs.get(p_gt)
+            # Strict FOL arity invariant: predicates with different declared arities cannot map to each other
+            if t_gen is not None and t_gt is not None and len(t_gen) != len(t_gt):
+                row.append(0.0)
+                continue
+
+            if t_gen is not None and t_gt is not None:
+                if len(t_gen) == 0:
+                    type_sim = 1.0
+                else:
+                    # Positional type match or multiset type match (since parameter order may be permuted)
+                    pos_matches = sum(
+                        1.0 if (a == b or a == "object" or b == "object") else 0.0
+                        for a, b in zip(t_gen, t_gt)
+                    ) / len(t_gen)
+                    multiset_matches = sum(
+                        1.0 if (a in t_gt or a == "object" or "object" in t_gt) else 0.0
+                        for a in t_gen
+                    ) / len(t_gen)
+                    type_sim = max(pos_matches, multiset_matches)
+                if len(t_gen) > 0 and type_sim == 0.0:
+                    row.append(0.0)
+                    continue
+            else:
+                type_sim = 0.5
+
+            r_gt = _transition_roles(p_gt, gt_operators)
+            role_sim = sum(1.0 for a, b in zip(r_gen, r_gt) if a == b) / 3.0
+            name_sim = difflib.SequenceMatcher(None, p_gen, p_gt).ratio()
+
+            weight = round(0.5 * type_sim + 0.3 * role_sim + 0.2 * name_sim, 4)
+            row.append(weight)
+        weight_matrix.append(row)
+
+    matches = kuhn_munkres_max_bipartite_matching(weight_matrix)
+    for gen_idx, gt_idx in matches:
+        if weight_matrix[gen_idx][gt_idx] >= 0.55:
+            pred_map[unmatched_gen[gen_idx]] = unmatched_gt[gt_idx]
+
+    return pred_map
+
+
 def evaluate_action_reconstruction(gt_pddl: str, generated_pddl: str) -> Dict[str, Any]:
     """
     Evaluates Action Reconstruction Error (ARE) between generated PDDL and ground truth PDDL
-    using exact maximum bipartite matching over STRIPS operator definitions.
+    using exact maximum bipartite matching over STRIPS predicates and operator definitions.
     
     Returns standard structural metrics:
     - macro_structural_f1: Average structural F1 across matched operators.
@@ -256,6 +391,13 @@ def evaluate_action_reconstruction(gt_pddl: str, generated_pddl: str) -> Dict[st
     """
     gt_operators = extract_strips_operators(gt_pddl)
     gen_operators = extract_strips_operators(generated_pddl)
+
+    # Align internal predicate symbols via Kuhn-Munkres bipartite matching before comparing operator sets
+    pred_bijection = align_predicate_vocabulary_kuhn_munkres(gt_pddl, generated_pddl, gt_operators, gen_operators)
+    for op in gen_operators:
+        op.preconditions = {pred_bijection.get(p, p) for p in op.preconditions}
+        op.add_effects = {pred_bijection.get(p, p) for p in op.add_effects}
+        op.delete_effects = {pred_bijection.get(p, p) for p in op.delete_effects}
 
     gt_count = len(gt_operators)
     gen_count = len(gen_operators)
@@ -285,8 +427,8 @@ def evaluate_action_reconstruction(gt_pddl: str, generated_pddl: str) -> Dict[st
         for j, gt_op in enumerate(gt_operators):
             m = compute_operator_structural_f1(gen_op, gt_op)
             pairwise_metrics[(i, j)] = m
-            # ARMS literature metric: Structural STRIPS F1 with epsilon tie-breaker on name similarity
-            match_weight = round(m["structural_f1"] + 0.001 * m["name_similarity"], 4)
+            # ARMS literature metric: Structural STRIPS F1 with tie-breaker on token name similarity
+            match_weight = round(m["structural_f1"] + 0.05 * m["name_similarity"], 4)
             row.append(match_weight)
         weight_matrix.append(row)
 
@@ -387,8 +529,18 @@ def parse_typed_parameters(action_body: str) -> List[Tuple[str, str]]:
     return res
 
 
+def _normalize_pred_symbol_for_sig(pred: str) -> str:
+    """Normalizes predicate symbol across hyphen/underscore and prefix variants (have_, has_, is_)."""
+    p = str(pred).strip("() ").lower().replace("-", "_")
+    p = re.sub(r"^(have|has|is)[_\-]", "", p)
+    return p.replace('_', '')
+
+
 def get_param_relational_signatures(action_body: str) -> List[Dict[str, Any]]:
-    """Extracts typed parameters along with their relational roles (preconditions, add effects, delete effects)."""
+    """
+    Extracts typed parameters along with their relational roles (preconditions, add effects, delete effects)
+    and normalized predicate occurrence signatures (pred, arg_index) to disambiguate parameters sharing types.
+    """
     param_m = re.search(r":parameters\s*\((.*?)\)", action_body, re.DOTALL | re.IGNORECASE)
     tokens = param_m.group(1).split() if param_m else []
     params = []
@@ -415,12 +567,27 @@ def get_param_relational_signatures(action_body: str) -> List[Dict[str, Any]]:
     eff_m = re.search(r":effect\s*(.*?)(?=\)\s*$)", action_body, re.DOTALL | re.IGNORECASE)
     eff_str = eff_m.group(1) if eff_m else ""
 
-    del_vars = set()
-    for not_m in re.finditer(r"\(\s*not\s*\((.*?)\)\s*\)", eff_str, re.DOTALL | re.IGNORECASE):
-        del_vars.update(re.findall(r"\?([a-zA-Z0-9_\-]+)", not_m.group(1)))
+    def _extract_occurrences(s: str) -> Dict[str, Set[Tuple[str, int]]]:
+        res: Dict[str, Set[Tuple[str, int]]] = {}
+        for am in re.finditer(r"\(\s*([a-zA-Z0-9_\-]+)\s*(.*?)\)", s):
+            p = _normalize_pred_symbol_for_sig(am.group(1))
+            if p in ("and", "not", "or", "imply"):
+                continue
+            args = [a.lstrip("?").lower() for a in am.group(2).split() if a]
+            for idx, a in enumerate(args):
+                res.setdefault(a, set()).add((p, idx))
+        return res
 
-    clean_eff = re.sub(r"\(\s*not\s*\(.*?\)\s*\)", "", eff_str, flags=re.DOTALL | re.IGNORECASE)
-    add_vars = set(re.findall(r"\?([a-zA-Z0-9_\-]+)", clean_eff))
+    # Separate positive effects from negative (delete) effects
+    del_str = " ".join([m.group(1) for m in re.finditer(r"\(\s*not\s*\((.*?)\)\s*\)", eff_str, re.DOTALL | re.IGNORECASE)])
+    add_str = re.sub(r"\(\s*not\s*\(.*?\)\s*\)", "", eff_str, flags=re.DOTALL | re.IGNORECASE)
+
+    pre_occ = _extract_occurrences(pre_str)
+    add_occ = _extract_occurrences(add_str)
+    del_occ = _extract_occurrences(del_str)
+
+    del_vars = set(re.findall(r"\?([a-zA-Z0-9_\-]+)", del_str))
+    add_vars = set(re.findall(r"\?([a-zA-Z0-9_\-]+)", add_str))
     pre_vars = set(re.findall(r"\?([a-zA-Z0-9_\-]+)", pre_str))
 
     sigs = []
@@ -430,7 +597,10 @@ def get_param_relational_signatures(action_body: str) -> List[Dict[str, Any]]:
             "type": t,
             "in_pre": v in pre_vars,
             "in_add": v in add_vars,
-            "in_del": v in del_vars
+            "in_del": v in del_vars,
+            "pre_occ": pre_occ.get(v.lower(), set()),
+            "add_occ": add_occ.get(v.lower(), set()),
+            "del_occ": del_occ.get(v.lower(), set())
         })
     return sigs
 
@@ -438,14 +608,15 @@ def get_param_relational_signatures(action_body: str) -> List[Dict[str, Any]]:
 def compute_typed_param_permutation(gen_body: str, gt_body: str) -> List[int]:
     """
     Computes argument index permutation from generated action parameters to ground-truth action parameters.
-    Disambiguates arguments sharing the same type via their STRIPS relational transition roles.
+    Disambiguates arguments sharing the same type via their STRIPS relational transition roles
+    and exact predicate occurrence signatures.
     Returns perm such that gt_arg[k] = gen_args[perm[k]].
     """
     gen_sigs = get_param_relational_signatures(gen_body)
     gt_sigs = get_param_relational_signatures(gt_body)
 
-    if len(gen_sigs) != len(gt_sigs):
-        return list(range(min(len(gen_sigs), len(gt_sigs))))
+    # Allow greedy bipartite alignment even if arities differ due to auxiliary parameters
+    pass
 
     used = set()
     perm = []
@@ -467,6 +638,14 @@ def compute_typed_param_permutation(gen_body: str, gt_body: str) -> List[int]:
                 role_score += 3
             if gt["in_del"] == gen["in_del"]:
                 role_score += 3
+            # Disambiguate arguments using relational predicate occurrence signatures
+            pre_overlap = len(gt.get("pre_occ", set()).intersection(gen.get("pre_occ", set())))
+            add_overlap = len(gt.get("add_occ", set()).intersection(gen.get("add_occ", set())))
+            del_overlap = len(gt.get("del_occ", set()).intersection(gen.get("del_occ", set())))
+            role_score += pre_overlap * 20
+            role_score += add_overlap * 30
+            role_score += del_overlap * 30
+
             if role_score > best_score:
                 best_score = role_score
                 best_idx = idx

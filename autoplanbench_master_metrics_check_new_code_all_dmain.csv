@@ -1,0 +1,149 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+gripper,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000465,27.58,20626,1459,22085,0.003969,A.2: Refined Success via Feedback Loops,RECOVERED,
+gripper,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.7,0.4333,1.0,0.6667,1.0,1.0,0,0,0,0,0,0,6.2e-05,47.74,39692,2740,42432,0.007598,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+gripper,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,0.7,0.4333,1.0,0.6667,1.0,1.0,0,0,0,0,0,0,0.0,40.81,4850,1688,6538,0.00174,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+gripper,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,3.81,834,326,1160,0.000321,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,6.2e-05,101.55,97084,5975,103059,0.018148,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+depot,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,6e-05,68.06,45234,5029,50263,0.009802,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+depot,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.92,0.96,0.9,0.9,1.0,1.0,0,0,0,0,0,0,0.0,34.48,7590,3150,10740,0.003028,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+depot,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.92,0.96,0.9,0.9,1.0,1.0,0,0,0,0,0,0,0.0,6.53,1467,607,2074,0.000584,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+satellite,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,0.9778,1.0,0.9333,1.0,1.0,1.0,0,0,0,0,5,5,0.001115,24.09,19500,1459,20959,0.0038,A.2: Refined Success via Feedback Loops,RECOVERED,
+satellite,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,False,2,True,1,0.9778,1.0,0.9333,1.0,1.0,1.0,0,0,0,0,5,5,0.000729,20.09,11912,1369,13281,0.002608,A.2: Refined Success via Feedback Loops,RECOVERED,
+satellite,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,37.1,5992,2481,8473,0.002387,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+satellite,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,4.71,926,483,1409,0.000429,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+rovers,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.859,0.9475,0.7407,0.8889,1.0,1.0,0,0,0,0,0,0,6.2e-05,210.78,154340,19742,174082,0.034996,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+rovers,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.9022,0.929,0.8889,0.8889,1.0,1.0,0,0,0,0,0,0,9.8e-05,113.53,53519,9418,62937,0.013679,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+rovers,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.8197,0.9593,0.8333,0.6667,1.0,1.0,0,0,0,0,0,0,0.0,71.01,11626,7066,18692,0.005983,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+rovers,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.9864,0.9593,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,13.13,2257,1456,3713,0.001212,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+barman14-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.7398,0.8667,0.8111,0.5417,1.0,1.0,0,0,0,0,0,0,0.0,783.78,168935,30772,199707,0.043803,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,Planner Error: Could not find a plan. Execution Error: Fast Downward timed out after 90 seconds.
+barman14-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.8558,0.8811,0.9083,0.7778,1.0,1.0,0,0,0,0,0,0,3e-05,114.55,59213,11409,70622,0.015727,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+barman14-bfs,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.8085,0.9144,0.7917,0.7195,1.0,1.0,0,0,0,0,0,0,0.0,62.57,14870,6567,21437,0.006171,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+barman14-bfs,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.8051,0.968,0.7972,0.65,1.0,1.0,0,0,0,0,0,0,0.0,12.46,2932,1230,4162,0.001178,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+elevators08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,15,15,0.000951,39.35,28510,3298,31808,0.006255,A.2: Refined Success via Feedback Loops,RECOVERED,
+elevators08,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.5658,0.6695,0.8333,0.1945,1.0,1.0,0,0,0,0,0,0,3.2e-05,66.02,51159,5684,56843,0.011084,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+elevators08,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,46.75,12830,4050,16880,0.004354,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+elevators08,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,8.56,2429,785,3214,0.000835,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+floortile,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,0.8413,1.0,1.0,0.5238,1.0,1.0,0,0,0,0,8,8,0.000381,43.81,45995,4038,50033,0.009322,A.2: Refined Success via Feedback Loops,RECOVERED,
+floortile,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,2.1e-05,60.39,47894,5832,53726,0.010683,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+floortile,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,0.4074,0.3651,0.4286,0.4286,0.6,1.0,0,0,0,0,0,0,2.1e-05,35.92,10824,3294,14118,0.0036,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+floortile,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,7.14,1810,757,2567,0.000726,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+parking11,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.6861,0.8667,0.3667,0.825,1.0,1.0,0,0,0,0,0,0,0.002691,122.13,142428,9647,152075,0.027152,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+parking11,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.4528,0.4667,0.5417,0.35,1.0,1.0,0,0,0,0,0,0,2.4e-05,47.49,46631,3749,50380,0.009244,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+parking11,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.7949,0.8928,0.6667,0.825,1.0,1.0,0,0,0,0,0,0,0.0,33.0,10562,2798,13360,0.003263,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+parking11,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,0.7909,0.881,0.75,0.7417,1.0,1.0,0,0,0,0,0,0,0.0,6.68,1938,555,2493,0.000624,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+goldminer,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.3383,0.4673,0.2381,0.3095,1.0,1.0,0,0,0,0,0,0,1.8e-05,150.07,132397,14294,146691,0.028436,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+goldminer,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.3905,0.3857,0.4762,0.3095,1.0,1.0,0,0,0,0,0,0,2.5e-05,73.0,45405,5925,51330,0.010366,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+goldminer,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.9524,1.0,1.0,0.8572,1.0,1.0,0,0,0,0,0,0,0.0,34.27,7618,2987,10605,0.002935,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+goldminer,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.9683,1.0,1.0,0.9048,1.0,1.0,0,0,0,0,0,0,0.0,6.59,1358,620,1978,0.000576,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+transport08-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,False,False,6,True,5,0.9778,0.9333,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000492,38.22,18742,1449,20191,0.003681,A.2: Refined Success via Feedback Loops,RECOVERED,Triage Diagnostic LLM Exception: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $
+transport08-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.26,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+transport08-bfs,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.18,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+transport08-bfs,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.06,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"[ALERT] OpenRouter (Raw) LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9.50 used; does not reset.', 'code': 403, 'metadata': {'limit_source': 'openrouter_key_limit', 'remedy_hint': ""Raise or remove this API key's usage limit at https://openrouter.ai/settings/keys, or use a key without a limit."", 'scope': 'key_limit', 'limit_usd': 9.5, 'spend_usd': 9.50104226, 'resets_at': None}}}"
+scanalyzer08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.11,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+scanalyzer08,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.22,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+scanalyzer08,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.07,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+scanalyzer08,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.1,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"[ALERT] OpenRouter (Raw) LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9.50 used; does not reset.', 'code': 403, 'metadata': {'limit_source': 'openrouter_key_limit', 'remedy_hint': ""Raise or remove this API key's usage limit at https://openrouter.ai/settings/keys, or use a key without a limit."", 'scope': 'key_limit', 'limit_usd': 9.5, 'spend_usd': 9.50104226, 'resets_at': None}}}"
+visitall,CLOSED_LOOP_AST_AGENT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.09,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+visitall,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.05,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+visitall,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.05,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+visitall,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.06,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"[ALERT] OpenRouter (Raw) LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9.50 used; does not reset.', 'code': 403, 'metadata': {'limit_source': 'openrouter_key_limit', 'remedy_hint': ""Raise or remove this API key's usage limit at https://openrouter.ai/settings/keys, or use a key without a limit."", 'scope': 'key_limit', 'limit_usd': 9.5, 'spend_usd': 9.50104226, 'resets_at': None}}}"
+pipesworld-notankage04-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.08,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+pipesworld-notankage04-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.07,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+pipesworld-notankage04-bfs,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.04,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+pipesworld-notankage04-bfs,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.07,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"[ALERT] OpenRouter (Raw) LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9.50 used; does not reset.', 'code': 403, 'metadata': {'limit_source': 'openrouter_key_limit', 'remedy_hint': ""Raise or remove this API key's usage limit at https://openrouter.ai/settings/keys, or use a key without a limit."", 'scope': 'key_limit', 'limit_usd': 9.5, 'spend_usd': 9.50104226, 'resets_at': None}}}"
+woodworking08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.08,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+woodworking08,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.06,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+woodworking08,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.1,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+woodworking08,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.08,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"[ALERT] OpenRouter (Raw) LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9.50 used; does not reset.', 'code': 403, 'metadata': {'limit_source': 'openrouter_key_limit', 'remedy_hint': ""Raise or remove this API key's usage limit at https://openrouter.ai/settings/keys, or use a key without a limit."", 'scope': 'key_limit', 'limit_usd': 9.5, 'spend_usd': 9.50104226, 'resets_at': None}}}"
+tpp06-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.06,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+tpp06-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.11,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+tpp06-bfs,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.12,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+tpp06-bfs,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.09,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"[ALERT] OpenRouter (Raw) LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9.50 used; does not reset.', 'code': 403, 'metadata': {'limit_source': 'openrouter_key_limit', 'remedy_hint': ""Raise or remove this API key's usage limit at https://openrouter.ai/settings/keys, or use a key without a limit."", 'scope': 'key_limit', 'limit_usd': 9.5, 'spend_usd': 9.50104226, 'resets_at': None}}}"
+pegsol08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.1,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+pegsol08,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.11,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9
+pegsol08,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.09,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+pegsol08,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,0.11,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"[ALERT] OpenRouter (Raw) LLM API Error for Model 'openai/gpt-4o-mini': Error code: 403 - {'error': {'message': 'Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/thesis/keys/917558ffae5bca3e73db0caf0343dc00bc70e71df69ec039c071acadc2d7a59b $9.50 of $9.50 used; does not reset.', 'code': 403, 'metadata': {'limit_source': 'openrouter_key_limit', 'remedy_hint': ""Raise or remove this API key's usage limit at https://openrouter.ai/settings/keys, or use a key without a limit."", 'scope': 'key_limit', 'limit_usd': 9.5, 'spend_usd': 9.50104226, 'resets_at': None}}}"

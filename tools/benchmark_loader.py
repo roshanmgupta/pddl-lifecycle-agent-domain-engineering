@@ -715,21 +715,14 @@ def get_nl_requirement_for_domain(domain_name: str) -> str:
     )
     return f"Model the classic {clean_title} planning domain in PDDL with standard state predicates, preconditions, and action schemas."
 
-def parse_pddl_problem_to_blueprint(pddl_str: str) -> Dict[str, Any]:
-    from tools.blueprint_parser import parse_pddl_problem_to_blueprint as _parse
-    return _parse(pddl_str)
-
-
-
 def load_historical_case_from_ipc(year: str, domain_name: str, instance_filename: str) -> Optional[Dict[str, Any]]:
     """Loads a real IPC instance file and prepares it as a HistoricalProblemCase."""
     raw_pddl = get_ipc_instance_pddl(year, domain_name, instance_filename)
     if not raw_pddl:
         return None
-    bp = parse_pddl_problem_to_blueprint(raw_pddl)
     return {
         "case_id": f"{year}_{domain_name}_{instance_filename.replace('.pddl', '')}",
-        "problem_blueprint": bp,
+        "problem_pddl": raw_pddl,
         "raw_pddl": raw_pddl
     }
 
@@ -794,10 +787,9 @@ def load_historical_case_from_autoplanbench(domain_name: str, instance_filename:
     raw_pddl = get_autoplanbench_instance_pddl(domain_name, instance_filename)
     if not raw_pddl:
         return None
-    bp = parse_pddl_problem_to_blueprint(raw_pddl)
     return {
         "case_id": f"apb_{domain_name}_{instance_filename.replace('.pddl', '')}",
-        "problem_blueprint": bp,
+        "problem_pddl": raw_pddl,
         "raw_pddl": raw_pddl
     }
 

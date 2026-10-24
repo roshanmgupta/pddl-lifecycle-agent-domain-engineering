@@ -1,0 +1,18 @@
+domain,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,e2e_success,iterations_used,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,plan_length,plan_cost,c1_violations_caught,c2_violations_caught,c3_violations_caught,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,execution_time_sec,behavioral_code,defect_class
+gripper,True,True,True,False,False,1,0.4222,0.2667,0.6667,0.3333,1.0,7,7,0,0,0,4535,652,5187,0.001071,14.8,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT
+depot,False,False,False,False,False,5,0.0,0.0,0.0,0.0,0.0,0,0,0,0,0,85646,5019,90665,0.015858,78.06,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR
+satellite,True,True,True,False,False,1,0.0963,0.0889,0.0,0.2,0.3333,1,1,0,0,0,21419,1370,22789,0.004035,23.66,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT
+rovers,True,True,True,False,False,4,0.1534,0.127,0.1111,0.2222,0.3636,4,4,0,0,0,73494,6598,80092,0.014983,104.04,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT
+barman14-bfs,True,True,True,False,False,3,0.0694,0.0417,0.0833,0.0833,0.1538,4,4,0,0,0,58118,5268,63386,0.011878,71.16,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT
+elevators08,True,True,True,False,False,1,0.0694,0.0417,0.1667,0.0,0.6667,5,5,0,0,0,5137,1390,6527,0.001605,19.35,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT
+floortile,True,True,True,False,False,3,0.1088,0.0408,0.1429,0.1429,0.2501,4,4,0,0,0,59344,4924,64268,0.011856,79.57,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT
+parking11,True,False,False,False,False,1,0.0,0.0,0.0,0.0,0.6667,0,0,0,0,0,26991,3195,30186,0.005966,44.88,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK
+goldminer,True,True,True,False,False,1,0.0159,0.0476,0.0,0.0,0.2501,1,1,0,0,0,20677,1596,22273,0.004059,23.85,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT
+transport08-bfs,True,True,True,False,False,1,0.6111,0.6111,0.6667,0.5556,1.0,5,5,0,0,0,4701,806,5507,0.001189,12.47,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT
+scanalyzer08,True,False,False,False,False,5,0.1167,0.1,0.25,0.0,0.4,0,0,0,0,0,96923,5600,102523,0.017898,94.29,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK
+visitall,True,True,True,False,False,1,0.3333,0.0,1.0,0.0,0.6667,8,8,0,0,0,18782,1188,19970,0.00353,19.43,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT
+pipesworld-notankage04-bfs,False,False,False,False,False,5,0.0,0.0,0.0,0.0,0.0,0,0,0,0,0,89315,5645,94960,0.016784,74.27,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR
+woodworking08,False,False,False,False,False,5,0.0256,0.0,0.0769,0.0,0.5555,0,0,0,0,0,103482,10118,113600,0.021593,135.48,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR
+tpp06-bfs,False,False,False,False,False,5,0.1726,0.2262,0.0,0.2917,0.6667,0,0,0,0,0,92299,6191,98490,0.017559,92.19,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR
+pegsol08,False,False,False,False,False,5,0.0,0.0,0.0,0.0,0.0,0,0,0,0,0,135181,16339,151520,0.030081,184.15,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR
+nomystery11-bfs,True,True,True,False,False,1,0.582,0.5238,0.6667,0.5556,1.0,5,5,0,0,0,13978,1174,15152,0.002801,16.09,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT

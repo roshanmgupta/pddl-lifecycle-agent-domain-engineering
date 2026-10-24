@@ -59,7 +59,7 @@ def test_gripper_absorbing_state():
         print(f" {idx}. [{r.error_category.value}] Element: {r.faulty_element} | Op: {r.repair_operation_type.value}")
         print(f"    Hint: {r.suggested_repair_hint}")
 
-    assert any(it["predicate"] == "free" for it in res["irreversible_transitions"]), "Failed to detect irreversible predicate 'free'!"
+    assert any(it["predicate"] == "free" for it in res["irreversible_locks"]), "Failed to detect irreversible predicate 'free'!"
     assert res["top_action"] == "pick", f"Expected top action 'pick', got {res['top_action']}"
     print("\n>>> TEST 1 PASSED: Successfully detected DTG absorbing state lockout on 'free'!\n")
 

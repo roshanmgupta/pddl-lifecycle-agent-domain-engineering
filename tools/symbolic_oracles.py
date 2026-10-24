@@ -10,7 +10,7 @@ import subprocess
 import os
 import sys
 import re
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional, List
 
 # ---------------------------------------------------------------------------
 # Binary path resolution — configurable via .env (VAL_PATH, FAST_DOWNWARD_PATH)
@@ -22,6 +22,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Fast Downward wall-clock cutoff (seconds), configurable via .env (FD_TIMEOUT_SEC).
+# Calibration: every gold reference task (D_gold, P_gold) in the benchmark solves in <= 2.4s
+# with lazy_greedy([ff()]), so 30s leaves a >12x safety margin over the slowest reference task.
+FD_TIMEOUT_SEC = int(os.getenv("FD_TIMEOUT_SEC", "30"))
+
+# Marker emitted when the planner is cut off. A timeout is NOT a proof of unsolvability:
+# the search simply did not terminate within the budget.
+FD_TIMEOUT_MARKER = "Planner Timeout"
 
 
 def _resolve_oracle_binary(env_var_name: str, candidate_rel_paths: list, default_cmd: str) -> str:
@@ -143,7 +152,7 @@ def run_val_validator(domain_path: str, problem_path: str = None) -> Tuple[bool,
         return False, "Execution Error: VAL timed out after 15 seconds."
 
 
-def run_fast_downward(domain_path: str, problem_path: str) -> Tuple[bool, str]:
+def run_fast_downward(domain_path: str, problem_path: str, plan_path: Optional[str] = None) -> Tuple[bool, str]:
     """
     Executes Fast Downward classical planner engine.
     Returns (plan_found, log_output).
@@ -164,12 +173,15 @@ def run_fast_downward(domain_path: str, problem_path: str) -> Tuple[bool, str]:
     else:
         fd_cmd = [fd_bin]
 
-    cmd = fd_cmd + [domain_path, problem_path, "--search", "lazy_greedy([ff()])"]
+    cmd = list(fd_cmd)
+    if plan_path:
+        cmd += ["--plan-file", plan_path]
+    cmd += [domain_path, problem_path, "--search", "lazy_greedy([ff()])"]
 
     try:
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         try:
-            stdout, stderr = proc.communicate(timeout=30)
+            stdout, stderr = proc.communicate(timeout=FD_TIMEOUT_SEC)
             output = (stdout or "") + "\n" + (stderr or "")
             if "Solution found!" in output:
                 return True, output
@@ -180,7 +192,10 @@ def run_fast_downward(domain_path: str, problem_path: str) -> Tuple[bool, str]:
                 subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True)
             else:
                 proc.kill()
-            return False, "Execution Error: Fast Downward timed out after 30 seconds."
+            return False, (
+                f"{FD_TIMEOUT_MARKER}: Fast Downward search did not terminate within {FD_TIMEOUT_SEC} seconds "
+                f"(unsolvability NOT proven; the search budget was exhausted)."
+            )
     except FileNotFoundError:
         return False, (
             f"Planner Error: Failed to execute Fast Downward at '{fd_bin}'. "
@@ -200,13 +215,15 @@ def validate_plan_with_val(domain_path: str, problem_path: str, plan_path: str =
     if not os.path.exists(val_exe) and not shutil.which(val_exe):
         return False, f"VAL Error: Validate binary not found at '{val_exe}'. Configure VAL_PATH in .env."
 
-    cmd = [val_exe, domain_path, problem_path, plan_path]
+    cmd = [val_exe, "-v", domain_path, problem_path, plan_path]
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
         output = result.stdout + "\n" + result.stderr
         if "Plan valid" in output or "Successful plans:" in output:
             return True, output
+        elif result.returncode != 0 and result.returncode != 1:
+            return False, f"VAL Binary Execution Error (exit code {result.returncode}): Plan structure rejected by validator.\n{output}".strip()
         else:
             return False, output
     except Exception as e:
@@ -234,17 +251,40 @@ def validate_plan_semantic_soundness(
             with open(plan_path, "r", encoding="utf-8", errors="ignore") as f:
                 raw_lines = [l.strip() for l in f.readlines() if l.strip() and not l.strip().startswith(";")]
 
-            from eval.action_reconstruction import translate_plan_to_ground_truth
+            from eval.action_reconstruction import translate_plan_to_ground_truth, extract_action_bodies
             translated_steps = translate_plan_to_ground_truth(raw_lines, gt_dom, gen_dom)
+
+            # Universal Grounding Arity Check: Verify mapped steps match D_gt parameter counts
+            gt_bodies = extract_action_bodies(gt_dom)
+            gt_arities = {}
+            for gname, gbody in gt_bodies.items():
+                pm = re.search(r":parameters\s*\((.*?)\)", gbody, re.DOTALL | re.IGNORECASE)
+                if pm:
+                    pvars = [t for t in pm.group(1).split() if t.startswith("?")]
+                    gt_arities[gname.lower()] = len(pvars)
+
+            for stp in translated_steps:
+                m_stp = re.search(r"\(\s*([a-zA-Z0-9_\-]+)\s*(.*?)\)", stp)
+                if m_stp:
+                    op_name = m_stp.group(1).lower()
+                    arg_count = len(m_stp.group(2).split()) if m_stp.group(2).strip() else 0
+                    if op_name in gt_arities and arg_count != gt_arities[op_name]:
+                        return False, (
+                            f"Plan Transfer Arity Mismatch: Operator '{op_name}' in translated plan has "
+                            f"{arg_count} argument(s), but ground-truth action requires {gt_arities[op_name]} parameter(s)."
+                        )
 
             mapped_plan_path = plan_path + ".mapped.val"
             with open(mapped_plan_path, "w", encoding="utf-8") as pf:
-                for idx, stp in enumerate(translated_steps, 1):
+                for stp in translated_steps:
                     clean_stp = re.sub(r"^\d+:\s*", "", stp).strip()
-                    pf.write(f"{idx}: {clean_stp}\n")
+                    if clean_stp:
+                        if not clean_stp.startswith("("):
+                            clean_stp = f"({clean_stp})"
+                        pf.write(f"{clean_stp}\n")
 
             is_valid, log = validate_plan_with_val(ground_truth_domain_path, problem_path, mapped_plan_path)
-            if os.path.exists(mapped_plan_path):
+            if os.path.exists(mapped_plan_path) and "Streamlit_output_file" not in str(mapped_plan_path):
                 try:
                     os.remove(mapped_plan_path)
                 except Exception:
@@ -269,7 +309,8 @@ def validate_domain_coverage_admissibility(generated_domain_path: str, problem_p
 def run_fast_downward_with_plan(
     domain_path: str, 
     problem_path: str, 
-    ground_truth_domain_path: Optional[str] = None
+    ground_truth_domain_path: Optional[str] = None,
+    plan_path: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Executes Fast Downward and returns comprehensive plan metrics + VAL validation certificate.
@@ -277,7 +318,13 @@ def run_fast_downward_with_plan(
     If 'ground_truth_domain_path' is provided, performs non-circular Semantic Soundness Cross-Validation:
     validates the synthesized plan against D_gt using VAL, ensuring the plan obeys real-world invariants.
     """
-    is_ok, raw_log = run_fast_downward(domain_path, problem_path)
+    if plan_path and os.path.exists(plan_path):
+        try:
+            os.remove(plan_path)
+        except Exception:
+            pass
+
+    is_ok, raw_log = run_fast_downward(domain_path, problem_path, plan_path=plan_path)
     
     plan_steps = []
     plan_cost = 0
@@ -286,28 +333,36 @@ def run_fast_downward_with_plan(
     val_log = ""
     semantic_soundness_valid = False
     semantic_soundness_log = ""
-    
-    from config.paths import get_temp_plan_path
-    plan_file = get_temp_plan_path()
-    if not os.path.exists(plan_file):
-        for candidate in ["sas_plan.1", "sas_plan.2", "sas_plan.3"]:
-            if os.path.exists(candidate):
-                plan_file = candidate
-                break
+    raw_sas_plan_text = ""
 
-    if os.path.exists(plan_file):
-        try:
-            with open(plan_file, "r", encoding="utf-8", errors="ignore") as f:
-                lines = [l.strip() for l in f.readlines() if l.strip()]
-            for l in lines:
-                if l.startswith(";"):
-                    cost_m = re.search(r"cost\s*=\s*(\d+)", l)
-                    if cost_m:
-                        plan_cost = int(cost_m.group(1))
-                else:
-                    plan_steps.append(l)
-        except Exception:
-            pass
+    if is_ok:
+        if plan_path and os.path.exists(plan_path):
+            plan_file = plan_path
+        else:
+            from config.paths import get_temp_plan_path
+            plan_file = plan_path if plan_path else get_temp_plan_path()
+            if not os.path.exists(plan_file):
+                for candidate in ["sas_plan.1", "sas_plan.2", "sas_plan.3"]:
+                    if os.path.exists(candidate):
+                        plan_file = candidate
+                        break
+
+        if os.path.exists(plan_file):
+            try:
+                with open(plan_file, "r", encoding="utf-8", errors="ignore") as f:
+                    raw_sas_plan_text = f.read()
+                    lines = [l.strip() for l in raw_sas_plan_text.splitlines() if l.strip()]
+                for l in lines:
+                    if l.startswith(";"):
+                        cost_m = re.search(r"cost\s*=\s*(\d+)", l)
+                        if cost_m:
+                            plan_cost = int(cost_m.group(1))
+                    else:
+                        plan_steps.append(l)
+            except Exception:
+                pass
+    else:
+        plan_file = ""
 
     time_m = re.search(r"Search time:\s*([0-9\.]+)s", raw_log)
     if time_m:
@@ -336,7 +391,9 @@ def run_fast_downward_with_plan(
             
     return {
         "is_solvable": is_ok,
+        "timed_out": (not is_ok) and raw_log.startswith(FD_TIMEOUT_MARKER),
         "plan_steps": plan_steps,
+        "raw_sas_plan_text": raw_sas_plan_text,
         "plan_length": len(plan_steps),
         "plan_cost": plan_cost if plan_cost > 0 else len(plan_steps),
         "search_time": search_time,

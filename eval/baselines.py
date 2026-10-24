@@ -41,25 +41,25 @@ def extract_pddl_blocks(raw_text: str) -> Tuple[str, str]:
 def run_zero_shot_baseline(task: BenchmarkTask) -> Dict[str, Any]:
     """
     Baseline 1: Zero-Shot Direct LLM Generation.
-    Requests raw PDDL code directly from natural language prompt without Pydantic AST or validation loops.
-    Strictly NO fallback to ground truth.
+    Requests raw PDDL domain code (D_gen) directly from natural language prompt without Pydantic AST or validation loops,
+    holding the ground-truth problem instance (P_gold) fixed.
+    Strictly NO fallback to ground truth domain.
     """
-    prompt = f"""You are an automated PDDL domain and problem generator.
-Requirements:
+    prompt = f"""You are an automated PDDL domain generator.
+Requirements & Fixed Target Problem Contract:
 {task.natural_language_requirements}
 
-Generate two separate, syntactically valid PDDL files:
-1. A domain definition block: (define (domain ...) ...)
-2. A problem definition block: (define (problem ...) ...)
+Fixed Ground-Truth Problem PDDL (P_gold):
+```pddl
+{task.ground_truth_problem_pddl.strip()}
+```
 
-Format your output using markdown code fences:
+Generate a single, syntactically valid PDDL domain file (define (domain ...) ...) that satisfies the requirements and is fully compatible with the fixed problem PDDL above.
+Format your output using a markdown code fence:
 ```pddl
 (define (domain ...) ...)
 ```
-```pddl
-(define (problem ...) ...)
-```
-Respond ONLY with the PDDL code blocks.
+Respond ONLY with the PDDL domain code block.
 """
     try:
         raw_response, telemetry = invoke_raw_llm_with_telemetry(prompt)
@@ -67,23 +67,28 @@ Respond ONLY with the PDDL code blocks.
         print(f"[Baseline Zero-Shot Error]: LLM call failed: {e}")
         return {
             "generated_domain_pddl": "",
-            "generated_problem_pddl": "",
+            "generated_problem_pddl": task.ground_truth_problem_pddl,
             "iterations_used": 1,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
             "total_tokens": 0,
             "estimated_cost_usd": 0.0,
             "raw_response": str(e),
             "error": str(e)
         }
 
-    domain_pddl, problem_pddl = extract_pddl_blocks(raw_response)
+    domain_pddl, _ = extract_pddl_blocks(raw_response)
 
     if not domain_pddl and "(define (domain" in raw_response.lower():
         domain_pddl = raw_response
+    problem_pddl = task.ground_truth_problem_pddl
 
     return {
         "generated_domain_pddl": domain_pddl,
         "generated_problem_pddl": problem_pddl,
         "iterations_used": 1,
+        "prompt_tokens": telemetry.get("prompt_tokens", 0),
+        "completion_tokens": telemetry.get("completion_tokens", 0),
         "total_tokens": telemetry.get("total_tokens", 0),
         "estimated_cost_usd": telemetry.get("estimated_cost_usd", 0.0),
         "raw_response": raw_response
@@ -93,32 +98,34 @@ def run_unstructured_retry_baseline(task: BenchmarkTask, max_retries: int = 5) -
     """
     Baseline 2: Direct LLM Generation + Raw Unstructured Error Feedback Retry.
     Passes raw validator compiler logs directly back to the LLM without Pydantic AST,
-    triage fault localization, or causal analysis.
-    Strictly NO fallback to ground truth.
+    triage fault localization, or causal analysis, holding P_gold fixed and repairing only D_gen.
+    Strictly NO fallback to ground truth domain.
     """
-    base_prompt = f"""You are an automated PDDL domain and problem generator.
-Requirements:
+    base_prompt = f"""You are an automated PDDL domain generator.
+Requirements & Fixed Target Problem Contract:
 {task.natural_language_requirements}
 
-Generate two separate, syntactically valid PDDL files:
-1. A domain definition block: (define (domain ...) ...)
-2. A problem definition block: (define (problem ...) ...)
+Fixed Ground-Truth Problem PDDL (P_gold):
+```pddl
+{task.ground_truth_problem_pddl.strip()}
+```
 
-Format your output using markdown code fences:
+Generate a single, syntactically valid PDDL domain file (define (domain ...) ...) that satisfies the requirements and is fully compatible with the fixed problem PDDL above.
+Format your output using a markdown code fence:
 ```pddl
 (define (domain ...) ...)
 ```
-```pddl
-(define (problem ...) ...)
-```
-Respond ONLY with the PDDL code blocks.
+Respond ONLY with the PDDL domain code block.
 """
     current_prompt = base_prompt
     last_domain = ""
-    last_problem = ""
+    last_problem = task.ground_truth_problem_pddl
+    cumulative_prompt_tokens = 0
+    cumulative_completion_tokens = 0
     cumulative_tokens = 0
     cumulative_cost = 0.0
     last_raw_response = ""
+    error_history = []
 
     eval_dir = str(get_eval_output_dir())
     os.makedirs(eval_dir, exist_ok=True)
@@ -128,6 +135,8 @@ Respond ONLY with the PDDL code blocks.
     for iteration in range(1, max_retries + 1):
         try:
             raw_response, telemetry = invoke_raw_llm_with_telemetry(current_prompt)
+            cumulative_prompt_tokens += telemetry.get("prompt_tokens", 0)
+            cumulative_completion_tokens += telemetry.get("completion_tokens", 0)
             cumulative_tokens += telemetry.get("total_tokens", 0)
             cumulative_cost += telemetry.get("estimated_cost_usd", 0.0)
             last_raw_response = raw_response
@@ -135,15 +144,14 @@ Respond ONLY with the PDDL code blocks.
             print(f"[Baseline Unstructured Retry Error]: LLM call failed on iter {iteration}: {e}")
             break
 
-        domain_pddl, problem_pddl = extract_pddl_blocks(raw_response)
+        domain_pddl, _ = extract_pddl_blocks(raw_response)
         if domain_pddl:
             last_domain = domain_pddl
-        if problem_pddl:
-            last_problem = problem_pddl
+        last_problem = task.ground_truth_problem_pddl
 
         # If LLM failed to produce any code, retry with warning
         if not last_domain or not last_problem:
-            current_prompt = f"{base_prompt}\n\nError: You did not provide both domain and problem PDDL code blocks. Please output both."
+            current_prompt = f"{base_prompt}\n\nError: You did not provide a valid domain PDDL code block. Please output the PDDL domain definition."
             continue
 
         with open(dom_file, "w", encoding="utf-8") as f:
@@ -160,11 +168,14 @@ Respond ONLY with the PDDL code blocks.
                     "generated_domain_pddl": last_domain,
                     "generated_problem_pddl": last_problem,
                     "iterations_used": iteration,
+                    "prompt_tokens": cumulative_prompt_tokens,
+                    "completion_tokens": cumulative_completion_tokens,
                     "total_tokens": cumulative_tokens,
                     "estimated_cost_usd": cumulative_cost,
                     "validation_passed": True,
                     "is_solvable": True,
                     "val_plan_valid": fd_res.get("val_plan_valid", False),
+                    "error_history": error_history,
                     "raw_response": last_raw_response
                 }
 
@@ -175,15 +186,19 @@ Respond ONLY with the PDDL code blocks.
 
         # Feed raw unparsed error string directly back into prompt
         clean_err = raw_error.encode("ascii", "ignore").decode("ascii")[:1500]
-        current_prompt = f"{base_prompt}\n\nPrevious attempt failed with the following oracle output:\n{clean_err}\n\nPlease revise and correct the PDDL domain and problem definitions."
+        error_history.append(f"[Iter {iteration} Raw Oracle Error]: {re.sub(r'\\s+', ' ', clean_err).strip()[:400]}")
+        current_prompt = f"{base_prompt}\n\nPrevious attempt failed with the following oracle output:\n{clean_err}\n\nPlease revise and correct the PDDL domain definition."
 
     return {
         "generated_domain_pddl": last_domain,
         "generated_problem_pddl": last_problem,
         "iterations_used": max_retries,
+        "prompt_tokens": cumulative_prompt_tokens,
+        "completion_tokens": cumulative_completion_tokens,
         "total_tokens": cumulative_tokens,
         "estimated_cost_usd": cumulative_cost,
         "validation_passed": False,
         "is_solvable": False,
+        "error_history": error_history,
         "raw_response": last_raw_response
     }

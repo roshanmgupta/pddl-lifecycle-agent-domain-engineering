@@ -18,9 +18,6 @@ load_dotenv(override=True)
 from config.paths import (
     get_benchmark_dir,
     get_autoplanbench_dir,
-    get_autoplanbench_prompts_dir,
-    get_nl2pddl_dir,
-    get_nl2pddl_prompts_dir,
     get_temp_domain_path,
     get_temp_problem_path,
     get_temp_gt_domain_path,
@@ -37,11 +34,8 @@ from config.paths import (
 
 from benchmark.pure_strips_benchmarks import (
     AUTOPLANBENCH_PURE_STRIPS_DOMAINS,
-    NL2PDDL_PURE_STRIPS_10,
     load_autoplanbench_original_domain_data,
-    load_nl2pddl_original_domain_data,
     list_autoplanbench_problem_files,
-    list_nl2pddl_problem_files,
 )
 
 # Set Streamlit Page Configuration
@@ -88,40 +82,11 @@ st.markdown("""
 import glob
 
 # Import Project Modules
-from benchmark.dataset import BENCHMARK_TASKS
 from benchmark.schema import BenchmarkTask, LifecycleTaskType
-from benchmark.loader import (
-    list_benchmark_domains,
-    list_domain_flaws,
-    list_domain_evolutions,
-    load_flaw_task,
-    load_evolution_task
-)
 from eval.baselines import run_zero_shot_baseline, run_unstructured_retry_baseline
-from eval.benchmark_runner import (
-    run_evaluation_on_task,
-    run_benchmark_suite,
-    generate_evaluation_report,
-    evaluate_candidate_pddl
-)
+from eval.benchmark_runner import evaluate_candidate_pddl
 from graph import pddl_lifecycle_graph, AgentState
-from tools.benchmark_loader import (
-    list_ipc_years,
-    list_ipc_domains,
-    list_domain_instances,
-    get_ipc_domain_pddl,
-    get_ipc_instance_pddl,
-    get_nl_requirement_for_domain,
-    load_historical_case_from_ipc,
-    list_autoplanbench_domains,
-    get_autoplanbench_nl_description,
-    get_autoplanbench_domain_pddl,
-    list_autoplanbench_instances,
-    get_autoplanbench_instance_pddl,
-    load_historical_case_from_autoplanbench
-)
-from tools.blueprint_parser import parse_pddl_domain_to_blueprint, parse_pddl_problem_to_blueprint
-from nodes.generation import compile_problem_pddl
+from tools.blueprint_parser import parse_pddl_domain_to_blueprint
 
 def save_output_to_disk(state: dict, task: Optional[Any] = None) -> tuple:
     """
@@ -198,7 +163,6 @@ def save_output_to_disk(state: dict, task: Optional[Any] = None) -> tuple:
         "domain_name": d_name,
         "run_index": next_idx,
         "domain_blueprint": state.get("pddl_domain_blueprint"),
-        "problem_blueprint": state.get("pddl_problem_blueprint"),
         "iteration_count": state.get("iteration_count", 0),
         "is_valid": not bool(state.get("verification_errors"))
     }
@@ -262,615 +226,97 @@ st.markdown('<div class="main-header">🧠 Towards an Autonomous Lifecycle Agent
 # SIDEBAR CONTROLS
 # ==============================================================================
 st.sidebar.title("⚙️ Agent Controls & Benchmarks")
+st.sidebar.markdown("### 🚀 AutoPlanBench (Pure STRIPS+Typing)")
 
-input_mode = st.sidebar.radio(
-    "Select Requirement Input Mode:",
-    [
-        "🚀 AutoPlanBench (Pure STRIPS+Typing Domains)",
-        "🎯 NL2PDDL (Pure STRIPS+Typing - 10 Curated Domains)",
-        # "📖 Extracted Prompts (prompt_autoplanbench/)",
-        # "📚 NL2PDDL Prompts (prompt_NL2PDDL/)",
-        "🏛️ IPC Benchmark Archive (PDDL 2.1 Typed)",
-        "📋 Synthetic Fault Tasks (Curated)",
-        "🧬 Continuous Evolution (Evolve Domain & Problem)"
-    ]
+sel_domain = st.sidebar.selectbox(
+    "Choose Pure STRIPS Domain (autoplanbench/data/):",
+    AUTOPLANBENCH_PURE_STRIPS_DOMAINS,
+    index=0,
+    help="Strictly pure (:requirements :strips :typing) domains from autoplanbench/data/."
 )
 
-selected_task = None
+avail_prob_files = list_autoplanbench_problem_files(sel_domain)
+sel_instance = st.sidebar.selectbox(
+    "Choose Problem Instance:",
+    avail_prob_files,
+    index=0 if avail_prob_files else 0
+)
+
+initial_domain_pddl_input = ""
+initial_problem_pddl_input = ""
+initial_domain_bp_input = {}
 historical_suite_input = []
 enable_maintenance = False
 is_evolution_task = False
 is_synthetic_repair = False
-initial_domain_pddl_input = ""
-initial_problem_pddl_input = ""
-initial_domain_bp_input = {}
-initial_prob_bp_input = {}
+selected_task = None
 initial_errors_input = []
-hist_case = None
 
-if input_mode == "🚀 AutoPlanBench (Pure STRIPS+Typing Domains)":
-    sel_domain = st.sidebar.selectbox(
-        "Choose Pure STRIPS Domain (autoplanbench/data/):",
-        AUTOPLANBENCH_PURE_STRIPS_DOMAINS,
-        index=0,
-        help="Strictly pure (:requirements :strips :typing) domains from autoplanbench/data/."
-    )
-    
-    avail_prob_files = list_autoplanbench_problem_files(sel_domain)
-    sel_instance = st.sidebar.selectbox(
-        "Choose Problem Instance:",
-        avail_prob_files,
-        index=0 if avail_prob_files else 0
-    )
-    
-    unified_prompt, dom_desc, prob_desc, ref_dom, ref_inst, prob_files = load_autoplanbench_original_domain_data(
-        sel_domain, sel_instance
-    )
-    
-    req_text = st.sidebar.text_area(
-        "Natural Language Requirements (Domain & Problem):",
-        value=unified_prompt,
-        height=220,
-        help=f"Specification loaded directly from original autoplanbench/data/{sel_domain}/."
-    )
-    
-    with st.sidebar.expander(f"📄 Domain Rules (`{sel_domain}/domain_encoding.txt`)", expanded=False):
-        st.text(dom_desc)
-        
-    with st.sidebar.expander(f"📄 Problem Scenario (`{sel_domain}/{sel_instance}`)", expanded=False):
-        st.text(prob_desc)
-        
-    if ref_dom or ref_inst:
-        with st.sidebar.expander(f"🏛️ Benchmark Reference Ground-Truth PDDL", expanded=False):
-            if ref_dom:
-                st.caption(f"**Domain**: `{sel_domain}/domain.pddl`")
-                st.code(ref_dom, language="lisp")
-            if ref_inst:
-                st.caption(f"**Problem**: `{sel_domain}/{sel_instance}`")
-                st.code(ref_inst, language="lisp")
-                
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("Phase 4 Maintenance Settings")
-    enable_maintenance = st.sidebar.checkbox(
-        "Enable Phase 4 Historical Regression Suite",
-        value=False,
-        help="Verifies that the generated domain retains backward compatibility against the benchmark instance."
-    )
-    if enable_maintenance and prob_files:
-        chosen_instances = st.sidebar.multiselect(
-            "Choose Historical Problem Instance(s) (Phase 4):",
-            prob_files,
-            default=[sel_instance] if sel_instance in prob_files else ([prob_files[0]] if prob_files else []),
-            help="Select one or more historical instances to verify backward compatibility."
-        )
-        historical_suite_input = []
-        d_folder = Path(get_autoplanbench_dir()) / sel_domain / "orig_problems"
-        for inst_name in chosen_instances:
-            inst_path = d_folder / inst_name
-            if inst_path.exists():
-                with open(inst_path, "r", encoding="utf-8") as f:
-                    inst_txt = f.read()
-                parsed_bp = parse_pddl_problem_to_blueprint(inst_txt)
-                if parsed_bp and parsed_bp.get("objects"):
-                    historical_suite_input.append({
-                        "case_id": f"{sel_domain}_{inst_name.replace('.pddl', '')}",
-                        "problem_blueprint": parsed_bp,
-                        "raw_pddl": inst_txt
-                    })
-        if historical_suite_input:
-            st.sidebar.success(f"📁 **{len(historical_suite_input)} Regression Case(s) Loaded**: {[c['case_id'] for c in historical_suite_input]}")
-    elif enable_maintenance and ref_inst:
-        parsed_bp = parse_pddl_problem_to_blueprint(ref_inst)
-        if parsed_bp and parsed_bp.get("objects"):
-            historical_suite_input = [{
-                "case_id": f"{sel_domain}_{sel_instance}",
-                "problem_blueprint": parsed_bp,
-                "raw_pddl": ref_inst
-            }]
-            st.sidebar.success(f"📁 **Regression Case Loaded**: `{sel_domain}_{sel_instance}`")
+unified_prompt, dom_desc, prob_desc, ref_dom, ref_inst, prob_files = load_autoplanbench_original_domain_data(
+    sel_domain, sel_instance
+)
+if ref_inst:
+    initial_problem_pddl_input = ref_inst
 
-elif input_mode == "🎯 NL2PDDL (Pure STRIPS+Typing - 10 Curated Domains)":
-    sel_domain = st.sidebar.selectbox(
-        "Choose Pure STRIPS NL2PDDL Domain (Top 10):",
-        NL2PDDL_PURE_STRIPS_10,
-        index=0,
-        help="Strictly pure (:requirements :strips :typing) domains from NL2PDDL/test/."
-    )
-    
-    avail_prob_files = list_nl2pddl_problem_files(sel_domain)
-    sel_instance = st.sidebar.selectbox(
-        "Choose Problem Instance:",
-        avail_prob_files,
-        index=0 if avail_prob_files else 0
-    )
-    
-    unified_prompt, dom_desc, prob_desc, ref_dom, ref_inst, prob_files = load_nl2pddl_original_domain_data(
-        sel_domain, sel_instance
-    )
-    
-    req_text = st.sidebar.text_area(
-        "Natural Language Requirements (Domain & Problem):",
-        value=unified_prompt,
-        height=220,
-        help=f"Specification loaded directly from original NL2PDDL/test/{sel_domain}/."
-    )
-    
-    with st.sidebar.expander(f"📄 Domain Rules (`{sel_domain}/domains/`)", expanded=False):
-        st.text(dom_desc)
-        
-    with st.sidebar.expander(f"📄 Problem Scenario (`{sel_domain}/problems/{sel_instance}`)", expanded=False):
-        st.text(prob_desc)
-        
-    if ref_dom or ref_inst:
-        with st.sidebar.expander(f"🏛️ NL2PDDL Reference Ground-Truth PDDL", expanded=False):
-            if ref_dom:
-                st.caption(f"**Domain**: `{sel_domain}/domains/domain_gold.pddl`")
-                st.code(ref_dom, language="lisp")
-            if ref_inst:
-                st.caption(f"**Problem**: `{sel_domain}/problems/{sel_instance}`")
-                st.code(ref_inst, language="lisp")
-                
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("Phase 4 Maintenance Settings")
-    enable_maintenance = st.sidebar.checkbox(
-        "Enable Phase 4 Historical Regression Suite",
-        value=False,
-        help="Verifies that the generated domain retains backward compatibility against the benchmark problem."
-    )
-    if enable_maintenance and prob_files:
-        chosen_instances = st.sidebar.multiselect(
-            "Choose Historical Problem Instance(s) (Phase 4):",
-            prob_files,
-            default=[sel_instance] if sel_instance in prob_files else ([prob_files[0]] if prob_files else []),
-            help="Select one or more historical instances to verify backward compatibility."
-        )
-        historical_suite_input = []
-        d_folder = Path(get_nl2pddl_dir()) / sel_domain / "problems"
-        for inst_name in chosen_instances:
-            inst_path = d_folder / inst_name
-            if inst_path.exists():
-                with open(inst_path, "r", encoding="utf-8", errors="ignore") as f:
-                    inst_txt = f.read()
-                parsed_bp = parse_pddl_problem_to_blueprint(inst_txt)
-                if parsed_bp and parsed_bp.get("objects"):
-                    historical_suite_input.append({
-                        "case_id": f"{sel_domain}_{inst_name.replace('.pddl', '')}",
-                        "problem_blueprint": parsed_bp,
-                        "raw_pddl": inst_txt
-                    })
-        if historical_suite_input:
-            st.sidebar.success(f"📁 **{len(historical_suite_input)} Regression Case(s) Loaded**: {[c['case_id'] for c in historical_suite_input]}")
-    elif enable_maintenance and ref_inst:
-        parsed_bp = parse_pddl_problem_to_blueprint(ref_inst)
-        if parsed_bp and parsed_bp.get("objects"):
-            historical_suite_input = [{
-                "case_id": f"{sel_domain}_{sel_instance}",
-                "problem_blueprint": parsed_bp,
-                "raw_pddl": ref_inst
-            }]
-            st.sidebar.success(f"📁 **Regression Case Loaded**: `{sel_domain}_{sel_instance}`")
+req_text = st.sidebar.text_area(
+    "Natural Language Requirements (Domain & Problem):",
+    value=unified_prompt,
+    height=220,
+    help=f"Specification loaded directly from original autoplanbench/data/{sel_domain}/."
+)
 
-# ==============================================================================
-# COMMENTED OUT: PROMPT BENCHMARKS (prompt_autoplanbench/ & prompt_NL2PDDL/)
-# ==============================================================================
-# elif input_mode == "📖 Extracted Prompts (prompt_autoplanbench/)":
-#     prompt_base = str(get_autoplanbench_prompts_dir())
-#     avail_prompt_domains = []
-#     if os.path.isdir(prompt_base):
-#         avail_prompt_domains = sorted([
-#             d for d in os.listdir(prompt_base)
-#             if os.path.isdir(os.path.join(prompt_base, d))
-#         ])
-#     if not avail_prompt_domains:
-#         st.sidebar.error(f"No prompt directories found in `{prompt_base}/`.")
-#         req_text = ""
-#     else:
-#         default_p_idx = avail_prompt_domains.index("satellite") if "satellite" in avail_prompt_domains else 0
-#         sel_prompt_domain = st.sidebar.selectbox("Choose Benchmark Domain:", avail_prompt_domains, index=default_p_idx)
-#         domain_folder = os.path.join(prompt_base, sel_prompt_domain)
-#         dom_desc_file = os.path.join(domain_folder, "domain_description.txt")
-#         prob_desc_file = os.path.join(domain_folder, "problem_description.txt")
-#         dom_desc = ""
-#         prob_desc = ""
-#         if os.path.exists(dom_desc_file):
-#             with open(dom_desc_file, "r", encoding="utf-8") as f:
-#                 dom_desc = f.read().strip()
-#         if os.path.exists(prob_desc_file):
-#             with open(prob_desc_file, "r", encoding="utf-8") as f:
-#                 prob_desc = f.read().strip()
-#         unified_prompt = f"{dom_desc}\n\n{prob_desc}"
-#         req_text = st.sidebar.text_area(
-#             "Natural Language Requirements (Domain & Problem):",
-#             value=unified_prompt,
-#             height=220
-#         )
-#
-# elif input_mode == "📚 NL2PDDL Prompts (prompt_NL2PDDL/)":
-#     nl2pddl_base = str(get_nl2pddl_prompts_dir())
-#     avail_nl2pddl_domains = []
-#     if os.path.isdir(nl2pddl_base):
-#         avail_nl2pddl_domains = sorted([
-#             d for d in os.listdir(nl2pddl_base)
-#             if os.path.isdir(os.path.join(nl2pddl_base, d))
-#         ])
-#     if not avail_nl2pddl_domains:
-#         st.sidebar.error(f"No prompt directories found in `{nl2pddl_base}/`.")
-#         req_text = ""
-#     else:
-#         default_nl_idx = avail_nl2pddl_domains.index("BLOCKSWORLD") if "BLOCKSWORLD" in avail_nl2pddl_domains else 0
-#         sel_nl_domain = st.sidebar.selectbox("Choose NL2PDDL Domain:", avail_nl2pddl_domains, index=default_nl_idx)
-#         domain_folder = os.path.join(nl2pddl_base, sel_nl_domain)
-#         dom_desc_file = os.path.join(domain_folder, "domain_description.txt")
-#         prob_desc_file = os.path.join(domain_folder, "problem_description.txt")
-#         dom_desc = ""
-#         prob_desc = ""
-#         if os.path.exists(dom_desc_file):
-#             with open(dom_desc_file, "r", encoding="utf-8") as f:
-#                 dom_desc = f.read().strip()
-#         if os.path.exists(prob_desc_file):
-#             with open(prob_desc_file, "r", encoding="utf-8") as f:
-#                 prob_desc = f.read().strip()
-#         unified_prompt = f"=== DOMAIN SPECIFICATION ===\n{dom_desc}\n\n=== PROBLEM SCENARIO ===\n{prob_desc}"
-#         req_text = st.sidebar.text_area(
-#             "Natural Language Requirements (Domain & Problem):",
-#             value=unified_prompt,
-#             height=220
-#         )
-
-
-elif input_mode == "🏛️ IPC Benchmark Archive (PDDL 2.1 Typed)":
-    ipc_years = list_ipc_years()
-    default_year_idx = ipc_years.index("ipc-2002") if "ipc-2002" in ipc_years else 0
-    sel_year = st.sidebar.selectbox("Choose IPC Benchmark Year:", ipc_years, index=default_year_idx)
+with st.sidebar.expander(f"📄 Domain Rules (`{sel_domain}/domain_encoding.txt`)", expanded=False):
+    st.text(dom_desc)
     
-    ipc_domains = list_ipc_domains(sel_year)
-    default_dom_idx = 0
-    for idx, d in enumerate(ipc_domains):
-        if "gripper" in d.lower():
-            default_dom_idx = idx
-            break
-    sel_domain = st.sidebar.selectbox("Choose IPC Domain:", ipc_domains, index=default_dom_idx)
+with st.sidebar.expander(f"📄 Problem Scenario (`{sel_domain}/{sel_instance}`)", expanded=False):
+    st.text(prob_desc)
     
-    instances = list_domain_instances(sel_year, sel_domain)
-    sel_instance = st.sidebar.selectbox("Choose Historical Problem Instance (Phase 4):", instances, index=0)
-    
-    default_nl = get_nl_requirement_for_domain(sel_domain)
-    req_text = st.sidebar.text_area(
-        "Natural Language Requirements (Editable):",
-        value=default_nl,
-        height=180
-    )
-    
-    ref_dom = get_ipc_domain_pddl(sel_year, sel_domain)
-    ref_inst = get_ipc_instance_pddl(sel_year, sel_domain, sel_instance)
-
-    with st.sidebar.expander(f"📄 Reference Domain (`{sel_domain}/domain.pddl`)", expanded=False):
+if ref_dom or ref_inst:
+    with st.sidebar.expander(f"🏛️ Benchmark Reference Ground-Truth PDDL", expanded=False):
         if ref_dom:
+            st.caption(f"**Domain**: `{sel_domain}/domain.pddl`")
             st.code(ref_dom, language="lisp")
-        else:
-            st.info("No reference domain.pddl found.")
-
-    with st.sidebar.expander(f"📄 Reference Problem (`{sel_instance}`)", expanded=False):
         if ref_inst:
+            st.caption(f"**Problem**: `{sel_domain}/{sel_instance}`")
             st.code(ref_inst, language="lisp")
-        else:
-            st.info("No reference problem instance found.")
-
-        
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("Phase 4 Maintenance Settings")
-    enable_maintenance = st.sidebar.checkbox(
-        "Enable Phase 4 Historical Regression Suite",
-        value=False,
-        help="Verifies that the generated/evolved domain retains backward compatibility against selected IPC instances."
-    )
-    if enable_maintenance:
-        sel_instances = st.sidebar.multiselect(
-            "Choose Historical Problem Instance(s) (Phase 4):",
-            instances,
-            default=[sel_instance] if instances else [],
-            help="Select one or more historical instances to verify backward compatibility."
-        )
-        historical_suite_input = []
-        for inst in sel_instances:
-            hist_case = load_historical_case_from_ipc(sel_year, sel_domain, inst)
-            if hist_case:
-                historical_suite_input.append(hist_case)
-        if historical_suite_input:
-            st.sidebar.success(f"📁 **{len(historical_suite_input)} Regression Case(s) Loaded**: {[c['case_id'] for c in historical_suite_input]}")
-
-elif input_mode == "📋 Synthetic Fault Tasks (Curated)":
-    bench_source = st.sidebar.radio(
-        "Choose Benchmark Collection:",
-        ["🏛️ PDDLLifeCycleBench (24 Domains)", "📋 Handcrafted Benchmark Presets"],
-        index=0,
-        help="Select between the newly curated PDDLLifeCycleBench (24 domains with 5 flaws and 2 evolutions each) or existing presets."
-    )
-    
-    if bench_source == "🏛️ PDDLLifeCycleBench (24 Domains)":
-        avail_bench_domains = list_benchmark_domains()
-        default_d_idx = avail_bench_domains.index("barman14-bfs") if "barman14-bfs" in avail_bench_domains else 0
-        sel_lcb_domain = st.sidebar.selectbox("Choose Canonical Domain:", avail_bench_domains, index=default_d_idx)
-        
-        bench_task_mode = st.sidebar.radio(
-            "Select Evaluation Track:",
-            ["🛠️ Curated Flaws (Phase 3 Repair)", "🧬 Continuous Evolution (Phase 4 Maintenance)"],
-            index=0
-        )
-        
-        if bench_task_mode == "🛠️ Curated Flaws (Phase 3 Repair)":
-            avail_flaws = list_domain_flaws(sel_lcb_domain)
-            sel_flaw = st.sidebar.selectbox("Choose Curated Flaw Variant:", avail_flaws, index=0)
-            selected_task = load_flaw_task(sel_lcb_domain, sel_flaw)
-            is_synthetic_repair = True
-            is_evolution_task = False
             
-            if selected_task:
-                req_text = selected_task.natural_language_requirements.strip()
-                with st.sidebar.expander(f"⚠️ Flaw Metadata ({selected_task.fault_category})", expanded=True):
-                    st.markdown(f"**Target Action:** `{selected_task.gold_fault_element}`")
-                    st.markdown(f"**Category:** `{selected_task.fault_category}`")
-                    st.caption(f"**Expected Fix:** {selected_task.expected_repair_behavior}")
-                    
-        else: # Continuous Evolution
-            avail_evos = list_domain_evolutions(sel_lcb_domain)
-            sel_evo = st.sidebar.selectbox("Choose Evolution Scenario:", avail_evos, index=0)
-            selected_task = load_evolution_task(sel_lcb_domain, sel_evo)
-            is_synthetic_repair = False
-            is_evolution_task = True
-            enable_maintenance = True
-            
-            if selected_task:
-                req_text = selected_task.natural_language_requirements.strip()
-                with st.sidebar.expander("🧬 Evolution Scenario Details", expanded=True):
-                    st.markdown(f"**Target Problem:** `{selected_task.task_id}`")
-                    st.caption(f"**Gatekeeper Mandate:** {selected_task.expected_repair_behavior}")
-                
-                # Enroll historical regression problems
-                historical_suite_input = []
-                for idx, r_prob in enumerate(selected_task.historical_regression_problems, 1):
-                    r_bp = parse_pddl_problem_to_blueprint(r_prob)
-                    historical_suite_input.append({
-                        "case_id": f"{sel_lcb_domain}_legacy_inst_{idx}",
-                        "problem_blueprint": r_bp,
-                        "raw_pddl": r_prob
-                    })
-                if historical_suite_input:
-                    st.sidebar.success(f"📁 **{len(historical_suite_input)} Historical Regression Cases Enrolled**")
-
-    else: # Handcrafted Presets
-        task_options = {t.task_id: f"{t.title} ({t.domain_family})" for t in BENCHMARK_TASKS}
-        task_id = st.sidebar.selectbox("Choose Curated Benchmark Task:", list(task_options.keys()), format_func=lambda x: task_options[x])
-        selected_task = next((t for t in BENCHMARK_TASKS if t.task_id == task_id), None)
-        req_text = selected_task.natural_language_requirements.strip() if selected_task else ""
-        is_evolution_task = (getattr(selected_task, "task_type", None) == LifecycleTaskType.DOMAIN_EVOLUTION) if selected_task else False
-
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("Phase 4 Maintenance Settings")
-    enable_maintenance = st.sidebar.checkbox(
-        "Enable Phase 4 Historical Regression Suite",
-        value=is_evolution_task,
-        help="Runs backwards compatibility tests against historical test cases."
+st.sidebar.markdown("---")
+st.sidebar.subheader("Phase 4 Maintenance Settings")
+enable_maintenance = st.sidebar.checkbox(
+    "Enable Phase 4 Historical Regression Suite",
+    value=False,
+    help="Verifies that the generated domain retains backward compatibility against the benchmark instance."
+)
+if enable_maintenance and prob_files:
+    chosen_instances = st.sidebar.multiselect(
+        "Choose Historical Problem Instance(s) (Phase 4):",
+        prob_files,
+        default=[sel_instance] if sel_instance in prob_files else ([prob_files[0]] if prob_files else []),
+        help="Select one or more historical instances to verify backward compatibility."
     )
-    if enable_maintenance and selected_task and not historical_suite_input:
-        domain_fam = selected_task.domain_family.lower()
-        ipc_fam = f"{domain_fam}-strips-automatic"
-        all_ipc = list_domain_instances("ipc-2002", ipc_fam)
-        
-        default_inst = ["instance-1.pddl"] if "instance-1.pddl" in all_ipc else (all_ipc[:1] if all_ipc else [])
-        chosen_reg_insts = st.sidebar.multiselect(
-            "Choose Regression Problem Instance(s) (Phase 4):",
-            all_ipc if all_ipc else ["instance-1.pddl"],
-            default=default_inst,
-            help="Select one or more historical instances to test backward compatibility."
-        )
-        
-        historical_suite_input = []
-        for inst in chosen_reg_insts:
-            c = load_historical_case_from_ipc("ipc-2002", ipc_fam, inst)
-            if c:
-                historical_suite_input.append(c)
-                
-        # Also include task's own baseline problem if present and not in IPC
-        if not historical_suite_input and getattr(selected_task, "initial_problem_pddl", None) and selected_task.initial_problem_pddl.strip():
-            hist_bp = parse_pddl_problem_to_blueprint(selected_task.initial_problem_pddl)
-            if hist_bp and hist_bp.get("objects"):
-                historical_suite_input = [{
-                    "case_id": f"{selected_task.task_id}_baseline",
-                    "problem_blueprint": hist_bp,
-                    "raw_pddl": selected_task.initial_problem_pddl
-                }]
-        if historical_suite_input:
-            st.sidebar.info(f"📁 **{len(historical_suite_input)} Regression Case(s) Loaded**: {[c['case_id'] for c in historical_suite_input]}")
-
-
-elif input_mode == "🧬 Continuous Evolution (Evolve Domain & Problem)":
-    is_evolution_task = True
-    st.sidebar.markdown("### 🧬 Evolution Setup: Baseline PDDL")
-    
-    sel_source = st.sidebar.radio(
-        "Choose Baseline PDDL Selection Method:",
-        [
-            "⬆️ Browse & Upload Files (Local Computer)",
-            "📁 Saved Runs (PDDLLifeCycleBench Outputs)"
-        ],
-        index=0,
-        help="Upload your domain and problem files directly, or pick from previously saved runs."
-    )
-    
-    sel_domain_dir = "custom_evolved_domain"
-    
-    if sel_source == "⬆️ Browse & Upload Files (Local Computer)":
-        st.sidebar.caption("Manually upload your domain and problem `.pddl` files from your computer:")
-        uploaded_dom = st.sidebar.file_uploader(
-            "Select Baseline Domain File (.pddl):",
-            type=["pddl", "txt"],
-            key="evolve_upload_dom"
-        )
-        uploaded_prob = st.sidebar.file_uploader(
-            "Select Baseline Problem File (.pddl):",
-            type=["pddl", "txt"],
-            key="evolve_upload_prob"
-        )
-        
-        if uploaded_dom:
-            try:
-                initial_domain_pddl_input = uploaded_dom.getvalue().decode("utf-8")
-                initial_domain_bp_input = parse_pddl_domain_to_blueprint(initial_domain_pddl_input)
-                sel_domain_dir = initial_domain_bp_input.get("domain_name") or os.path.splitext(uploaded_dom.name)[0]
-            except Exception as e:
-                st.sidebar.error(f"Error reading domain file: {e}")
-                
-        if uploaded_prob:
-            try:
-                initial_problem_pddl_input = uploaded_prob.getvalue().decode("utf-8")
-                initial_prob_bp_input = parse_pddl_problem_to_blueprint(initial_problem_pddl_input)
-            except Exception as e:
-                st.sidebar.error(f"Error reading problem file: {e}")
-
-    elif sel_source.startswith("📁 Saved Runs"):
-        output_roots = [
-            str(get_flaw_output_dir()),
-            str(get_evolve_output_dir()),
-            str(get_elicitation_output_dir()),
-            str(get_generated_output_dir())
-        ]
-        chosen_root = st.sidebar.selectbox("Choose Saved Runs Track Folder:", output_roots, index=0)
-        output_root = chosen_root
-        avail_domains = []
-        if os.path.exists(output_root):
-            avail_domains = sorted([
-                d for d in os.listdir(output_root) 
-                if os.path.isdir(os.path.join(output_root, d)) and glob.glob(os.path.join(output_root, d, "domain_*.pddl"))
-            ])
-        
-        if not avail_domains:
-            st.sidebar.warning(f"No saved runs found in `{output_root}/`. Please select another category or upload files directly!")
-        else:
-            default_dom_idx = avail_domains.index("depot") if "depot" in avail_domains else 0
-            sel_domain_dir = st.sidebar.selectbox("Choose Saved Domain Folder:", avail_domains, index=default_dom_idx)
-            domain_folder = os.path.join(output_root, sel_domain_dir)
-            
-            domain_files = sorted(
-                glob.glob(os.path.join(domain_folder, "domain_*.pddl")),
-                key=lambda f: int(re.search(r"domain_(\d+)\.pddl", os.path.basename(f)).group(1)) if re.search(r"domain_(\d+)\.pddl", os.path.basename(f)) else 0
-            )
-            sel_domain_file = st.sidebar.selectbox(
-                "Choose Baseline Domain Run:",
-                domain_files,
-                index=len(domain_files) - 1,
-                format_func=lambda f: os.path.basename(f)
-            )
-            if sel_domain_file and os.path.exists(sel_domain_file):
-                with open(sel_domain_file, "r", encoding="utf-8") as f:
-                    initial_domain_pddl_input = f.read()
-                initial_domain_bp_input = parse_pddl_domain_to_blueprint(initial_domain_pddl_input)
-            
-            problem_files = sorted(
-                glob.glob(os.path.join(domain_folder, "problem_*.pddl")),
-                key=lambda f: int(re.search(r"problem_(\d+)\.pddl", os.path.basename(f)).group(1)) if re.search(r"problem_(\d+)\.pddl", os.path.basename(f)) else 0
-            )
-            target_prob_choice = st.sidebar.selectbox(
-                "Choose Baseline Problem Run:",
-                problem_files if problem_files else ["No saved problems"],
-                index=len(problem_files) - 1 if problem_files else 0,
-                format_func=lambda f: os.path.basename(f)
-            )
-            if problem_files and os.path.exists(target_prob_choice):
-                with open(target_prob_choice, "r", encoding="utf-8") as f:
-                    initial_problem_pddl_input = f.read()
-                initial_prob_bp_input = parse_pddl_problem_to_blueprint(initial_problem_pddl_input)
-
-    # Show previews of the selected baseline domain and problem
-    if initial_domain_pddl_input.strip():
-        with st.sidebar.expander(f"📄 Baseline Domain (`{initial_domain_bp_input.get('domain_name', 'domain')}`)", expanded=False):
-            st.code(initial_domain_pddl_input, language="lisp")
-    else:
-        st.sidebar.warning("⚠️ No baseline domain selected yet. Please upload or browse a domain file.")
-
-    if initial_problem_pddl_input.strip():
-        with st.sidebar.expander(f"📄 Baseline Problem (`{initial_prob_bp_input.get('problem_name', 'problem')}`)", expanded=False):
-            st.code(initial_problem_pddl_input, language="lisp")
-    else:
-        st.sidebar.warning("⚠️ No baseline problem selected yet. Please upload or browse a problem file.")
-
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### 📝 Evolution Requirements")
-    req_text = st.sidebar.text_area(
-        "Evolution Requirements Prompt:",
-        value="",
-        height=160,
-        placeholder="Enter your evolution requirements here (e.g. describe new actions, predicates, conditions, or modified goal objectives to evolve the domain and problem)...",
-        help="Specify how the baseline domain and problem should evolve."
-    )
-    
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("🛡️ Phase 4 Maintenance Settings")
-    enable_maintenance = st.sidebar.checkbox(
-        "Enable Phase 4 Historical Regression Suite",
-        value=True,
-        help="Verifies that the evolved domain remains backward compatible with historical problems."
-    )
-    st.sidebar.caption("Ensures that newly introduced conditions and actions do not break backward compatibility with legacy operational problems.")
-    
-    if enable_maintenance:
-        historical_suite_input = []
-        # Auto-enroll the selected baseline problem as a regression test case
-        if initial_problem_pddl_input.strip():
-            historical_suite_input.append({
-                "case_id": f"baseline_{initial_prob_bp_input.get('problem_name', 'problem')}",
-                "problem_blueprint": initial_prob_bp_input,
-                "raw_pddl": initial_problem_pddl_input
-            })
-
-        # Option A: In Saved Runs mode, allow multiselect of additional saved problems
-        if sel_source.startswith("📁 Saved Runs") and 'problem_files' in locals() and len(problem_files) > 1:
-            add_saved_probs = st.sidebar.multiselect(
-                "Choose Additional Historical Problems (Phase 4):",
-                problem_files,
-                default=[p for p in problem_files if p != target_prob_choice],
-                format_func=lambda f: os.path.basename(f),
-                help="Select one or more saved historical problem instances to test backward compatibility."
-            )
-            for add_p in add_saved_probs:
-                if add_p != target_prob_choice and os.path.exists(add_p):
-                    with open(add_p, "r", encoding="utf-8") as f:
-                        p_txt = f.read()
-                    p_bp = parse_pddl_problem_to_blueprint(p_txt)
-                    if p_bp and p_bp.get("objects"):
-                        historical_suite_input.append({
-                            "case_id": os.path.basename(add_p),
-                            "problem_blueprint": p_bp,
-                            "raw_pddl": p_txt
-                        })
-
-        # Option B: In Upload mode, allow uploading multiple additional historical problem files
-        elif sel_source == "⬆️ Browse & Upload Files (Local Computer)":
-            extra_uploaded = st.sidebar.file_uploader(
-                "Upload Additional Historical Problem Files (.pddl):",
-                type=["pddl", "txt"],
-                accept_multiple_files=True,
-                key="evolve_extra_probs",
-                help="Upload one or more historical problem instances to test backward compatibility."
-            )
-            if extra_uploaded:
-                for up_f in extra_uploaded:
-                    try:
-                        p_txt = up_f.getvalue().decode("utf-8")
-                        p_bp = parse_pddl_problem_to_blueprint(p_txt)
-                        if p_bp and p_bp.get("objects"):
-                            historical_suite_input.append({
-                                "case_id": up_f.name,
-                                "problem_blueprint": p_bp,
-                                "raw_pddl": p_txt
-                            })
-                    except Exception as e:
-                        st.sidebar.error(f"Error parsing {up_f.name}: {e}")
-
-        if historical_suite_input:
-            st.sidebar.success(f"📁 **{len(historical_suite_input)} Historical Case(s) Enrolled**: {[c['case_id'] for c in historical_suite_input]}")
-        else:
-            st.sidebar.caption("ℹ️ *Select or upload baseline problems to enroll them for Phase 4 backward compatibility verification.*")
+    historical_suite_input = []
+    d_folder = Path(get_autoplanbench_dir()) / sel_domain / "orig_problems"
+    for inst_name in chosen_instances:
+        inst_path = d_folder / inst_name
+        if inst_path.exists():
+            with open(inst_path, "r", encoding="utf-8") as f:
+                inst_txt = f.read()
+            if inst_txt.strip():
+                historical_suite_input.append({
+                    "case_id": f"{sel_domain}_{inst_name.replace('.pddl', '')}",
+                    "problem_pddl": inst_txt,
+                    "raw_pddl": inst_txt
+                })
+    if historical_suite_input:
+        st.sidebar.success(f"📁 **{len(historical_suite_input)} Regression Case(s) Loaded**: {[c['case_id'] for c in historical_suite_input]}")
+elif enable_maintenance and ref_inst:
+    if ref_inst.strip():
+        historical_suite_input = [{
+            "case_id": f"{sel_domain}_{sel_instance}",
+            "problem_pddl": ref_inst,
+            "raw_pddl": ref_inst
+        }]
+        st.sidebar.success(f"📁 **Regression Case Loaded**: `{sel_domain}_{sel_instance}`")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("⚙️ System Architecture & Baselines")
@@ -907,39 +353,20 @@ max_iterations = st.sidebar.slider(
     value=5 if system_choice in ["CLOSED_LOOP_AST_AGENT", "ABLATION_NO_TRIAGE"] else 5
 )
 
-# Check if selected task is a Synthetic Fault Repair or Domain Evolution Task
-if selected_task:
-    task_t = getattr(selected_task, "task_type", None)
-    if task_t == LifecycleTaskType.SYNTHETIC_FAULT_REPAIR and getattr(selected_task, "initial_domain_pddl", None) and selected_task.initial_domain_pddl.strip():
-        is_synthetic_repair = True
-        initial_domain_pddl_input = selected_task.initial_domain_pddl
-        initial_problem_pddl_input = getattr(selected_task, "initial_problem_pddl", "") or ""
-        initial_domain_bp_input = parse_pddl_domain_to_blueprint(selected_task.initial_domain_pddl)
-        initial_prob_bp_input = parse_pddl_problem_to_blueprint(selected_task.initial_problem_pddl)
-        initial_errors_input = [f"Initial fault trigger for benchmark task {selected_task.task_id} ({getattr(selected_task, 'fault_category', 'FAULT')})."]
-    elif task_t == LifecycleTaskType.DOMAIN_EVOLUTION:
-        is_evolution_task = True
-        initial_domain_pddl_input = getattr(selected_task, "initial_domain_pddl", "") or ""
-        initial_problem_pddl_input = getattr(selected_task, "initial_problem_pddl", "") or ""
-        if initial_domain_pddl_input:
-            initial_domain_bp_input = parse_pddl_domain_to_blueprint(initial_domain_pddl_input)
-        if initial_problem_pddl_input:
-            initial_prob_bp_input = parse_pddl_problem_to_blueprint(initial_problem_pddl_input)
-        initial_errors_input = []
-
 # Construct the formal active BenchmarkTask object
-active_task = selected_task if selected_task else BenchmarkTask(
-    task_id="continuous_evolution_task" if is_evolution_task else "custom_user_task",
-    domain_family=sel_domain_dir if is_evolution_task and 'sel_domain_dir' in locals() else "custom",
-    task_type=LifecycleTaskType.DOMAIN_EVOLUTION if is_evolution_task else (LifecycleTaskType.SYNTHETIC_FAULT_REPAIR if is_synthetic_repair else LifecycleTaskType.ELICITATION),
-    title="Continuous Domain Evolution Specification" if is_evolution_task else "Custom Domain Specification",
+inst_stem = sel_instance.replace('.pddl', '') if sel_instance else 'prob'
+active_task = BenchmarkTask(
+    task_id=f"autoplanbench_{sel_domain}_{inst_stem}",
+    domain_family=sel_domain,
+    task_type=LifecycleTaskType.ELICITATION,
+    title=f"AutoPlanBench: {sel_domain} ({sel_instance})",
     natural_language_requirements=req_text,
-    initial_domain_pddl=initial_domain_pddl_input,
-    initial_problem_pddl=initial_problem_pddl_input or (ref_inst if ('ref_inst' in locals() and ref_inst) else ""),
+    initial_domain_pddl="",
+    initial_problem_pddl=ref_inst if ('ref_inst' in locals() and ref_inst) else "",
     ground_truth_domain_pddl=ref_dom if ('ref_dom' in locals() and ref_dom) else "",
     ground_truth_problem_pddl=ref_inst if ('ref_inst' in locals() and ref_inst) else "",
     historical_regression_problems=[
-        c.get("raw_pddl") or (compile_problem_pddl(c.get("problem_blueprint")) if c.get("problem_blueprint") else "")
+        c.get("problem_pddl") or c.get("raw_pddl") or ""
         for c in historical_suite_input
     ] if enable_maintenance else []
 )
@@ -950,38 +377,16 @@ active_task = selected_task if selected_task else BenchmarkTask(
 col_req, col_action = st.columns([3, 1])
 
 with col_req:
-    if is_synthetic_repair:
-        st.subheader("🛠️ Active Curated Flaw Specification")
-        st.warning(
-            f"⚠️ **Curated Flaw Benchmark Track Active**: Task `{selected_task.task_id}`\n\n"
-            f"- **Fault Category:** `{selected_task.fault_category}`\n"
-            f"- **Target Action/Element:** `{selected_task.gold_fault_element}`\n"
-            f"- **Execution Mode:** **Phase 1 [ELICIT] Bypassed** -> Direct Closed-Loop `Validation` -> `Triage` -> `Repair` on seeded flaw."
-        )
-        with st.expander("📄 Flawed Baseline Domain PDDL (`domain_flawed.pddl`)", expanded=True):
-            st.code(initial_domain_pddl_input, language="lisp")
-        if initial_problem_pddl_input:
-            with st.expander("📄 Verification Problem Instance (`problem.pddl`)", expanded=False):
-                st.code(initial_problem_pddl_input, language="lisp")
-        user_requirements = f"Repair the intentional {selected_task.fault_category} fault in action {selected_task.gold_fault_element} of domain {selected_task.domain_family}."
-        active_task.natural_language_requirements = user_requirements
-    else:
-        st.subheader("📋 Active Domain Specification")
-        if is_evolution_task:
-            if selected_task:
-                task_id_display = selected_task.task_id
-            else:
-                task_id_display = initial_domain_bp_input.get("domain_name") or (sel_domain_dir if 'sel_domain_dir' in locals() and sel_domain_dir != "custom_evolved_domain" else "Uploaded Domain")
-            st.info(f"🧬 **Continuous Domain Evolution Active**: Domain `{task_id_display}`. Specify your evolution requirements below:")
-        user_requirements = st.text_area(
-            "Requirements Prompt:",
-            value=req_text,
-            placeholder="Enter your evolution requirements here (e.g. describe new actions, predicates, conditions, or modified goal objectives to evolve the domain and problem)...",
-            height=140,
-            label_visibility="collapsed",
-            help="Specify how the baseline domain and problem should evolve (e.g., new capabilities, actions, predicates, or goal conditions)."
-        )
-        active_task.natural_language_requirements = user_requirements
+    st.subheader(f"📋 Active Domain Specification (`{sel_domain}` / `{sel_instance}`)")
+    user_requirements = st.text_area(
+        "Requirements Prompt:",
+        value=req_text,
+        placeholder="Natural language requirements for domain and problem...",
+        height=140,
+        label_visibility="collapsed",
+        help="Natural language requirements loaded directly from AutoPlanBench."
+    )
+    active_task.natural_language_requirements = user_requirements
 
 with col_action:
     st.subheader("🚀 Trigger")
@@ -992,7 +397,7 @@ with col_action:
         "ZERO_SHOT": "Zero-Shot Baseline"
     }.get(system_choice, system_choice)
     st.caption(f"Target: **{system_display_name}**")
-    btn_label = f"🚀 Run Repair Loop ({system_choice})" if is_synthetic_repair else f"🚀 Run {system_choice}"
+    btn_label = f"🚀 Run {system_choice}"
     run_agent = st.button(btn_label, type="primary", width='stretch')
 
 # Initialize Session State
@@ -1002,8 +407,6 @@ if "node_logs" not in st.session_state:
     st.session_state["node_logs"] = []
 if "active_run_metrics" not in st.session_state:
     st.session_state["active_run_metrics"] = None
-if "multi_baseline_results" not in st.session_state:
-    st.session_state["multi_baseline_results"] = None
 
 # ==============================================================================
 # LIVE STREAMING EXECUTION ROUTING ACROSS ARCHITECTURES
@@ -1019,7 +422,6 @@ if run_agent:
         initial_state = {
             "requirements": user_requirements,
             "pddl_domain_blueprint": initial_domain_bp_input,
-            "pddl_problem_blueprint": initial_prob_bp_input,
             "initial_domain_pddl": initial_domain_pddl_input,
             "initial_problem_pddl": initial_problem_pddl_input,
             "is_evolution_task": is_evolution_task,
@@ -1041,8 +443,6 @@ if run_agent:
 
         st.markdown(f"### 🔄 Live Execution Stream: `{system_choice}`")
         status_container = st.status(f"🚀 Initializing {system_choice}... Streaming state transitions...", expanded=True)
-        if is_synthetic_repair:
-            status_container.write("⏩ **Phase 1 [ELICIT] Bypassed**: Curated Flaw track starting directly at **Node 3 [VALIDATE]** with seeded domain flaw...")
         current_state = initial_state
         cumulative_issue_count = 0
         
@@ -1553,7 +953,7 @@ if final_state:
         hist_plans = final_state.get("historical_plan_results", [])
         if hist_plans:
             st.markdown("---")
-            st.markdown("### 🔄 Backward Compatibility Proof (Historical IPC Cases)")
+            st.markdown("### 🔄 Backward Compatibility Proof (Historical Regression Cases)")
             for hp in hist_plans:
                 cid = hp.get("case_id", "historical_case")
                 h_res = hp.get("plan_result", {})
@@ -1573,17 +973,12 @@ if final_state:
                         h_formatted = [{"Step": i, "Action": s} for i, s in enumerate(h_res["plan_steps"], 1)]
                         st.dataframe(h_formatted, width='stretch')
 
-    # Tab 3: AST Blueprints
+    # Tab 3: AST Blueprint
     with tab_ast:
-        col_ast_dom, col_ast_prob = st.columns(2)
-        with col_ast_dom:
-            st.markdown("#### `DomainBlueprint` (JSON AST)")
-            st.json(final_state.get("pddl_domain_blueprint", {}))
-        with col_ast_prob:
-            st.markdown("#### `ProblemBlueprint` (JSON AST)")
-            st.json(final_state.get("pddl_problem_blueprint", {}))
+        st.markdown("#### `DomainBlueprint` (JSON AST)")
+        st.json(final_state.get("pddl_domain_blueprint", {}))
 
-    # Tab 3: Diagnostic Triage Report & Fault Evidence
+    # Tab 4: Diagnostic Triage Report & Fault Evidence
     with tab_triage:
         reports = final_state.get("historical_diagnostic_reports", []) or final_state.get("diagnostic_reports", [])
         init_errors = final_state.get("initial_verification_errors", []) or final_state.get("verification_errors", [])
@@ -1603,9 +998,9 @@ if final_state:
         if not causal_data:
             from tools.causal_triage_analyzer import run_causal_triage_analysis
             d_bp = final_state.get("pddl_domain_blueprint") or {}
-            p_bp = final_state.get("pddl_problem_blueprint") or {}
+            p_pddl = final_state.get("initial_problem_pddl") or final_state.get("generated_problem_pddl") or ""
             if d_bp and d_bp.get("actions"):
-                causal_data = run_causal_triage_analysis(d_bp, p_bp, init_errors)
+                causal_data = run_causal_triage_analysis(d_bp, p_pddl, init_errors)
 
         if causal_data and causal_data.get("diagnostic_summary"):
             with st.expander("🕸️ Causal Graph & DTG Structural Diagnostics (Torralba & Hoffmann Invariants)", expanded=True):
@@ -1685,15 +1080,13 @@ if final_state:
         else:
             st.info("No per-node latencies recorded for this run.")
 
-    # Tab 6: Empirical Evaluation & Baselines Comparison
+    # Tab 6: Empirical Evaluation
     with tab_eval:
-        st.markdown("### 🏆 Rigorous Empirical Evaluation & Baselines Comparison")
+        st.markdown("### 🏆 Rigorous Empirical Evaluation")
         st.caption("Formal evaluation grounded in classical symbolic oracles (VAL `Validate.exe` & Fast Downward classical search) with zero evaluation leakage.")
 
-        # ------------------------------------------------------------------
-        # Section 1: Active Run Rigorous Scorecard
-        # ------------------------------------------------------------------
-        st.markdown("#### 1. Active Run Lifecycle Scorecard")
+        # Active Run Rigorous Scorecard
+        st.markdown("#### Active Run Lifecycle Scorecard")
         run_m = st.session_state.get("active_run_metrics")
         
         if run_m:
@@ -1737,182 +1130,10 @@ if final_state:
         else:
             st.info("Run the agent or a baseline above to inspect active lifecycle scorecard metrics.")
 
-        st.markdown("---")
-
-        # ------------------------------------------------------------------
-        # Section 2: Head-to-Head 4-System Multi-Baseline Comparison
-        # ------------------------------------------------------------------
-        st.markdown("#### 2. ⚔️ Multi-System Baseline Benchmark (Active Domain Task)")
-        st.markdown(
-            "Evaluate and compare all 4 architectures side-by-side on active task **`" + (active_task.task_id if active_task else 'current') + "`**:\n"
-            "- **`CLOSED_LOOP_AST_AGENT`**: Proposed Thesis Agent (Pydantic AST + Diagnostic LLM Agent + Compiler + Oracles)\n"
-            "- **`ABLATION_NO_TRIAGE`**: Thesis Ablation (Closed-Loop without Diagnostic Agent)\n"
-            "- **`UNSTRUCTURED_RETRY`**: Literature Baseline (Direct PDDL prompt + raw error feedback)\n"
-            "- **`ZERO_SHOT`**: Literature Baseline (Single-pass direct generation, no loop)"
-        )
-
-        col_run_cmp, col_clear_cmp = st.columns([3, 1])
-        with col_run_cmp:
-            run_head_to_head = st.button("⚔️ Run 4-System Head-to-Head Comparison on Active Task", type="secondary", width='stretch')
-        with col_clear_cmp:
-            if st.button("🔄 Clear Comparison", width='stretch'):
-                st.session_state["multi_baseline_results"] = None
-                st.rerun()
-
-        if run_head_to_head:
-            comp_agents = ["CLOSED_LOOP_AST_AGENT", "ABLATION_NO_TRIAGE", "UNSTRUCTURED_RETRY", "ZERO_SHOT"]
-            comp_results = []
-            comp_progress = st.progress(0, text="Starting 4-system head-to-head comparison...")
-            
-            for idx, ag_type in enumerate(comp_agents):
-                comp_progress.progress((idx) / len(comp_agents), text=f"Evaluating Architecture {idx+1}/{len(comp_agents)}: `{ag_type}`...")
-                try:
-                    res_m = run_evaluation_on_task(active_task, ag_type)
-                    comp_results.append(res_m)
-                except Exception as ex:
-                    st.error(f"Error evaluating `{ag_type}`: {ex}")
-            
-            comp_progress.progress(1.0, text="✅ 4-System Head-to-Head Comparison Finished!")
-            st.session_state["multi_baseline_results"] = comp_results
-
-        cached_comp = st.session_state.get("multi_baseline_results")
-        if cached_comp:
-            st.markdown("##### 📊 Empirical Head-to-Head Scorecard")
-            comp_table = []
-            for m in cached_comp:
-                f_top1_str = "N/A"
-                if m.fault_localization_top1 is not None:
-                    f_top1_str = "Top-1 ✅" if m.fault_localization_top1 else "No"
-                comp_table.append({
-                    "Architecture": m.agent_type,
-                    "E2E Success": "✅ PASS" if m.e2e_success else "❌ FAIL",
-                    "VAL Syntax": "✅ Valid" if m.is_syntax_valid else "❌ Error",
-                    "FD Solvable": f"✅ Solvable ({m.plan_length or 0} steps)" if m.is_plan_valid else "❌ Unsolvable",
-                    "VAL Certified": "✅ Certified" if m.plan_execution_valid else "❌ Failed",
-                    "Iterations": m.iterations_used,
-                    "Latency": f"{m.execution_time_seconds:.2f}s",
-                    "Tokens": f"{m.total_tokens:,}",
-                    "Cost ($)": f"${m.estimated_cost_usd:.5f}",
-                    "Diagnostic Top-1": f_top1_str
-                })
-            st.dataframe(comp_table, width='stretch')
-
-            st.info(
-                "💡 **Key Thesis Finding**: The **`CLOSED_LOOP_AST_AGENT`** achieves superior verified success because:\n"
-                "1. **AST Schemas & Deterministic Compiler**: Guarantees 100% syntactic validity and eliminates PDDL formatting hallucinations.\n"
-                "2. **Diagnostic LLM Agent (Triage)**: Pinpoints root causes (missing preconditions, inconsistent types) instead of relying on ambiguous raw compiler stderr.\n"
-                "3. **In contrast**, `UNSTRUCTURED_RETRY` frequently regresses and fails syntax checks, while `ZERO_SHOT` cannot handle complex relational dependencies without oracle feedback."
-            )
-
-        st.markdown("---")
-
-        # ------------------------------------------------------------------
-        # Section 3: Full PDDLLifeCycleBench Benchmark Suite Runner
-        # ------------------------------------------------------------------
-        with st.expander("📂 Run Full PDDLLifeCycleBench Benchmark Suite across IPC Domains", expanded=False):
-            st.markdown("Execute evaluation over standard benchmark tasks from IPC (`depots`, `blocksworld`, `logistics`, `rovers`, `satellite`, `gripper`).")
-            
-            all_domains = sorted(list(set(t.domain_family for t in BENCHMARK_TASKS)))
-            all_types = sorted(list(set(t.task_type.value for t in BENCHMARK_TASKS)))
-            
-            sel_domains = st.multiselect("Filter IPC Domain Families:", options=all_domains, default=all_domains[:3])
-            sel_types = st.multiselect("Filter Lifecycle Task Types:", options=all_types, default=all_types)
-            sel_systems = st.multiselect("Select Systems to Benchmark:", options=["CLOSED_LOOP_AST_AGENT", "ABLATION_NO_TRIAGE", "UNSTRUCTURED_RETRY", "ZERO_SHOT"], default=["CLOSED_LOOP_AST_AGENT", "UNSTRUCTURED_RETRY", "ZERO_SHOT"])
-            max_tasks_count = st.slider("Max Tasks to Evaluate:", min_value=1, max_value=len(BENCHMARK_TASKS), value=min(6, len(BENCHMARK_TASKS)))
-            
-            run_suite_btn = st.button("🚀 Execute Benchmark Suite", type="secondary")
-            
-            if run_suite_btn:
-                filtered_tasks = [t for t in BENCHMARK_TASKS if t.domain_family in sel_domains and t.task_type.value in sel_types][:max_tasks_count]
-                
-                if not filtered_tasks:
-                    st.warning("No benchmark tasks match the selected filters.")
-                else:
-                    suite_prog = st.progress(0, text=f"Evaluating {len(filtered_tasks)} tasks x {len(sel_systems)} systems...")
-                    suite_results = []
-                    total_runs = len(filtered_tasks) * len(sel_systems)
-                    cur_run = 0
-                    
-                    for t in filtered_tasks:
-                        for s in sel_systems:
-                            cur_run += 1
-                            suite_prog.progress(cur_run / total_runs, text=f"[{cur_run}/{total_runs}] Running Task `{t.task_id}` on `{s}`...")
-                            try:
-                                res_m = run_evaluation_on_task(t, s)
-                                suite_results.append(res_m)
-                            except Exception as ex:
-                                st.error(f"Suite error on task `{t.task_id}` ({s}): {ex}")
-                                
-                    suite_prog.progress(1.0, text="✅ Benchmark Suite Completed!")
-                    
-                    # Generate Markdown Report
-                    md_report = generate_evaluation_report(suite_results)
-                    st.markdown("### 📋 Empirical Benchmark Report")
-                    st.markdown(md_report)
-                    
-                    # Provide JSON and Markdown download buttons
-                    col_dl1, col_dl2 = st.columns(2)
-                    with col_dl1:
-                        json_str = json.dumps([m.model_dump() for m in suite_results], indent=2)
-                        st.download_button(
-                            label="📥 Download Results (JSON)",
-                            data=json_str,
-                            file_name="benchmark_evaluation_results.json",
-                            mime="application/json",
-                            width='stretch'
-                        )
-                    with col_dl2:
-                        st.download_button(
-                            label="📥 Download Markdown Report (.md)",
-                            data=md_report,
-                            file_name="empirical_lifecycle_report.md",
-                            mime="text/markdown",
-                            width='stretch'
-                        )
-
 else:
     st.markdown("---")
-    st.info("👈 **Welcome to PDDL Lifecycle Agent!** Select an IPC domain task or input custom requirements in the sidebar, choose a system architecture (`CLOSED_LOOP_AST_AGENT`, `ABLATION_NO_TRIAGE`, `UNSTRUCTURED_RETRY`, or `ZERO_SHOT`), and click **'🚀 Run Selected System'** above to begin execution.")
+    st.info("👈 **Welcome to PDDL Lifecycle Agent!** Select an AutoPlanBench domain task in the sidebar, choose a system architecture (`CLOSED_LOOP_AST_AGENT`, `ABLATION_NO_TRIAGE`, `UNSTRUCTURED_RETRY`, or `ZERO_SHOT`), and click **'🚀 Run Selected System'** above to begin execution.")
 
-    # Render Standalone Head-to-Head & Benchmark Suite Explorer
-    st.subheader("🏆 Empirical Benchmark & Multi-System Comparison Hub")
-    st.caption("You can run multi-baseline head-to-head comparisons or the full benchmark suite evaluation directly below without manually running a single pass:")
-
-    col_bench_act, col_bench_suite = st.columns(2)
-    with col_bench_act:
-        st.markdown("#### ⚔️ Quick Head-to-Head Comparison")
-        st.write(f"Compare all 4 systems on active task: `{active_task.task_id}`")
-        if st.button("⚔️ Run 4-System Head-to-Head Comparison", type="secondary", width='stretch'):
-            comp_agents = ["CLOSED_LOOP_AST_AGENT", "ABLATION_NO_TRIAGE", "UNSTRUCTURED_RETRY", "ZERO_SHOT"]
-            comp_results = []
-            comp_prog = st.progress(0, text="Running comparison...")
-            for idx, ag_type in enumerate(comp_agents):
-                comp_prog.progress((idx) / len(comp_agents), text=f"Evaluating `{ag_type}`...")
-                try:
-                    res_m = run_evaluation_on_task(active_task, ag_type)
-                    comp_results.append(res_m)
-                except Exception as ex:
-                    st.error(f"Error on `{ag_type}`: {ex}")
-            comp_prog.progress(1.0, text="✅ Done!")
-            st.session_state["multi_baseline_results"] = comp_results
-
-        if st.session_state.get("multi_baseline_results"):
-            comp_table = []
-            for m in st.session_state["multi_baseline_results"]:
-                comp_table.append({
-                    "Architecture": m.agent_type,
-                    "E2E Success": "✅ PASS" if m.e2e_success else "❌ FAIL",
-                    "VAL Syntax": "✅ Valid" if m.is_syntax_valid else "❌ Error",
-                    "FD Solvable": f"✅ Solvable ({m.plan_length or 0} steps)" if m.is_plan_valid else "❌ Unsolvable",
-                    "VAL Certified": "✅ Certified" if m.plan_execution_valid else "❌ Failed",
-                    "Iterations": m.iterations_used,
-                    "Latency": f"{m.execution_time_seconds:.2f}s",
-                    "Tokens": f"{m.total_tokens:,}",
-                    "Cost ($)": f"${m.estimated_cost_usd:.5f}"
-                })
-            st.dataframe(comp_table, width='stretch')
-
-    with col_bench_suite:
-        st.markdown("#### 📂 Full Benchmark Suite Quick Stats")
-        st.write(f"**{len(BENCHMARK_TASKS)} benchmark tasks** available across {len(set(t.domain_family for t in BENCHMARK_TASKS))} IPC domain families.")
-        st.caption("Includes: Elicitation from NL, Synthetic Fault Repair (syntax, types, preconditions, effects), and Domain Evolution with historical regression testing.")
+    st.subheader("🚀 AutoPlanBench Benchmark Suite Overview")
+    st.write(f"**{len(AUTOPLANBENCH_PURE_STRIPS_DOMAINS)} Pure STRIPS+Typing benchmark domains** available in `autoplanbench/data/`.")
+    st.caption("Domains: " + ", ".join(AUTOPLANBENCH_PURE_STRIPS_DOMAINS))

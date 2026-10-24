@@ -47,7 +47,7 @@ def evaluate_domain_repair(domain_folder_name: str):
     initial_state = {
         "requirements": f"Repair flawed domain for {domain_folder_name}",
         "pddl_domain_blueprint": {},
-        "pddl_problem_blueprint": {},
+        "initial_problem_pddl": problem_pddl,
         "generated_domain_pddl": flawed_domain_pddl,
         "generated_problem_pddl": problem_pddl,
         "verification_errors": ["VAL Error: Synthetic flaw injected in domain-modified.pddl"],

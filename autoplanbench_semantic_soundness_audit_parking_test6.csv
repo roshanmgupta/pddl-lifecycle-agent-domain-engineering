@@ -1,0 +1,2 @@
+domain,agent_type,gold_operator_count,generated_operator_count,matched_operator_count,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,val_internal_valid,val_standard_transfer_valid,semantic_verdict,action_bijection_mapping
+parking,CLOSED_LOOP_AST_AGENT,4,4,4,0.7639,0.8,0.7917,0.7,1.0,True,False,PARTIAL_OR_DIVERGENT,"{""move_car_to_curb"": ""move-curb-to-curb"", ""move_car_behind_car"": ""move-curb-to-car"", ""move_car_from_behind_to_curb"": ""move-car-to-curb"", ""move_car_behind_another_car"": ""move-car-to-car""}"

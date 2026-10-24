@@ -61,48 +61,23 @@ def extract_and_parse_json(schema: Type[T], raw_text: str) -> T:
     except Exception:
         pass
 
-    # Helper function to normalize domain/problem keys
+    # Helper function to normalize domain schema keys
     def _normalize_and_validate(raw_data):
         if not isinstance(raw_data, dict):
             return None
-        # Handle $defs or definitions wrappers
-        if "$defs" in raw_data and "domain" not in raw_data:
+        # Handle $defs, definitions, or outer "domain" wrappers if emitted by an LLM
+        if "$defs" in raw_data and "domain_name" not in raw_data:
             defs = raw_data["$defs"]
-            dom = defs.get("DomainBlueprint") or defs.get("domain") or {}
-            prob = defs.get("ProblemBlueprint") or defs.get("problem") or {}
-            if dom:
-                raw_data = {"domain": dom, "problem": prob}
-        elif "definitions" in raw_data and "domain" not in raw_data:
+            dom = defs.get("DomainBlueprint") or defs.get("domain")
+            if isinstance(dom, dict):
+                raw_data = dom
+        elif "definitions" in raw_data and "domain_name" not in raw_data:
             defs = raw_data["definitions"]
-            dom = defs.get("DomainBlueprint") or defs.get("domain") or {}
-            prob = defs.get("ProblemBlueprint") or defs.get("problem") or {}
-            if dom:
-                raw_data = {"domain": dom, "problem": prob}
-
-        schema_fields = getattr(schema, "__fields__", {}) or getattr(schema, "model_fields", {})
-        if "domain" in schema_fields and "problem" in schema_fields:
-            if "domain" not in raw_data and ("domain_name" in raw_data or "actions" in raw_data):
-                domain_name = raw_data.get("domain_name", "generated_domain")
-                raw_data = {
-                    "domain": raw_data,
-                    "problem": {
-                        "domain_name": domain_name,
-                        "problem_name": f"{domain_name}_prob",
-                        "objects": {},
-                        "initial_state": [],
-                        "goal_state": []
-                    }
-                }
-            elif "domain" in raw_data and "problem" not in raw_data:
-                domain_dict = raw_data.get("domain", {})
-                domain_name = domain_dict.get("domain_name", "generated_domain") if isinstance(domain_dict, dict) else "generated_domain"
-                raw_data["problem"] = {
-                    "domain_name": domain_name,
-                    "problem_name": f"{domain_name}_prob",
-                    "objects": {},
-                    "initial_state": [],
-                    "goal_state": []
-                }
+            dom = defs.get("DomainBlueprint") or defs.get("domain")
+            if isinstance(dom, dict):
+                raw_data = dom
+        elif "domain" in raw_data and isinstance(raw_data["domain"], dict) and "domain_name" not in raw_data:
+            raw_data = raw_data["domain"]
         return schema.model_validate(raw_data)
 
     # 1. Fast Path: Standard Python json.loads

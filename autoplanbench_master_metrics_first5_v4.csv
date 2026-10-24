@@ -1,0 +1,27 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+gripper,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.5889,0.4333,0.6667,0.6667,1.0,1.0,0,0,0,0,0,0,2.3e-05,70.16,82403,4732,87135,0.0152,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,False,False,6,True,5,0.9327,0.96,0.9048,0.9333,1.0,1.0,0,0,0,0,14,14,0.002497,92.28,87414,6753,94167,0.017164,A.2: Refined Success via Feedback Loops,RECOVERED,"Plan Transfer Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Type-checking drive ...action passes type checking. Type-checking lift ...action passes typ"
+satellite,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.7445,0.9,0.7333,0.6,1.0,1.0,0,0,0,0,0,0,3.9e-05,62.07,86029,5536,91565,0.016226,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+rovers,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,False,6,False,5,0.7679,0.8889,0.8222,0.5926,1.0,1.0,0,0,0,0,11,11,0.001619,162.44,116976,13677,130653,0.025753,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT,"Plan Transfer Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Type-checking navigate ...action passes type checking. Type-checking sample_soil ...action "
+barman14-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.6582,0.6829,0.7417,0.55,1.0,1.0,0,0,0,0,0,0,8.3e-05,178.25,127812,12681,140493,0.02678,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"

@@ -1,0 +1,3 @@
+domain,agent_type,gold_operator_count,generated_operator_count,matched_operator_count,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,val_internal_valid,val_standard_transfer_valid,semantic_verdict,action_bijection_mapping
+depot,CLOSED_LOOP_AST_AGENT,5,5,5,0.9905,1.0,1.0,0.9714,1.0,False,False,SOUND_AND_CONVERSANT,"{""drive_truck"": ""Drive"", ""lift_crate"": ""Lift"", ""drop_crate"": ""Drop"", ""load_crate"": ""Load"", ""unload_crate"": ""Unload""}"
+scanalyzer08,CLOSED_LOOP_AST_AGENT,4,4,4,0.9166,0.75,1.0,1.0,1.0,False,False,SOUND_AND_CONVERSANT,"{""analyze_cycle_length_2"": ""analyze-2"", ""analyze_cycle_length_4"": ""analyze-4"", ""rotate_cars_length_2"": ""rotate-2"", ""rotate_cars_length_4"": ""rotate-4""}"

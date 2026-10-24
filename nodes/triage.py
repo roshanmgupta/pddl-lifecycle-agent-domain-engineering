@@ -1,12 +1,13 @@
 import json
 import re
 import time
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from pydantic import BaseModel, Field
 from schemas.pddl_blueprint import DiagnosticReport, ErrorCategory, RepairOperationType
 from config.pddl_standards import STANDARD_CLASSICAL_PDDL_RULES, STANDARD_DIAGNOSTIC_RULES
 from config.model_config import get_phase_model, invoke_structured_llm_with_telemetry
-from tools.causal_triage_analyzer import run_causal_triage_analysis
+from tools.causal_triage_analyzer import run_causal_triage_analysis, normalize_atom_expression
+from tools.blueprint_parser import extract_pddl_problem_metadata
 
 class DiagnosticAnalysis(BaseModel):
     """Container for structured diagnostic reports produced by the Diagnostic LLM Agent."""
@@ -55,7 +56,115 @@ def parse_fast_downward_log(fd_log: str, causal_analysis: Optional[Dict[str, Any
     rep = check_system_oracle_binary_availability(fd_log, "Fast Downward")
     return [rep] if rep else []
 
-def format_diagnostic_feedback(reports: List[DiagnosticReport]) -> str:
+def compute_causal_subsumption_priority(report: DiagnosticReport) -> Tuple[int, int]:
+    """
+    Computes (tier_level, sub_rank) for a DiagnosticReport based on the Causal Subsumption Hierarchy.
+    Lower tier_level indicates strictly higher priority:
+      Tier 0: Syntax, Type Hierarchy, Signature Arity, Undeclared Constants (Blocks Grounding)
+      Tier 1: Static / Seed Initial State Ungroundability (Blocks Step 0 Transitions)
+      Tier 2: Goal Relevance, Goal Producers, Causal Parameter Aliasing (Blocks Goal Path)
+      Tier 3: Dynamic Mutex, Absorbing State Lockout, Irreversible Depletion (Blocks Search Convergence)
+      Tier 4: General Precondition Relaxation & Effect Tuning
+    """
+    raw = (str(report.raw_log) + " " + str(report.suggested_repair_hint)).lower()
+    cat = str(report.error_category).lower()
+    op = str(report.repair_operation_type).lower()
+    elem = str(report.faulty_element).lower()
+
+    # Tier 0: Type hierarchy, signature arity, syntax, undeclared types/predicates/constants
+    if (
+        "syntax" in cat 
+        or "type_signature" in cat 
+        or "unknown type" in raw 
+        or "arity mismatch" in raw 
+        or "type problem" in raw
+        or elem in ("types", "predicates")
+        or "undeclared" in raw
+    ):
+        return (0, 0)
+    if "type_arity_alignment" in op and ("types" in elem or "predicates" in elem or "mismatch" in raw):
+        return (0, 1)
+
+    # Tier 1: Static / Initial Seed Grounding Deadlocks (Zero facts in init)
+    if (
+        "zero matching facts in p_gold :init" in raw 
+        or "zero facts in p_gold :init" in raw 
+        or "requires argument types" in raw
+        or "empty parameter domain" in raw
+    ):
+        return (1, 0)
+    if "grounding_unsolvability" in cat and "goal" not in raw:
+        return (1, 1)
+
+    # Tier 2: Goal Reachability, Missing Goal Producers, Parameter Aliasing on Goals
+    if (
+        "goal" in raw and (
+            "unproduced" in raw 
+            or "not produced" in raw 
+            or "unreachable" in raw 
+            or "orphan" in raw
+            or "co-indexed" in raw
+            or "aliased" in raw
+        )
+    ):
+        return (2, 0)
+
+    # Tier 3: Absorbing Lockout, Irreversible Depletion, Contradictory Effects, Mutex
+    if (
+        "absorbing" in raw 
+        or "irreversible" in raw 
+        or "contradictory" in raw 
+        or "lockout" in raw
+        or "simultaneously adds" in raw
+    ):
+        return (3, 0)
+
+    # Tier 4: General Precondition / Effect Alignment
+    return (4, 0)
+
+def prioritize_diagnostic_reports(reports: List[DiagnosticReport], max_items: int = 4) -> Tuple[List[DiagnosticReport], int]:
+    """
+    Selects the highest-priority causal tier of reports up to max_items.
+    Prevents cognitive overload and attention fragmentation in the LLM repair agent.
+    Returns (prioritized_reports, active_tier).
+    """
+    if not reports:
+        return [], 0
+
+    # Monotonicity of Reachability filter:
+    # In classical planning, adding new preconditions to actions when a planner failed with unsolvability/deadlock
+    # strictly reduces the reachable state space and cannot resolve reachability failures.
+    filtered_reports = []
+    for r in reports:
+        raw_r = (str(r.raw_log) + " " + str(r.suggested_repair_hint)).lower()
+        if r.repair_operation_type == RepairOperationType.PRECONDITION_INSERTION and ("could not find a plan" in raw_r or "unsolvable" in raw_r or "deadlock" in raw_r):
+            continue
+        filtered_reports.append(r)
+    reports = filtered_reports or reports
+
+    if len(reports) <= max_items:
+        min_tier = min(compute_causal_subsumption_priority(r)[0] for r in reports)
+        sorted_reps = sorted(reports, key=compute_causal_subsumption_priority)
+        return sorted_reps, min_tier
+
+    scored = [(compute_causal_subsumption_priority(r), idx, r) for idx, r in enumerate(reports)]
+    scored.sort(key=lambda x: x[0])
+    
+    min_tier = scored[0][0][0]
+    
+    # Collect items from the lowest tier
+    selected = [r for score, _, r in scored if score[0] == min_tier]
+    
+    # If the lowest tier has fewer than max_items, optionally backfill from the next tier
+    if len(selected) < max_items:
+        next_tier = min_tier + 1
+        for score, _, r in scored:
+            if score[0] == next_tier and len(selected) < max_items:
+                selected.append(r)
+                
+    return selected[:max_items], min_tier
+
+def format_diagnostic_feedback(reports: List[DiagnosticReport], active_tier: Optional[int] = None) -> str:
     """
     Formats structured DiagnosticReports into a clear, literature-grounded feedback block
     (following Smirnov et al. 2024; Chen et al. 2024):
@@ -64,7 +173,19 @@ def format_diagnostic_feedback(reports: List[DiagnosticReport]) -> str:
     if not reports:
         return ""
         
-    feedback_lines = ["### Diagnostic Failure Analysis Report (Symbolic Oracle Triage):"]
+    tier_desc = {
+        0: "Tier 0 (Type Hierarchy & Formal AST Well-Formedness)",
+        1: "Tier 1 (Initial State Groundability & Seed Precondition Invariants)",
+        2: "Tier 2 (Goal Producer Reachability & Causal Parameter Alignment)",
+        3: "Tier 3 (State Transition Mutex & Absorbing Lockout Restorations)",
+        4: "Tier 4 (Precondition & Effect Refinements)"
+    }
+    t_str = tier_desc.get(active_tier, f"Tier {active_tier}") if active_tier is not None else "Root Causal Blockers"
+
+    feedback_lines = [
+        f"### Diagnostic Failure Analysis Report (Causal Subsumption Priority: {t_str}):",
+        f"CRITICAL GUIDANCE: To prevent cascading regressions across operators, focus repairs strictly on resolving these top-priority causal blockers before modifying unrelated actions.\n"
+    ]
     for idx, report in enumerate(reports, 1):
         cat = report.error_category.value if hasattr(report.error_category, "value") else str(report.error_category)
         op = report.repair_operation_type.value if hasattr(report.repair_operation_type, "value") else str(report.repair_operation_type)
@@ -82,18 +203,18 @@ def is_subtype(child: str, parent: str, types_map: dict) -> bool:
     """Checks whether child inherits directly or indirectly from parent in the type hierarchy."""
     if not child or not parent or not types_map or not isinstance(types_map, dict):
         return False
-    curr = str(child).strip()
+    norm_types = {str(k).strip().lower(): str(v).strip().lower() if v else "object" for k, v in types_map.items()}
+    curr = str(child).strip().lower()
     target = str(parent).strip().lower()
-    if curr.lower() == target:
+    if curr == target or target == "object":
         return True
     seen = set()
-    while curr and curr in types_map and curr not in seen:
+    while curr and curr in norm_types and curr not in seen:
         seen.add(curr)
-        p = types_map[curr]
-        if not p:
+        p_str = norm_types[curr]
+        if not p_str:
             break
-        p_str = str(p).strip()
-        if p_str.lower() == target:
+        if p_str == target:
             return True
         curr = p_str
     return False
@@ -148,14 +269,15 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
         return state
 
     domain_bp = state.get("pddl_domain_blueprint", {})
-    problem_bp = state.get("pddl_problem_blueprint", {})
+    problem_pddl = state.get("initial_problem_pddl") or state.get("generated_problem_pddl") or ""
+    prob_meta = extract_pddl_problem_metadata(problem_pddl) if problem_pddl else {}
     requirements_text = state.get("requirements", "")
     error_traces_str = "\n".join(raw_errors)
 
     # Classical Action-Predicate Causal Dependency Graph & Reachability Triage Analysis
     causal_analysis = run_causal_triage_analysis(
         domain_bp,
-        problem_bp,
+        problem_pddl,
         raw_errors,
         state.get("historical_test_results", [])
     )
@@ -180,30 +302,57 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
                 m_pred_nf = re.search(r"Predicate\s+([a-zA-Z0-9_\-]+)\s+not found", line)
                 if m_pred_nf:
                     missing_pred = m_pred_nf.group(1)
-                    dom_constants = domain_bp.get("constants", {}) if isinstance(domain_bp, dict) else {}
-                    prob_objects = problem_bp.get("objects", {}) if isinstance(problem_bp, dict) else {}
-                    if missing_pred in prob_objects or missing_pred in dom_constants:
-                        obj_type = prob_objects.get(missing_pred) or dom_constants.get(missing_pred, "object")
+                    val_type_diagnostics.append(
+                        f"  * VAL Error: 'Predicate {missing_pred} not found'.\n"
+                        f"    CRITICAL ROOT CAUSE: The fixed problem instance (P_gold) or an action schema uses predicate '{missing_pred}', but '{missing_pred}' is missing from domain 'predicates'.\n"
+                        f"    MANDATORY REPAIR ACTION: In domain 'predicates', declare predicate '({missing_pred} ...)' with its typed parameter signature matching its arguments in P_gold ':init'/':goal' and domain 'actions' (do NOT modify P_gold)."
+                    )
+
+                m_arity = re.search(r"Problem with proposition\s*\(([a-zA-Z0-9_\-]+).*?\)\s*-\s*too\s+(few|many)\s+parameters", line)
+                if m_arity:
+                    pred_sym = m_arity.group(1)
+                    arity_issue = m_arity.group(2)
+                    exact_prob_facts = [
+                        normalize_atom_expression(a)[0].strip("() ").split()
+                        for a in (prob_meta.get("initial_state", []) + prob_meta.get("goal_state", []))
+                        if normalize_atom_expression(a)[0].strip("() ").split() and normalize_atom_expression(a)[0].strip("() ").split()[0].lower() == pred_sym.lower()
+                    ]
+                    if exact_prob_facts:
+                        expected_arity = len(exact_prob_facts[0]) - 1
+                        prob_args = exact_prob_facts[0][1:]
+                        sample_usage = f"({pred_sym}" + (" " + " ".join(prob_args) if expected_arity > 0 else "") + ")"
                         val_type_diagnostics.append(
-                            f"  * VAL Error: 'Predicate {missing_pred} not found' in initial/goal state.\n"
-                            f"    CRITICAL ROOT CAUSE: Symbol '{missing_pred}' is declared as an OBJECT of type '{obj_type}', but was placed in the FIRST (PREDICATE) position of an atomic formula in problem ':init' or ':goal'!\n"
-                            f"    In Classical PDDL 2.1 prefix notation, every fact must begin with a declared predicate symbol from 'domain.predicates' (e.g. '(rel arg1 arg2 ...)'). An object name can NEVER be in the predicate position.\n"
-                            f"    MANDATORY REPAIR ACTION: Check problem 'initial_state' for facts starting with '({missing_pred} ...)'. "
-                            f"    Determine the intended relational predicate described in the requirements (e.g. if describing that entity A is associated with entity B, declare a relational predicate like '(relation-name ?x - type1 ?y - type2)' in domain 'predicates', and rewrite the fact in problem 'initial_state' to prefix form '(relation-name {missing_pred} ...)'). "
-                            f"    Do NOT declare '{missing_pred}' as a predicate!"
+                            f"  * VAL Error: 'Problem with proposition ({pred_sym}) - too {arity_issue} parameters'.\n"
+                            f"    CRITICAL ROOT CAUSE: In P_gold ':init'/':goal', predicate '{pred_sym}' is used with exactly {expected_arity} parameter(s) (e.g. '{sample_usage}'), but was declared in domain 'predicates' with a different parameter count.\n"
+                            f"    MANDATORY REPAIR ACTION: In domain 'predicates', declare '({pred_sym} ...)' with exactly {expected_arity} parameter(s) matching '{sample_usage}'. In all domain 'actions', use '{pred_sym}' with exactly {expected_arity} argument(s). Do NOT modify P_gold."
                         )
+                        first_arg = prob_args[0] if prob_args else ""
+                        first_arg_type = prob_meta.get("objects", {}).get(first_arg, "object") if first_arg else "object"
+                        type_mismatch_entries.append({
+                            "pred_name": pred_sym,
+                            "args": prob_args,
+                            "faulty_arg": first_arg,
+                            "arg_type": first_arg_type,
+                            "expected_type": "object",
+                            "current_parent": "object",
+                            "param_idx": 0,
+                            "declared_param_count": 0,
+                            "is_arity_mismatch": True,
+                            "current_val_action": None,
+                            "raw_log": line.strip()
+                        })
                     else:
                         val_type_diagnostics.append(
-                            f"  * VAL Error: 'Predicate {missing_pred} not found' in problem initial/goal state.\n"
-                            f"    CRITICAL ROOT CAUSE: Atomic formula in problem ':init' or ':goal' uses predicate '{missing_pred}', but '{missing_pred}' is NOT declared in domain 'predicates'.\n"
-                            f"    MANDATORY REPAIR ACTION: In domain 'predicates', declare predicate '({missing_pred} ...)' with its appropriate typed parameter signature matching its arguments, or update the atom in problem 'initial_state' to use the correct declared predicate name."
+                            f"  * VAL Error: 'Problem with proposition ({pred_sym}) - too {arity_issue} parameters'.\n"
+                            f"    CRITICAL ROOT CAUSE: Predicate '{pred_sym}' is declared in domain 'predicates' with an arity that does not match its usage in the problem instance (P_gold).\n"
+                            f"    MANDATORY REPAIR ACTION: Check P_gold ':init' / ':goal' facts for '{pred_sym}' and align predicate '({pred_sym} ...)' in domain 'predicates' and all domain 'actions' to match the exact parameter count and types in P_gold."
                         )
 
                 m_unk = re.search(r"Object with unknown type:\s*([a-zA-Z0-9_\-]+)", line)
                 if m_unk:
                     unk_symbol = m_unk.group(1)
                     dom_constants = domain_bp.get("constants", {}) if isinstance(domain_bp, dict) else {}
-                    prob_objects = problem_bp.get("objects", {}) if isinstance(problem_bp, dict) else {}
+                    prob_objects = prob_meta.get("objects", {})
                     obj_types_set = set(prob_objects.values())
 
                     act_params = {}
@@ -220,58 +369,46 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
                         )
                         target_elem = "types"
                     elif current_val_action:
-                        # VAL is type-checking a domain action schema!
-                        # In Classical PDDL 2.1, domain action schemas cannot reference problem :objects.
                         if unk_symbol in dom_constants:
                             hint = (
-                                f"Constant '{unk_symbol}' in domain 'constants' is missing an explicit type declaration. "
-                                f"In Classical PDDL (:typing), every constant must have a declared type. In domain 'constants', declare '{unk_symbol} - <type>' (e.g. '{unk_symbol} - object')."
+                                f"Constant '{unk_symbol}' in domain 'constants' is missing a valid type in domain 'types'. "
+                                f"In domain 'constants', declare '{unk_symbol}: <type>' and ensure '<type>' is declared in domain 'types'."
                             )
                             target_elem = "constants"
                         elif unk_symbol in param_types:
                             if unk_symbol in obj_types_set:
                                 hint = (
-                                    f"Action '{current_val_action}' parameter requires type '{unk_symbol}', which exists in problem ':objects' but is missing from domain 'types'. "
+                                    f"Action '{current_val_action}' parameter requires type '{unk_symbol}', which exists in fixed problem ':objects' but is missing from domain 'types'. "
                                     f"In domain 'types', declare '{unk_symbol}': 'object' (or its appropriate supertype)."
                                 )
                                 target_elem = "types"
                             else:
                                 hint = (
-                                    f"Action '{current_val_action}' declares a parameter with unknown type '{unk_symbol}', but problem :objects contains ZERO objects of type '{unk_symbol}'. "
-                                    f"Do NOT declare '{unk_symbol}' in domain 'types' because it has no objects in problem :objects (this would make the action dead/ungroundable). "
-                                    f"Remove parameter '?p - {unk_symbol}' from '{current_val_action}' and model the requirement as a state predicate over existing parameters."
+                                    f"Action '{current_val_action}' declares a parameter with unknown type '{unk_symbol}', which has ZERO objects in fixed problem ':objects'. "
+                                    f"Either declare '{unk_symbol}' as a supertype of the relevant object types in domain 'types' if specified by the requirements, or replace/remove parameter '?p - {unk_symbol}' in action '{current_val_action}'."
                                 )
                                 target_elem = current_val_action or "types"
                         else:
-                            # Symbol is referenced directly in the action schema (e.g. as a constant or literal entity)
                             hint = (
-                                f"Symbol '{unk_symbol}' referenced in domain action '{current_val_action}' is treated as a constant/object but is not declared in domain 'constants'. "
-                                f"In Classical PDDL 2.1, domain action schemas cannot access problem ':objects'. "
-                                f"To resolve this, either: "
-                                f"1) Declare '{unk_symbol} - <type>' in domain 'constants' (and remove '{unk_symbol}' from problem ':objects' to prevent duplicate object errors), "
-                                f"2) Declare it as an action parameter in '{current_val_action}', or "
-                                f"3) Model the condition as a state predicate (e.g. unary predicate) without referencing an undeclared constant."
+                                f"Symbol '{unk_symbol}' referenced in domain action '{current_val_action}' is treated as an undeclared constant. "
+                                f"Either: 1) Declare '{unk_symbol}: <type>' in domain 'constants', "
+                                f"2) Declare it as a '?var' action parameter in '{current_val_action}', or "
+                                f"3) Model the condition as a state predicate over existing action parameters."
                             )
                             target_elem = current_val_action
                     else:
-                        # VAL is type-checking problem objects or initial/goal state
-                        if unk_symbol in dom_constants:
+                        if unk_symbol in obj_types_set:
                             hint = (
-                                f"Constant '{unk_symbol}' in domain 'constants' is missing an explicit type declaration. "
-                                f"In Classical PDDL (:typing), every constant must have a declared type. In domain 'constants', declare '{unk_symbol} - <type>' (e.g. '{unk_symbol} - object')."
+                                f"Type '{unk_symbol}' used in fixed problem ':objects' is missing from domain 'types'. "
+                                f"In domain 'types', declare '{unk_symbol}': 'object' (or its appropriate parent supertype)."
                             )
-                            target_elem = "constants"
-                        elif unk_symbol in prob_objects:
-                            hint = (
-                                f"Object '{unk_symbol}' in problem ':objects' is missing an explicit type declaration. In problem ':objects', declare '{unk_symbol} - <type>'."
-                            )
-                            target_elem = "objects"
+                            target_elem = "types"
                         else:
                             hint = (
-                                f"Symbol '{unk_symbol}' in problem definition has unknown type. "
-                                f"Declare '{unk_symbol} - <type>' in problem ':objects' or domain 'constants'."
+                                f"Unbound constant symbol '{unk_symbol}' used in fixed problem ':init' or ':goal' is missing from domain 'constants'. "
+                                f"In domain 'constants', declare '{unk_symbol}: <type>' with its appropriate domain type."
                             )
-                            target_elem = "objects"
+                            target_elem = "constants"
 
                     unknown_type_entries.append({
                         "action_name": current_val_action,
@@ -294,13 +431,10 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
                             decl_str = f"'{p_decl}'"
                             break
                     val_type_diagnostics.append(
-                        f"  * Proposition in action '{current_val_action}' uses predicate '{pred_name}' with too {problem_kind} arguments compared to its declared signature {decl_str or f'for {pred_name}'}.\n"
+                        f"  * Proposition in action '{current_val_action or 'problem_state'}' uses predicate '{pred_name}' with too {problem_kind} arguments compared to its declared signature {decl_str or f'for {pred_name}'}.\n"
                         f"    DIAGNOSIS & MANDATORY ACTION (PREDICATE OVERLOADING STRICTLY FORBIDDEN IN CLASSICAL PDDL):\n"
                         f"    In Classical PDDL 2.1, predicate symbols CANNOT be overloaded with different arities or multiple meanings. "
-                        f"    If the natural language describes distinct relations (e.g. an entity's location vs a feature or sample at a location), "
-                        f"    they MUST be declared as two separate, dedicated predicate symbols (e.g. binary '(at ?entity ?location)' AND unary '(at-target ?location)'). "
-                        f"    Do NOT reuse or overload '{pred_name}' with conflicting arity! Declare a dedicated distinct predicate symbol in domain 'predicates' "
-                        f"    with the required arity and update the action schemas, initial state, and goals to use this dedicated predicate."
+                        f"    Ensure '{pred_name}' in domain 'predicates' matches the exact arity used in fixed problem ':init'/':goal', and if an action requires a relation of a different arity, declare a separate, dedicated predicate symbol in domain 'predicates' and use it in domain 'actions'."
                     )
 
                 m = re.search(r"Type problem with proposition \(([a-zA-Z0-9_\-]+)\s+([^)]+)\)\s*-\s*parameter\s*(\d+)\s*is incorrectly typed", line)
@@ -310,12 +444,15 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
                     param_idx = int(m.group(3)) - 1
                     faulty_arg = args[param_idx] if param_idx < len(args) else "unknown"
                     arg_type = None
-                    obj_types = problem_bp.get("objects", {})
+                    obj_types = prob_meta.get("objects", {})
+                    dom_consts = domain_bp.get("constants", {}) if isinstance(domain_bp, dict) else {}
                     if faulty_arg in obj_types:
                         arg_type = obj_types[faulty_arg]
+                    elif faulty_arg in dom_consts:
+                        arg_type = dom_consts[faulty_arg]
                     elif current_val_action:
                         for act in domain_bp.get("actions", []):
-                            act_name = act.get("name") if isinstance(act, dict) else getattr(act, "name", None)
+                            act_name = (act.get("action_name") or act.get("name")) if isinstance(act, dict) else (getattr(act, "action_name", None) or getattr(act, "name", None))
                             if act_name == current_val_action:
                                 act_params = act.get("parameters", {}) if isinstance(act, dict) else getattr(act, "parameters", {})
                                 if isinstance(act_params, dict):
@@ -333,14 +470,16 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
                         clean_p = str(p_decl).strip('() ')
                         toks = clean_p.split()
                         if toks and toks[0] == pred_name:
+                            p_vars = [t for t in toks[1:] if t.startswith("?")]
                             matches = re.findall(r"\?\w+\s*-\s*([a-zA-Z0-9_\-]+)", clean_p)
-                            declared_param_count = len(matches)
+                            declared_param_count = len(p_vars) if p_vars else len(matches)
                             if param_idx < len(matches):
                                 expected_type = matches[param_idx]
                                 break
                                 
                     dom_types = domain_bp.get("types", {})
-                    current_parent = dom_types.get(arg_type, "object") if isinstance(dom_types, dict) else "object"
+                    norm_dom_types = {str(k).lower(): str(v).lower() if v else "object" for k, v in (dom_types.items() if isinstance(dom_types, dict) else [])}
+                    current_parent = norm_dom_types.get(str(arg_type).lower(), "object")
                     is_arity_mismatch = (declared_param_count > 0 and len(args) != declared_param_count)
                     
                     type_mismatch_entries.append({
@@ -359,15 +498,15 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
                     
                     if is_arity_mismatch:
                         val_type_diagnostics.append(
-                            f"  * Proposition '({pred_name} {' '.join(args)})' has an ARITY MISMATCH: provided {len(args)} argument(s), but predicate '{pred_name}' is declared with {declared_param_count} parameter(s) expecting signature matching declared parameters.\n"
-                            f"    DIAGNOSIS & MANDATORY ACTION: In the action schema or problem definition, update the formula to provide all {declared_param_count} arguments matching the declared signature of '{pred_name}'. Do NOT change domain 'types' to resolve an arity mismatch!"
+                            f"  * Proposition '({pred_name} {' '.join(args)})' has an ARITY MISMATCH: provided {len(args)} argument(s), but predicate '{pred_name}' is declared with {declared_param_count} parameter(s).\n"
+                            f"    DIAGNOSIS & MANDATORY ACTION: In domain 'actions' or domain 'predicates', align the predicate signature and action usage so all {len(args)} arguments match. Do NOT change domain 'types' to resolve an arity mismatch!"
                         )
                     elif is_subtype(expected_type, arg_type, dom_types) and expected_type.lower() != arg_type.lower():
                         val_type_diagnostics.append(
-                            f"  * Proposition '({pred_name} {' '.join(args)})' (parameter {param_idx + 1}): Object/parameter '{faulty_arg}' has declared type '{arg_type}', but predicate '{pred_name}' parameter {param_idx + 1} was declared too narrowly expecting subtype '{expected_type}' (which already inherits from '{arg_type}').\n"
+                            f"  * Proposition '({pred_name} {' '.join(args)})' (parameter {param_idx + 1}): Argument '{faulty_arg}' has declared type '{arg_type}', but predicate '{pred_name}' parameter {param_idx + 1} was declared too narrowly expecting subtype '{expected_type}' (which already inherits from '{arg_type}').\n"
                             f"    DIAGNOSIS & MANDATORY ACTION:\n"
-                            f"    1) In domain 'predicates', generalize parameter {param_idx + 1} of predicate '{pred_name}' to supertype '{arg_type}' (e.g. '({pred_name} ... ?x - {arg_type} ...)').\n"
-                            f"    2) Alternatively, if '{faulty_arg}' in problem ':objects' is intended to be a specialized '{expected_type}', declare '{faulty_arg} - {expected_type}' in problem ':objects'.\n"
+                            f"    1) In domain 'predicates', generalize parameter {param_idx + 1} of predicate '{pred_name}' to supertype '{arg_type}' (e.g. '({pred_name} ... ?x - {arg_type} ...)'), OR\n"
+                            f"    2) If '{faulty_arg}' is an action parameter in '{current_val_action}', specialize parameter '{faulty_arg}' to '{expected_type}' in action '{current_val_action}'.\n"
                             f"    Do NOT declare '{arg_type}' as a subtype of '{expected_type}' in domain 'types' (subtyping cannot be inverted)."
                         )
                     elif is_subtype(arg_type, expected_type, dom_types):
@@ -377,14 +516,32 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
                             f"    DIAGNOSIS & MANDATORY ACTION: In domain 'types', ensure '{current_parent}': '{expected_type}' is declared. NEVER declare 'object': 'object'."
                         )
                     else:
+                        matching_alt_preds = []
+                        for p_decl in domain_bp.get("predicates", []):
+                            clean_p = str(p_decl).strip('() ')
+                            toks = clean_p.split()
+                            if toks and toks[0] != pred_name:
+                                matches = re.findall(r"\?\w+\s*-\s*([a-zA-Z0-9_\-]+)", clean_p)
+                                if len(matches) == declared_param_count and param_idx < len(matches):
+                                    if is_subtype(arg_type, matches[param_idx], dom_types):
+                                        matching_alt_preds.append((toks[0], p_decl))
+                        
+                        alt_advice = ""
+                        if matching_alt_preds:
+                            alt_names = [m[0] for m in matching_alt_preds]
+                            alt_advice = (
+                                f"\n    CRITICAL PREDICATE SUBSTITUTION: In domain 'predicates', dedicated predicate(s) {alt_names} already accept type '{arg_type}'! "
+                                f"In action '{current_val_action or 'action'}', replace '{pred_name}' with the matching predicate '{alt_names[0]}' for argument '{faulty_arg}'! "
+                                f"DO NOT generalize '{pred_name}' to 'object' when a dedicated predicate already exists!"
+                            )
+
                         val_type_diagnostics.append(
-                            f"  * Proposition '({pred_name} {' '.join(args)})' (parameter {param_idx + 1}): Parameter/object '{faulty_arg}' has type '{arg_type}', but predicate '{pred_name}' parameter {param_idx + 1} expects disjoint type '{expected_type}'.\n"
-                            f"    DIAGNOSIS & MANDATORY ACTION (DISJOINT TYPE MISMATCH):\n"
-                            f"    In Classical PDDL 2.1, disjoint types cannot inherit from each other without corrupting the taxonomy. Either:\n"
-                            f"    1) If this formula represents distinct states for distinct entities (e.g. hand emptiness vs container emptiness), declare a distinct dedicated predicate symbol in domain 'predicates' (e.g. '(handempty ?h - {arg_type})' vs '({pred_name} ?c - {expected_type})') and update the action/problem to use it.\n"
-                            f"    2) If the relation applies across multiple types, generalize parameter {param_idx + 1} in domain 'predicates' to their common supertype (e.g. 'object').\n"
-                            f"    3) Or in problem ':objects', verify if '{faulty_arg}' was declared with the wrong type and update its declaration.\n"
-                            f"    NEVER declare '{arg_type}' as a child of '{expected_type}' in domain 'types' if they are fundamentally disjoint concepts!"
+                            f"  * Proposition '({pred_name} {' '.join(args)})' (parameter {param_idx + 1}): Parameter/object '{faulty_arg}' has type '{arg_type}', but predicate '{pred_name}' parameter {param_idx + 1} expects type '{expected_type}'.{alt_advice}\n"
+                            f"    DIAGNOSIS & MANDATORY ACTION:\n"
+                            f"    1) Check if the proposition used the wrong predicate name: if another predicate in domain 'predicates' accepts '{arg_type}', update the action to use that predicate.\n"
+                            f"    2) Check the Natural Language Requirements: if '{arg_type}' is conceptually a subtype of '{expected_type}', declare '{arg_type}': '{expected_type}' in domain 'types'.\n"
+                            f"    3) If '{arg_type}' and '{expected_type}' share a common supertype (or both can participate in '{pred_name}'), generalize parameter {param_idx + 1} of '{pred_name}' in domain 'predicates' to their common supertype.\n"
+                            f"    4) If this action is checking a distinct physical state for a disjoint entity type '{arg_type}', declare a dedicated predicate symbol in domain 'predicates' for '{arg_type}' and update the action in domain 'actions' to use it."
                         )
 
         type_diag_str = "\n".join(val_type_diagnostics) if val_type_diagnostics else ""
@@ -396,32 +553,32 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
         focus_guidance = f"""
 CRITICAL TRIAGE FOCUS:
 The primary error is a strict syntax or type-checking violation detected by VAL.
-Focus strictly on localizing and resolving the syntax or type/arity mismatch in the indicated action/predicate schema or domain types hierarchy.
+Focus strictly on localizing and resolving the syntax or type/arity mismatch in the indicated domain action/predicate schema or domain types/constants hierarchy.
 Do NOT report speculative state-reachability, cycle, or goal-distance issues when the domain has an active type or syntax defect.
 {type_diag_section}
 MANDATORY TYPE-CHECKING & SUBTYPING HIERARCHY RULES:
 When VAL reports: "Type problem with proposition (p ...) - parameter N is incorrectly typed":
-1. Check the type of the argument being passed in the action versus the declared parameter type of predicate 'p' in 'predicates'.
+1. Check the type of the argument being passed versus the declared parameter type of predicate 'p' in 'predicates'.
 2. CASE 0 — MISSING SUBTYPE DECLARATION IN 'types':
-   - If the object/argument's type is conceptually a subtype of the expected parameter type (e.g., child type 'subtype_entity' is a subtype of parent type 'supertype_entity'), the domain 'types' is missing the subtype inheritance!
+   - If the object/argument's type is conceptually a subtype of the expected parameter type according to the requirements (e.g., child type 'subtype_entity' is a subtype of parent type 'supertype_entity'), the domain 'types' is missing the subtype inheritance!
    - The MANDATORY repair hint is: "In domain 'types', declare the child type as inheriting from the parent type (e.g., declare 'child_type': 'parent_type'). Set faulty_element to 'types' (NOT the predicate name!). Do NOT modify the predicate declaration if it already expects the correct parent type!"
 3. CASE A — COMMON SUPERTYPE GENERALIZATION (Inheritance & Subtyping):
-   - Check if the passed argument type and the declared predicate parameter type share a common supertype in domain 'types' (e.g., both 'ingredient' and 'cocktail' inherit from 'beverage'; both 'shot' and 'shaker' inherit from 'container').
+   - Check if the passed argument type and the declared predicate parameter type share a common supertype in domain 'types' (e.g., both 'subtype_a' and 'subtype_b' inherit from 'supertype_t').
    - If they share a supertype, the predicate was declared TOO NARROWLY!
-   - The MANDATORY repair hint is: "Generalize parameter N of predicate 'p' in 'predicates' to the common supertype (e.g., declare '(contains ?c - container ?b - beverage)' instead of narrowing to shot or cocktail)."
-   - CRITICAL ANTI-PATTERN: NEVER invent narrow ad-hoc predicates like '(contains-cocktail ?s - shot ?c - cocktail)' and then advise an action with an 'ingredient' parameter (like 'fill-shot') to use it! In PDDL, an argument's type MUST be an instance or subtype of the declared parameter type.
-4. CASE B — DISJOINT PHYSICAL STATES (e.g., Hand Emptiness vs Container Emptiness):
-   - If the types are completely disjoint (e.g., 'hand' and 'container' both inherit directly from 'object' with no common subtype):
-   - Natural language requirements often use the same English word for two distinct physical states (e.g., "hand D is empty" and "shot A is empty").
-   - Since PDDL predicates cannot be overloaded, declare distinct predicates for the disjoint entities: e.g., '(handempty ?h - hand)' or '(hand-empty ?h - hand)' for hands, and '(empty ?c - container)' for containers.
-   - Similarly, if an action establishes a state for entity x (e.g., "power is on for instrument x") while deleting a resource on host y (e.g., "power is available for host y"), declare separate predicates '(power-on ?x - instrument)' and '(power-available ?y - host)'. NEVER advise substituting x with y to produce contradictory effects '(and (p y) (not (p y)))'.
-5. CASE C — OVERLOADED RELATIONS (e.g., Location-to-Location Visibility vs Target-to-Location Visibility):
-   - If a relation symbol like 'visible' is used between two locations (e.g. waypoint to waypoint) and also between a target/item and a location (e.g. objective from waypoint):
+   - The MANDATORY repair hint is: "Generalize parameter N of predicate 'p' in domain 'predicates' to the common supertype (e.g., declare '(contains ?c - container ?s - substance)' instead of narrowing to a leaf subtype)."
+   - CRITICAL ANTI-PATTERN: NEVER invent narrow ad-hoc predicates restricted to one leaf subtype and then advise an action with a sister subtype parameter to use it! In PDDL, an argument's type MUST be an instance or subtype of the declared parameter type.
+4. CASE B — DISJOINT PHYSICAL STATES (e.g., Manipulator Emptiness vs Receptacle Emptiness):
+   - If the types are completely disjoint (e.g., 'manipulator' and 'receptacle' both inherit directly from 'object' with no common subtype):
+   - Natural language requirements often use the same English word for two distinct physical states (e.g., "manipulator D is empty" and "receptacle A is empty").
+   - Since PDDL predicates cannot be overloaded, declare distinct predicates for the disjoint entities in domain 'predicates' and update domain 'actions' accordingly.
+   - Similarly, if an action establishes a state for entity x while deleting a resource on host y, declare separate predicates for entity x and host y. NEVER advise substituting x with y to produce contradictory effects '(and (p y) (not (p y)))'.
+5. CASE C — OVERLOADED RELATIONS:
+   - If a relation symbol is used between two locations and also between a target entity and a location:
    - In PDDL, predicate signatures cannot be overloaded with different types.
-   - Declare a distinct predicate symbol for the second relation (e.g. '(visible-from ?o - objective ?w - waypoint)' or '(target-visible ?o - objective ?w - waypoint)'), OR generalize the predicate parameter to their common supertype (e.g. '(visible ?o - object ?w - waypoint)').
+   - Declare a distinct predicate symbol for the second relation in domain 'predicates', OR generalize the predicate parameter to their common supertype.
 6. ANTI-OSCILLATION & DOMAIN-WIDE CONSISTENCY:
    - NEVER alternate a predicate declaration back and forth between incompatible types across repair iterations.
-   - Verify that the proposed predicate signature satisfies all actions across the domain simultaneously.
+   - Verify that the proposed predicate signature satisfies fixed problem P_gold and all actions across the domain simultaneously.
 """
     orphaned_goals = causal_analysis.get("orphaned_goals", [])
     if orphaned_goals and not val_syntax_or_type_error:
@@ -430,7 +587,7 @@ CRITICAL UNREACHABILITY / ORPHANED GOAL DETECTED:
 The goal specification requires predicate(s): {', '.join(orphaned_goals)}, but NO action in the domain produces them in its positive effects!
 MANDATORY ORPHANED GOAL REPAIR GUIDANCE:
 1. Review the Natural Language Requirements for the action that establishes this relationship (e.g. the action that drops, places, stacks, loads, or delivers the object).
-2. Add the missing positive effect (e.g. '({orphaned_goals[0]} ...)') to that action's effect schema!
+2. Add the missing positive effect (e.g. '({orphaned_goals[0]} ...)') to that action's effect schema in domain 'actions'!
 3. NEVER advise removing the delete effect from actions that legitimately delete this predicate (such as lifting or removing an object)!
 """
 
@@ -439,51 +596,22 @@ MANDATORY ORPHANED GOAL REPAIR GUIDANCE:
         dead_list = "\n".join([f"- Action '{u['action_name']}': {u['reason']}" for u in ungroundable_preconditions])
         focus_guidance += f"""
 CRITICAL DEAD / UNGROUNDABLE PRECONDITIONS DETECTED:
-The planner found NO relaxed solution because action preconditions require static predicate facts or type signatures that do NOT exist in problem :init:
+The planner found NO relaxed solution because action preconditions or parameter types cannot be grounded against fixed problem P_gold:
 {dead_list}
-MANDATORY REPAIR GUIDANCE:
-1. Compare the action preconditions against the Natural Language Requirements:
-   - Did the action check a spatial relation directly against an entity rather than its location (e.g. checking relation directly against an object/agent rather than the location where it is stationed)?
+MANDATORY REPAIR GUIDANCE (TARGET DOMAIN BLUEPRINT ONLY — DO NOT MODIFY PROBLEM P_gold):
+1. EMPTY PARAMETER DOMAINS (0 Objects Inheriting from Parameter Type):
+   - If an action parameter requires supertype 'T', check if the object types in fixed problem ':objects' are subtypes of 'T' according to the requirements (e.g. 'Everything that is an A or B is also a T'). If so, update domain 'types' so those object types inherit from 'T'!
+2. SPATIAL / RELATIONAL MEDIATED BINDING:
+   - Did the action check a spatial relation directly against an entity rather than its location?
    - When an entity is stationed at a location, actions communicating or interacting with it must declare the station location parameter (e.g. '?loc - location'), bind the entity via '(at ?entity ?loc)', and assert spatial relations between the locations.
    - Did the action mistakenly repeat a variable reflexively (e.g. '(at ?l ?l)')? Use distinct variables for distinct entities and locations!
-2. If an action permanently deletes an indispensable state resource (like an agent's availability or channel) without restoring it upon completion, ensure the action effect restores the resource so subsequent actions remain executable!
 3. INVERTED ARGUMENT ORDER IN STATIC RELATIONS:
-   If a static relation (e.g. '(rel ?x ?y)') has ZERO matching facts in :init because the argument types are reversed compared to declared initial facts:
-   Swap the arguments in the action precondition to match the declared relation signature in problem :init.
+   - If a static relation (e.g. '(rel ?x ?y)') has ZERO matching facts in :init because the argument types are reversed compared to declared initial facts:
+   - Swap the arguments in the action precondition in domain 'actions' to match the declared relation signature in problem :init.
 4. MUTUALLY EXCLUSIVE PRECONDITIONS (SUPPORT/CONTAINER VS ITEM CLEARANCE):
-   When an action precondition checks both a support relation (e.g. '(on ?item ?support)' or '(in ?item ?container)') and a clearance condition (e.g. '(clear ?support)'):
-   The entity that must be clear (unobstructed) to be lifted/manipulated is the ITEM '?item', NOT the supporting surface underneath it!
-   In the action precondition, bind '(clear ?item)' to the item parameter already present in the action.
-   DO NOT invent duplicate parameters of the same type (such as '?s1' and '?s2')!
-"""
-
-    unproducible_goals = causal_analysis.get("unproducible_goals", [])
-    if unproducible_goals and not val_syntax_or_type_error:
-        unprod_list = "\n".join([f"- Action '{u['action_name']}': {u['reason']}" for u in unproducible_goals])
-        focus_guidance += f"""
-CRITICAL STATICALLY UNPRODUCIBLE GOAL ATOMS (FIRST-ORDER LOGIC INVARIANT):
-The planner found NO plan because required ground goal atoms cannot be produced by any action due to static precondition parameter bounding:
-{unprod_list}
-MANDATORY FIRST-ORDER LOGIC REPAIR GUIDANCE:
-1. When an action parameter is bound to a static precondition, its groundings are strictly fixed to the initial facts of that static relation in :init.
-2. If the goal requires a different target entity/object, review whether the action parameter has been conflated with the static entity, OR if problem 'initial_state' is missing an initial fact.
-3. Review the Natural Language Requirements:
-   - CASE A — MISSING INITIAL STATE FACT: If the requirements specify that the target entity/location possesses this initial property or sample, augment problem 'initial_state' with the missing atom (e.g. '(at-sample target_entity)').
-   - CASE B — PARAMETER CONFLATION: If the requirement describes distinct entities or locations (e.g., an acting agent location, a stationary support/station, and a target item/data), declare dedicated, distinct parameters for each independent role in the action schema and ensure the action effect asserts the target entity parameter.
-"""
-
-    unreleased_resources = causal_analysis.get("unreleased_resources", [])
-    if unreleased_resources and not val_syntax_or_type_error:
-        leak_list = "\n".join([f"- Action '{u['action_name']}': {u['description']}" for u in unreleased_resources])
-        focus_guidance += f"""
-CRITICAL UNRELEASED RESOURCE SINK / LEAK DETECTED (FIRST-ORDER OCCUPANCY BALANCE):
-The causal graph analyzer identified actions that delete holding/occupancy relations without replenishing the corresponding operational readiness resource:
-{leak_list}
-MANDATORY RESOURCE LEAK REPAIR GUIDANCE:
-1. When an action removes an entity from a container, agent, or support surface S, it deletes the holding relation (e.g. '(on ?x ?s)').
-2. Check the Natural Language Requirements for the vacated entity S:
-   Does the text state: 'Once I ... it is the case that ... S is clear / available / free'?
-3. Add the missing positive effect (e.g. '({unreleased_resources[0].get("resource_predicate", "clear")} ?{unreleased_resources[0].get("resource_arg", "s")})') to the action effect schema in domain 'actions' so the resource/support is restored for subsequent actions!
+   - When an action precondition checks both a support relation (e.g. '(on ?item ?support)') and a clearance condition (e.g. '(clear ?support)'):
+   - The entity that must be clear (unobstructed) to be lifted/manipulated is the ITEM '?item', NOT the supporting surface underneath it!
+   - In the action precondition, bind '(clear ?item)' to the item parameter already present in the action.
 """
 
     directional_traps = causal_analysis.get("directional_traps", [])
@@ -500,46 +628,98 @@ MANDATORY STRIPS ACTION REPAIR GUIDANCE:
 3. Add the missing inverse action schema to domain 'actions' with its parameters, preconditions (asserting the reverse relation atom), and transition effects matching the requirements!
 """
 
-    planner_unsolvability = any("Could not find a plan" in err or "Search stopped without finding a solution" in err for err in raw_errors)
-    if planner_unsolvability and not val_syntax_or_type_error:
+    bilateral_mutex_faults = causal_analysis.get("bilateral_mutex_faults", [])
+    if bilateral_mutex_faults and not val_syntax_or_type_error:
+        bm_list = "\n".join([f"- {bm['reason']}" for bm in bilateral_mutex_faults])
         focus_guidance += f"""
+CRITICAL BILATERAL MUTEX CLEARANCE CONSERVATION FAULT:
+The planner found NO valid plan because vacating an entity/location failed to assert the reciprocal clearance condition:
+{bm_list}
+MANDATORY MUTEX REPAIR GUIDANCE:
+1. In Classical STRIPS, moving away from a location or releasing a held item vacates that resource.
+2. In the indicated action's effects, add the missing clearance/vacancy positive effect as indicated above.
+"""
+
+    internal_contradictions = causal_analysis.get("internal_contradictions", [])
+    if internal_contradictions and not val_syntax_or_type_error:
+        ic_list = "\n".join([f"- {ic['description']}" for ic in internal_contradictions])
+        focus_guidance += f"""
+CRITICAL CONTRADICTORY SIMULTANEOUS ACTION EFFECTS:
+An action schema simultaneously asserts both a positive atom and its negation:
+{ic_list}
+MANDATORY RESOLUTION GUIDANCE:
+1. In Classical STRIPS, an action effect cannot contain both (P ...) and (not (P ...)).
+2. If (P ...) was required in the action preconditions, the action consumes it: keep (not (P ...)) and remove (P ...).
+3. If (P ...) was NOT in the action preconditions, the action establishes it: keep (P ...) and remove (not (P ...)).
+"""
+    planner_unsolvability = any("Could not find a plan" in err or "Search stopped without finding a solution" in err for err in raw_errors)
+    planner_timeout = any("Planner Timeout" in err for err in raw_errors)
+    if planner_timeout and not planner_unsolvability and not val_syntax_or_type_error:
+        focus_guidance += """
+PLANNER SEARCH TIMEOUT (UNSOLVABILITY NOT PROVEN):
+Fast Downward grounded the task but its search did not terminate within the time budget.
+A timeout is NOT evidence that the goal is unreachable, so reasoning reserved for proven unsolvability
+(relaxing or removing preconditions to "open" the reachable state space) does not apply here.
+Report only defects that are directly evidenced by the domain/problem structure or the causal analysis above.
+"""
+    has_deterministic_causal_fault = bool(ungroundable_preconditions or orphaned_goals or internal_contradictions or directional_traps or bilateral_mutex_faults)
+    if planner_unsolvability and not val_syntax_or_type_error:
+        if has_deterministic_causal_fault:
+            focus_guidance += """
+CRITICAL DETERMINISTIC GROUNDING / REACHABILITY FAULT LOCALIZATION:
+The Grounded Causal Dependency & Reachability Analysis above has mathematically identified the exact ungroundable parameters, preconditions, or effect contradictions preventing Fast Downward from finding a plan.
+Report ONLY the repairs required to fix those identified defects above. Do NOT invent speculative effect additions or precondition modifications on other actions!
+"""
+        else:
+            focus_guidance += f"""
 CRITICAL PLANNER REACHABILITY / GOAL UNSOLVABILITY:
 Fast Downward executed SAS+ translation and heuristic search, but found NO valid plan to reach the goal state.
 MANDATORY DIAGNOSTIC AUDIT SEQUENCE:
-1. STRICTLY FORBIDDEN: NEVER ADVISE RELAXING OR DELETING EXPLICIT PRECONDITIONS!
-   - Natural language restrictions state necessary physical requirements.
-   - NEVER suggest relaxing or deleting explicit preconditions that are directly stipulated in the text. Removing physical constraints corrupts the domain contract and fails formal verification.
+1. REACHABILITY-GUIDED PRECONDITION AUDIT & RELAXATION:
+   - When Fast Downward completely explores the state space without finding a solution (deadlock), the reachable state space is over-constrained.
+   - Audit action preconditions: check if any action contains an overly restrictive, unseeded, or non-goal precondition (such as requiring a resource/passenger count when none exists, or requiring a condition that cannot be established prior to the action).
+   - If a precondition over-constrains reachability and is not physically required by the requirements to fire the action, RELAX or REMOVE that precondition to open the reachable solution corridor!
+   - MONOTONICITY OF REACHABILITY: Adding new preconditions strictly shrinks the state space. NEVER propose PRECONDITION_INSERTION when the solver is already in reachability deadlock!
 2. UNUSABLE OBJECTS & OVERLY NARROW ACTION PARAMETERS:
-   - Check if any objects in problem ':objects' have types that cannot be accepted by any action parameter in the domain (e.g. an action parameter requires a leaf subtype instead of the common supertype).
-   - If objects of a valid subtype cannot be used in any action, advise declaring the common supertype in domain 'types' (e.g. 'place') and generalizing action parameters to that common supertype (e.g. '?p - place' instead of '?p - depot').
+   - Check if any objects in fixed problem ':objects' have types that cannot be accepted by any action parameter in the domain (e.g. an action parameter requires a leaf subtype instead of the common supertype, or domain 'types' omitted the supertype link).
+   - If objects of a valid subtype cannot be used in any action, advise declaring the common supertype inheritance in domain 'types' and generalizing action parameters to that common supertype in domain 'actions'.
 3. RESOURCE RELEASE VS OCCUPANCY (FAITHFULNESS TO NATURAL LANGUAGE EFFECTS):
    - CRITICAL MUTEX AUDIT: An agent or device that is holding, lifting, carrying, or transporting an object is OCCUPIED, NOT AVAILABLE!
      If the requirements explicitly state: 'Once I lift/pick-up/unload... it is NOT the case anymore that agent A is available/free', NEVER advise asserting availability on that lifting/unloading action! The agent/device only becomes available again when it DROPS, PUTS DOWN, or LOADS the object.
-   - VACATED SUPPORTS / SURFACES / RECEPTACLES CLEARING:
-     When an action lifts, extracts, or unstacks an entity from a supporting surface or receptacle S:
-     Did the action omit the positive state-clearing effect explicitly described in the requirements (e.g. 'C is clear' -> '(clear ?s)'; 'receptacle is empty')?
-     If an action removes an entity from a support S without asserting that S is clear, underlying entities remain permanently blocked and un-manipulable, causing planner reachability failure (heuristic = infinity)!
+   - VACATED LOCATIONS / SUPPORTS / RECEPTACLES CLEARING:
+     When an action moves an agent or entity away from a location/tile L ('move', 'drive', 'depart'), or lifts/unstacks an entity from a support S:
+     Did the movement or departure action omit the positive clearing effect explicitly described in the requirements (e.g. 'Once I move ... from B to C, it is the case that B is clear' -> '(clear ?from)')?
+     If a movement action departs a location L without asserting that L is clear, locations remain permanently occupied, trapping the agent and causing planner reachability deadlock (heuristic = infinity)!
+     Check the requirements carefully to see which action ACTUALLY performed the departure or unstacking, and add the positive '(clear ...)' atom to THAT departing action! Never add '(clear ?t)' to an action where the text explicitly states 'it is NOT the case anymore that B is clear'!
    - CONTRADICTORY SIMULTANEOUS EFFECTS:
      If an action simultaneously asserts both '(pred ?x)' and '(not (pred ?x))':
      Consult the Natural Language Requirements! Check whether the text says 'it is the case that ...' (keep the positive atom) or 'it is NOT the case anymore that ...' (keep the negative atom). NEVER advise adding a positive effect that directly contradicts an explicit negative effect in the text.
    - AUDIT EVERY ACTION INDIVIDUALLY: Inspect the CURRENT domain blueprint carefully. Compare each action's positive effects against the 'Once I ... it is the case that ...' statements in the text. Find the specific action that is ACTUALLY missing a positive transition effect described in the requirements!
 """
 
+    locked_problem_notice = """
+    CRITICAL FIXED PROBLEM INSTANCE INVARIANT (P_gold IS READ-ONLY):
+    The Problem Blueprint represents the fixed ground-truth problem instance (P_gold) and CANNOT be modified!
+    All diagnostic reports and suggested_repair_hint directives MUST target the DOMAIN blueprint ('domain.types', 'domain.constants', 'domain.predicates', 'domain.actions').
+    NEVER advise modifying 'problem.objects', 'problem.initial_state', or 'problem.goal_state'.
+    If a predicate, type, or constant in P_gold fails type-checking or lookup in VAL, advise updating 'domain.predicates', 'domain.types', or 'domain.constants' so the domain accepts P_gold cleanly.
+    """
+
     prompt = f"""You are an expert PDDL Diagnostic & Fault Localization Oracle.
 
-Your task is to analyze the failure signals from symbolic oracles (VAL / Fast Downward / Regression Suite) against the current PDDL relational blueprints, localize the root-cause fault, and produce structured DiagnosticReports.
+Your task is to analyze the failure signals from symbolic oracles (VAL / Fast Downward / Regression Suite) against the current PDDL Domain blueprint and fixed ground-truth Problem instance (P_gold), localize the root-cause fault in the Domain blueprint, and produce structured DiagnosticReports.
 
-NATURAL LANGUAGE REQUIREMENTS:
+NATURAL LANGUAGE REQUIREMENTS & FIXED PROBLEM CONTRACT:
 {requirements_text}
 
-CURRENT DOMAIN BLUEPRINT:
+CURRENT DOMAIN BLUEPRINT (D_gen):
 ```json
 {json.dumps(domain_bp, indent=2)}
 ```
 
-CURRENT PROBLEM BLUEPRINT:
-```json
-{json.dumps(problem_bp, indent=2)}
+FIXED GROUND-TRUTH PROBLEM PDDL (P_gold — READ-ONLY):
+```pddl
+{problem_pddl.strip()}
 ```
 
 RAW ORACLE VERIFICATION ERRORS:
@@ -548,6 +728,7 @@ RAW ORACLE VERIFICATION ERRORS:
 GROUNDED ACTION-PREDICATE CAUSAL DEPENDENCY & REACHABILITY ANALYSIS:
 {causal_summary}
 
+    {locked_problem_notice}
     {focus_guidance}
     {STANDARD_CLASSICAL_PDDL_RULES}
     {STANDARD_DIAGNOSTIC_RULES}
@@ -555,15 +736,15 @@ GROUNDED ACTION-PREDICATE CAUSAL DEPENDENCY & REACHABILITY ANALYSIS:
     For each identified issue, provide:
     - error_category: SYNTAX_PARSE, TYPE_SIGNATURE, GROUNDING_UNSOLVABILITY, or HISTORICAL_REGRESSION.
       CRITICAL CATEGORIZATION INVARIANT:
-      SYSTEM_ORACLE_ERROR is strictly forbidden for domain/problem AST defects, action precondition/effect errors, or planner solvability failures. SYSTEM_ORACLE_ERROR is reserved exclusively for missing host binary executables.
+      SYSTEM_ORACLE_ERROR is strictly forbidden for domain AST defects, action precondition/effect errors, or planner solvability failures. SYSTEM_ORACLE_ERROR is reserved exclusively for missing host binary executables.
       Contradictory effects (e.g. simultaneously adding and deleting an atom) or invalid precondition syntax MUST be categorized under SYNTAX_PARSE or GROUNDING_UNSOLVABILITY with repair_operation_type EFFECT_ALIGNMENT or PRECONDITION_INSERTION/RELAXATION.
-    - repair_operation_type: PRECONDITION_RELAXATION, PRECONDITION_INSERTION, EFFECT_ALIGNMENT, TYPE_ARITY_ALIGNMENT, INITIAL_STATE_AUGMENTATION, or GENERAL_AST_REPAIR
-    - faulty_element: Name of the specific action (e.g. 'pick-up', 'drop', 'drive'), predicate, or null if general
+    - repair_operation_type: PRECONDITION_RELAXATION, PRECONDITION_INSERTION, EFFECT_ALIGNMENT, TYPE_ARITY_ALIGNMENT, ACTION_ADDITION, REGRESSION_BACKWARD_COMPATIBILITY, or GENERAL_AST_REPAIR
+    - faulty_element: Name of the specific domain action, predicate, 'types', or 'constants'
     - raw_log: Exact or summarized log snippet from the oracle
     - suggested_repair_hint: CRITICAL PRESCRIPTIVE REPAIR DIRECTIVE:
-      Do NOT merely restate what happened or describe the symptom. Provide exact, actionable instructions:
-      1) The exact AST target to modify (e.g. 'domain.actions.<action_name>', 'domain.predicates', 'problem.objects').
-      2) The concrete operation (e.g. 'ADD action schema <name>', 'REPLACE precondition <pred> with <pred>', 'ADD positive effect <pred>').
+      Do NOT merely restate what happened or describe the symptom. Provide exact, actionable instructions targeting ONLY the Domain Blueprint:
+      1) The exact domain AST target to modify ('domain.types', 'domain.constants', 'domain.predicates', or 'domain.actions.<action_name>').
+      2) The concrete operation (e.g. 'ADD subtype link in domain.types', 'ADD action schema <name>', 'REPLACE precondition <pred> with <pred>', 'ADD positive effect <pred>').
       3) The exact PDDL literal or signature to write, and why it resolves the oracle failure.
 
     Return a valid JSON object strictly matching the DiagnosticAnalysis schema.
@@ -596,46 +777,57 @@ GROUNDED ACTION-PREDICATE CAUSAL DEPENDENCY & REACHABILITY ANALYSIS:
                 
                 if tm.get("is_arity_mismatch"):
                     target_elem = tm["pred_name"]
+                    p_args = tm.get("args", [])
+                    expected_arity = len(p_args)
+                    obj_types = prob_meta.get("objects", {})
+                    arg_types = [obj_types.get(a, "object") for a in p_args]
+                    sample_call = f"({tm['pred_name']} {' '.join(p_args)})"
+                    sample_params = " ".join([f"?x{i+1} - {t}" for i, t in enumerate(arg_types)])
+                    sample_decl = f"({tm['pred_name']}" + (f" {sample_params}" if sample_params else "") + ")"
                     hint = (
-                        f"Proposition '({tm['pred_name']} ...)' has an arity mismatch: provided {len(tm.get('args', []))} argument(s), "
-                        f"but predicate '{tm['pred_name']}' expects {tm.get('declared_param_count', 0)} parameter(s). "
-                        f"In the action schema or problem definition, update the formula to provide all arguments matching the declared signature."
+                        f"CRITICAL GROUND TRUTH ARITY MISMATCH: Proposition '{sample_call}' in problem P_gold has exactly {expected_arity} argument(s) with types {arg_types}, "
+                        f"but predicate '{tm['pred_name']}' was declared with {tm.get('declared_param_count', 0)} parameter(s) in domain 'predicates'. "
+                        f"Fixed problem P_gold is read-only and cannot be changed. "
+                        f"In domain 'predicates', declare predicate '{sample_decl}' with exactly {expected_arity} parameter(s) matching problem facts. "
+                        f"In all domain 'actions', use '{tm['pred_name']}' with exactly {expected_arity} argument(s). "
+                        f"Do NOT declare extra parameters or invent imaginary entity types (such as agent parameters) when problem facts provide only {expected_arity} argument(s)."
                     )
                 elif is_subtype(tm["expected_type"], tm["arg_type"], dom_types) and tm["expected_type"].lower() != tm["arg_type"].lower():
                     target_elem = tm["pred_name"]
                     hint = (
-                        f"Type mismatch on proposition '({tm['pred_name']} {tm['faulty_arg']} ...)': Object/parameter '{tm['faulty_arg']}' has declared type '{tm['arg_type']}', but predicate '{tm['pred_name']}' was declared too narrowly expecting subtype '{tm['expected_type']}' (which already inherits from '{tm['arg_type']}'). "
-                        f"In domain 'predicates', generalize parameter {p_idx} of predicate '{tm['pred_name']}' to supertype '{tm['arg_type']}' (e.g. '({tm['pred_name']} ... ?x - {tm['arg_type']} ...)'). Alternatively, if problem requirements designate that '{tm['faulty_arg']}' is a specialized '{tm['expected_type']}', declare '{tm['faulty_arg']} - {tm['expected_type']}' in problem ':objects'. "
+                        f"Type mismatch on proposition '({tm['pred_name']} {tm['faulty_arg']} ...)': Argument '{tm['faulty_arg']}' has declared type '{tm['arg_type']}', but predicate '{tm['pred_name']}' was declared too narrowly expecting subtype '{tm['expected_type']}' (which already inherits from '{tm['arg_type']}'). "
+                        f"In domain 'predicates', generalize parameter {p_idx} of predicate '{tm['pred_name']}' to supertype '{tm['arg_type']}' (e.g. '({tm['pred_name']} ... ?x - {tm['arg_type']} ...)'), OR if '{tm['faulty_arg']}' is an action parameter in '{tm.get('current_val_action')}', specialize '{tm['faulty_arg']}' to '{tm['expected_type']}' in domain 'actions'. "
                         f"Do NOT invert domain 'types' by declaring '{tm['arg_type']}' as a subtype of '{tm['expected_type']}'."
                     )
                 elif is_subtype(tm["arg_type"], tm["expected_type"], dom_types):
                     target_elem = "types"
                     hint = (
                         f"In domain 'types', ensure '{tm['arg_type']}': '{tm['expected_type']}' "
-                        f"(currently inheriting from '{tm['current_parent']}'). Object '{tm['faulty_arg']}' has type '{tm['arg_type']}' "
+                        f"(currently inheriting from '{tm['current_parent']}'). Object/parameter '{tm['faulty_arg']}' has type '{tm['arg_type']}' "
                         f"and must inherit from '{tm['expected_type']}' to satisfy predicate '{tm['pred_name']}'. "
                         f"Do NOT declare 'object': 'object'."
                     )
                 else:
                     target_elem = tm["pred_name"]
                     hint = (
-                        f"Type mismatch on proposition '({tm['pred_name']} {tm['faulty_arg']} ...)': Parameter/object '{tm['faulty_arg']}' has type '{tm['arg_type']}', but predicate '{tm['pred_name']}' parameter {p_idx} expects disjoint type '{tm['expected_type']}'. "
-                        f"In Classical PDDL 2.1, disjoint types cannot inherit from each other. Either: "
-                        f"1) Declare a dedicated predicate for distinct entity states (e.g. '(handempty ?h - {tm['arg_type']})' vs '({tm['pred_name']} ?c - {tm['expected_type']})'), "
-                        f"2) Generalize parameter {p_idx} in 'predicates' to their common supertype (e.g. 'object'), or "
-                        f"3) In problem ':objects', declare '{tm['faulty_arg']}' with the intended type. "
-                        f"NEVER declare '{tm['arg_type']}' as a child of '{tm['expected_type']}' in domain 'types'."
+                        f"Type mismatch on proposition '({tm['pred_name']} {tm['faulty_arg']} ...)': Argument '{tm['faulty_arg']}' has type '{tm['arg_type']}', but predicate '{tm['pred_name']}' parameter {p_idx} expects type '{tm['expected_type']}'. "
+                        f"In the Domain Blueprint (do NOT modify P_gold): "
+                        f"1) If '{tm['arg_type']}' is conceptually a subtype of '{tm['expected_type']}' according to the requirements, declare '{tm['arg_type']}': '{tm['expected_type']}' in domain 'types'; "
+                        f"2) If both types share a common supertype, generalize parameter {p_idx} of '{tm['pred_name']}' in domain 'predicates' to their common supertype; OR "
+                        f"3) If they represent distinct states of disjoint entity types, declare a separate dedicated predicate for '{tm['arg_type']}' in domain 'predicates' and use it in domain 'actions'."
                     )
                 
-                matched = False
-                for rep in diagnostic_reports:
-                    if rep.error_category == ErrorCategory.TYPE_SIGNATURE and (rep.faulty_element in [tm["pred_name"], "types", tm["arg_type"], target_elem]):
-                        rep.faulty_element = target_elem
-                        rep.repair_operation_type = RepairOperationType.TYPE_ARITY_ALIGNMENT
-                        rep.suggested_repair_hint = hint
-                        matched = True
-                        break
-                if not matched:
+                if tm.get("is_arity_mismatch"):
+                    # Purge any contradictory LLM reports that falsely suggest a different arity or parameters for this predicate
+                    purged_reports = []
+                    for rep in diagnostic_reports:
+                        is_target_rep = (
+                            rep.faulty_element.lower() in [tm["pred_name"].lower(), target_elem.lower()]
+                            or (rep.faulty_element.lower() in ["predicates", "domain.predicates", "types"] and tm["pred_name"].lower() in (rep.suggested_repair_hint.lower() + " " + rep.raw_log.lower()))
+                        )
+                        if not is_target_rep:
+                            purged_reports.append(rep)
+                    diagnostic_reports = purged_reports
                     diagnostic_reports.append(DiagnosticReport(
                         error_category=ErrorCategory.TYPE_SIGNATURE,
                         repair_operation_type=RepairOperationType.TYPE_ARITY_ALIGNMENT,
@@ -643,6 +835,27 @@ GROUNDED ACTION-PREDICATE CAUSAL DEPENDENCY & REACHABILITY ANALYSIS:
                         raw_log=tm["raw_log"],
                         suggested_repair_hint=hint
                     ))
+                else:
+                    matched = False
+                    for rep in diagnostic_reports:
+                        is_target_rep = (
+                            rep.faulty_element.lower() in [tm["pred_name"].lower(), "types", tm["arg_type"].lower(), target_elem.lower()]
+                            or (rep.faulty_element.lower() in ["predicates", "domain.predicates", "types"] and tm["pred_name"].lower() in (rep.suggested_repair_hint.lower() + " " + rep.raw_log.lower()))
+                        )
+                        if rep.error_category == ErrorCategory.TYPE_SIGNATURE and is_target_rep:
+                            rep.faulty_element = target_elem
+                            rep.repair_operation_type = RepairOperationType.TYPE_ARITY_ALIGNMENT
+                            rep.suggested_repair_hint = hint
+                            matched = True
+                            break
+                    if not matched:
+                        diagnostic_reports.append(DiagnosticReport(
+                            error_category=ErrorCategory.TYPE_SIGNATURE,
+                            repair_operation_type=RepairOperationType.TYPE_ARITY_ALIGNMENT,
+                            faulty_element=target_elem,
+                            raw_log=tm["raw_log"],
+                            suggested_repair_hint=hint
+                        ))
 
         if val_syntax_or_type_error and 'unknown_type_entries' in locals():
             for ute in unknown_type_entries:
@@ -669,30 +882,39 @@ GROUNDED ACTION-PREDICATE CAUSAL DEPENDENCY & REACHABILITY ANALYSIS:
                     ))
 
         # Grounded Action Reachability Alignment: If planner reported unsolvability and causal analysis
-        # proved an action is dead due to empty parameter domain (0 objects of parameter type),
+        # proved an action or goal cannot be grounded against P_gold (e.g. empty parameter domain or overly narrow subtype parameter),
         # ensure diagnostic reports highlight this mathematical dead-end:
         ungroundable_list = causal_analysis.get("ungroundable_preconditions", [])
+        if ungroundable_list and not (causal_analysis.get("orphaned_goals") or causal_analysis.get("internal_contradictions")):
+            diagnostic_reports = [
+                r for r in diagnostic_reports
+                if r.repair_operation_type not in (RepairOperationType.EFFECT_ALIGNMENT, RepairOperationType.PRECONDITION_RELAXATION)
+            ]
+        used_ungroundable_rep_indices = set()
         for up in ungroundable_list:
-            if "ZERO objects of type" in up.get("reason", ""):
-                act = up.get("action_name", "")
-                hint = up.get("reason", "")
-                matched = False
-                for rep in diagnostic_reports:
-                    if rep.faulty_element in [act, "objects", up.get("predicate")]:
-                        rep.faulty_element = act
-                        rep.error_category = ErrorCategory.GROUNDING_UNSOLVABILITY
-                        rep.repair_operation_type = RepairOperationType.TYPE_ARITY_ALIGNMENT
-                        rep.suggested_repair_hint = hint
-                        matched = True
-                        break
-                if not matched:
-                    diagnostic_reports.append(DiagnosticReport(
-                        error_category=ErrorCategory.GROUNDING_UNSOLVABILITY,
-                        repair_operation_type=RepairOperationType.TYPE_ARITY_ALIGNMENT,
-                        faulty_element=act,
-                        raw_log=up.get("reason", ""),
-                        suggested_repair_hint=hint
-                    ))
+            act = up.get("action_name", "")
+            hint = up.get("reason", "")
+            target_f = "types" if "ZERO objects" in hint else (act or "domain.actions")
+            op_type = RepairOperationType.EFFECT_ALIGNMENT if "action effects" in hint.lower() else RepairOperationType.TYPE_ARITY_ALIGNMENT
+            matched = False
+            for r_idx, rep in enumerate(diagnostic_reports):
+                if r_idx not in used_ungroundable_rep_indices and rep.faulty_element == target_f:
+                    rep.faulty_element = target_f
+                    rep.error_category = ErrorCategory.GROUNDING_UNSOLVABILITY
+                    rep.repair_operation_type = op_type
+                    rep.suggested_repair_hint = hint
+                    used_ungroundable_rep_indices.add(r_idx)
+                    matched = True
+                    break
+            if not matched:
+                diagnostic_reports.append(DiagnosticReport(
+                    error_category=ErrorCategory.GROUNDING_UNSOLVABILITY,
+                    repair_operation_type=op_type,
+                    faulty_element=target_f,
+                    raw_log=up.get("reason", ""),
+                    suggested_repair_hint=hint
+                ))
+                used_ungroundable_rep_indices.add(len(diagnostic_reports) - 1)
 
         # Grounded Directional Asymmetry Alignment: If planner reported unsolvability and causal analysis
         # proved a directional asymmetry trap (actions only permit one-way movement on an asymmetric relation,
@@ -707,16 +929,52 @@ GROUNDED ACTION-PREDICATE CAUSAL DEPENDENCY & REACHABILITY ANALYSIS:
                 if rep.faulty_element in f_acts or rep.faulty_element in ["actions", "domain.actions", dt.get("relation")]:
                     rep.faulty_element = act_target
                     rep.error_category = ErrorCategory.GROUNDING_UNSOLVABILITY
-                    rep.repair_operation_type = RepairOperationType.GENERAL_AST_REPAIR
+                    rep.repair_operation_type = RepairOperationType.ACTION_ADDITION
                     rep.suggested_repair_hint = hint
                     matched = True
                     break
             if not matched:
                 diagnostic_reports.append(DiagnosticReport(
                     error_category=ErrorCategory.GROUNDING_UNSOLVABILITY,
-                    repair_operation_type=RepairOperationType.GENERAL_AST_REPAIR,
+                    repair_operation_type=RepairOperationType.ACTION_ADDITION,
                     faulty_element=act_target,
                     raw_log=f"Directional Asymmetry Deadlock: static relation '{dt.get('relation')}' is directed and missing inverse action.",
+                    suggested_repair_hint=hint
+                ))
+
+        # Grounded Contradictory Simultaneous Effects Alignment:
+        # If an action has contradictory effects (P ?x) and (not (P ?x)), enforce the formal FOL resolution:
+        for ic in internal_contradictions:
+            act_target = ic.get("action_name", "")
+            clash_atom = ic.get("atom", "")
+            is_in_pre = ic.get("is_in_precond", False)
+            if is_in_pre:
+                hint = (
+                    f"In action '{act_target}', REMOVE the contradictory positive effect '{clash_atom}' "
+                    f"and retain the delete effect '(not {clash_atom})' because '{clash_atom}' is in preconditions."
+                )
+            else:
+                hint = (
+                    f"In action '{act_target}', RETAIN the positive effect '{clash_atom}' and "
+                    f"REMOVE the contradictory delete effect '(not {clash_atom})' because '{clash_atom}' is NOT in preconditions."
+                )
+            matched = False
+            for rep in diagnostic_reports:
+                if rep.faulty_element in [act_target, f"domain.actions.{act_target}", "domain.actions"] and (
+                    clash_atom in (rep.suggested_repair_hint or "") or "contradictory" in (rep.suggested_repair_hint or "").lower()
+                ):
+                    rep.error_category = ErrorCategory.SYNTAX_PARSE
+                    rep.repair_operation_type = RepairOperationType.EFFECT_ALIGNMENT
+                    rep.faulty_element = act_target
+                    rep.suggested_repair_hint = hint
+                    matched = True
+                    break
+            if not matched:
+                diagnostic_reports.append(DiagnosticReport(
+                    error_category=ErrorCategory.SYNTAX_PARSE,
+                    repair_operation_type=RepairOperationType.EFFECT_ALIGNMENT,
+                    faulty_element=act_target,
+                    raw_log=f"Contradictory simultaneous action effects in '{act_target}': {clash_atom} and (not {clash_atom})",
                     suggested_repair_hint=hint
                 ))
     except Exception as triage_err:
@@ -731,14 +989,27 @@ GROUNDED ACTION-PREDICATE CAUSAL DEPENDENCY & REACHABILITY ANALYSIS:
         state["node_latencies"] = latencies
         return state
 
-    # Store structured reports and formatted feedback in state
-    dumped_reports = [r.model_dump() for r in diagnostic_reports]
-    state["diagnostic_reports"] = dumped_reports
-    state["formatted_diagnostic_feedback"] = format_diagnostic_feedback(diagnostic_reports)
+    # Prioritize reports using Causal Subsumption Priority Ranking (CSPR)
+    prioritized_reports, active_tier = prioritize_diagnostic_reports(diagnostic_reports, max_items=4)
+    print(f"[Triage Node]: CSPR prioritized {len(prioritized_reports)} of {len(diagnostic_reports)} diagnostic item(s) (Active Tier: {active_tier}).")
+    print(f"  --- [TRIAGE FLAWS & REPAIR HINTS (Tier {active_tier})] ---")
+    for r_idx, rep in enumerate(prioritized_reports, 1):
+        elem = rep.faulty_element or "domain"
+        cat = rep.error_category.value if hasattr(rep.error_category, "value") else str(rep.error_category)
+        hint = rep.suggested_repair_hint
+        print(f"   -> Flaw #{r_idx} [{elem} | {cat}]:")
+        print(f"      Hint: {hint}")
+    print(f"  --------------------------------------------------")
 
-    # Accumulate historical reports for evaluation metrics
+    # Store prioritized reports and formatted feedback in state for the repair agent
+    dumped_prioritized = [r.model_dump() for r in prioritized_reports]
+    state["diagnostic_reports"] = dumped_prioritized
+    state["formatted_diagnostic_feedback"] = format_diagnostic_feedback(prioritized_reports, active_tier)
+
+    # Accumulate all historical reports for comprehensive evaluation metrics
+    dumped_all = [r.model_dump() for r in diagnostic_reports]
     hist_reports = state.get("historical_diagnostic_reports", [])
-    for dr in dumped_reports:
+    for dr in dumped_all:
         if dr not in hist_reports:
             hist_reports.append(dr)
     state["historical_diagnostic_reports"] = hist_reports

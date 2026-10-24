@@ -61,7 +61,7 @@ def test_closed_loop_repair(domain_name: str = "gripper", instance_id: str = "in
     initial_state = {
         "requirements": f"Domain: {domain_name}. Repair the faulty PDDL specification so that actions conserve physical state constraints.",
         "pddl_domain_blueprint": {},
-        "pddl_problem_blueprint": {},
+        "initial_problem_pddl": ground_truth_prob,
         "generated_domain_pddl": faulty_dom,
         "generated_problem_pddl": ground_truth_prob,
         "verification_errors": ["Semantic Error: Action 'pick' is missing location precondition (at ?obj ?room), causing objects to be picked up from anywhere in the world."],
@@ -125,7 +125,7 @@ def test_closed_loop_repair_pipesworld(instance_id: str = "instance-1"):
     initial_state = {
         "requirements": "Domain: pipesworld_strips. A pipeline segment must be in 'normal' operational state before push operations can commence.",
         "pddl_domain_blueprint": {},
-        "pddl_problem_blueprint": {},
+        "initial_problem_pddl": ground_truth_prob,
         "generated_domain_pddl": faulty_dom,
         "generated_problem_pddl": ground_truth_prob,
         "verification_errors": ["Semantic Error: Action 'PUSH-START' allows push operations when pipe is in an updating or invalid state because '(normal ?pipe)' precondition is missing."],

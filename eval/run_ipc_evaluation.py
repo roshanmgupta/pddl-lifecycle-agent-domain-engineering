@@ -80,9 +80,9 @@ def evaluate_single_task(
     initial_state = {
         "requirements": task.natural_language_requirements,
         "pddl_domain_blueprint": {},
-        "pddl_problem_blueprint": {},
+        "initial_problem_pddl": task.initial_problem_pddl or task.ground_truth_problem_pddl or "",
         "generated_domain_pddl": task.initial_domain_pddl or "",
-        "generated_problem_pddl": task.initial_problem_pddl or "",
+        "generated_problem_pddl": task.initial_problem_pddl or task.ground_truth_problem_pddl or "",
         "verification_errors": [],
         "iteration_count": 0,
         "max_iterations": 5

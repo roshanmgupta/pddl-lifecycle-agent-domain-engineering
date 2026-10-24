@@ -1,6 +1,7 @@
 import re
 from typing import Optional, Dict, Any, List
-from schemas.pddl_blueprint import DomainBlueprint, PddlActionSchema, ProblemBlueprint
+from schemas.pddl_blueprint import DomainBlueprint, PddlActionSchema
+from tools.blueprint_parser import extract_pddl_problem_metadata
 
 
 def normalize_pddl_expression(expr: str) -> str:
@@ -50,6 +51,9 @@ def normalize_pddl_expression(expr: str) -> str:
     # e.g., "(at ?b - waypoint ?c - store)" -> "(at ?b ?c)" or "(at waypoint0 - soil-sample waypoint0)" -> "(at waypoint0 waypoint0)"
     # In classical PDDL 2.1, atomic formulas in preconditions, effects, and initial/goal states cannot contain inline typing
     s = re.sub(r'(\?[a-zA-Z0-9_\-]+|[a-zA-Z0-9_\-]+)\s+-\s+[a-zA-Z0-9_\-]+', r'\1', s)
+    # 5. Collapse double negations "(not (not (P ...)))" -> "(P ...)"
+    while re.match(r'^\(\s*not\s*\(\s*not\s*(\(.+\))\s*\)\s*\)$', s, flags=re.IGNORECASE):
+        s = re.sub(r'^\(\s*not\s*\(\s*not\s*(\(.+\))\s*\)\s*\)$', r'\1', s, flags=re.IGNORECASE).strip()
     return s
 
 def flatten_atoms_list(items) -> list:
@@ -206,12 +210,132 @@ def sanitize_action_effects(raw_effects: list) -> list:
             sanitized.append(clean_norm)
     return sanitized
 
-def compile_pddl_programmatically(blueprint_data: dict) -> str:
+def synchronize_ast_predicate_symbols(blueprint_data: dict, problem_pddl: Optional[str] = None) -> dict:
+    """
+    Universally synchronizes predicate symbols across domain AST (declarations and actions)
+    to match the canonical identifier format (hyphen vs underscore or prefix variation)
+    present in the fixed problem instance (P_gold).
+    Domain-agnostic and universally applicable to any PDDL 2.1 domain.
+    """
+    if not problem_pddl or not isinstance(blueprint_data, dict):
+        return blueprint_data
+
+    prob_meta = extract_pddl_problem_metadata(problem_pddl)
+    prob_atoms = flatten_atoms_list(prob_meta.get("initial_state", [])) + flatten_atoms_list(prob_meta.get("goal_state", []))
+    prob_pred_map: Dict[str, str] = {}
+    prob_pred_arities: Dict[str, Set[int]] = {}
+    for a in prob_atoms:
+        clean = normalize_pddl_expression(a).strip("() ")
+        if clean.lower().startswith("not"):
+            clean = clean[3:].strip("() ")
+        toks = clean.split()
+        if toks:
+            sym = toks[0]
+            norm_key = sym.lower().replace("-", "_")
+            prob_pred_map[norm_key] = sym
+            prob_pred_arities.setdefault(norm_key, set()).add(len(toks) - 1)
+
+    if not prob_pred_map:
+        return blueprint_data
+
+    def _replace_sym(atom_str: str) -> str:
+        s = str(atom_str).strip()
+        is_neg = False
+        inner = s
+        if inner.startswith("(") and inner.endswith(")"):
+            inner = inner[1:-1].strip()
+        if inner.lower().startswith("not"):
+            is_neg = True
+            inner = inner[3:].strip()
+            if inner.startswith("(") and inner.endswith(")"):
+                inner = inner[1:-1].strip()
+        toks = inner.split()
+        if not toks:
+            return atom_str
+        psym = toks[0]
+        norm_key = psym.lower().replace("-", "_")
+        target_sym = None
+        if norm_key in prob_pred_map:
+            target_sym = prob_pred_map[norm_key]
+        else:
+            # 1. Common prefixes: is_, has_, can_
+            for prefix in ["is_", "has_", "can_"]:
+                if norm_key.startswith(prefix) and norm_key[len(prefix):] in prob_pred_map:
+                    target_sym = prob_pred_map[norm_key[len(prefix):]]
+                    break
+            # 2. Compound affix alignment: object_at -> at, free_from -> free
+            if not target_sym:
+                sub_toks = [t for t in norm_key.split("_") if t]
+                if len(sub_toks) > 1:
+                    atom_arity = len(parse_pddl_typed_params(toks[1:])) if "-" in toks else (len(toks) - 1)
+                    matching_cands = [
+                        prob_pred_map[t] for t in sub_toks
+                        if t in prob_pred_map and atom_arity in prob_pred_arities.get(t, set())
+                    ]
+                    if len(matching_cands) == 1:
+                        target_sym = matching_cands[0]
+
+            # 3. Morphological abbreviation / token prefix match under identical arity: power_available -> power_avail
+            if not target_sym:
+                atom_arity = len(parse_pddl_typed_params(toks[1:])) if "-" in toks else (len(toks) - 1)
+                sub_toks = [t for t in norm_key.split("_") if t]
+                for p_cand, arities in prob_pred_arities.items():
+                    if atom_arity in arities:
+                        c_toks = [t for t in p_cand.split("_") if t]
+                        if len(sub_toks) == len(c_toks) and len(sub_toks) > 0:
+                            if all(t1 == t2 or t1.startswith(t2) or t2.startswith(t1) for t1, t2 in zip(sub_toks, c_toks)):
+                                target_sym = prob_pred_map[p_cand]
+                                break
+
+            # 4. Separator-free concatenation match under identical arity: on_table -> ontable
+            if not target_sym:
+                atom_arity = len(parse_pddl_typed_params(toks[1:])) if "-" in toks else (len(toks) - 1)
+                norm_no_sep = norm_key.replace("_", "")
+                for p_cand, arities in prob_pred_arities.items():
+                    if atom_arity in arities and norm_no_sep == p_cand.replace("_", ""):
+                        target_sym = prob_pred_map[p_cand]
+                        break
+
+            # 5. Core root token affix alignment under identical arity: visible -> visible_from
+            if not target_sym:
+                atom_arity = len(parse_pddl_typed_params(toks[1:])) if "-" in toks else (len(toks) - 1)
+                affix_cands = []
+                for p_cand, arities in prob_pred_arities.items():
+                    if atom_arity in arities:
+                        c_toks = [t for t in p_cand.split("_") if t]
+                        if norm_key in c_toks or p_cand in [t for t in norm_key.split("_") if t]:
+                            affix_cands.append(prob_pred_map[p_cand])
+                if len(affix_cands) == 1:
+                    target_sym = affix_cands[0]
+        if target_sym and target_sym != psym:
+            toks[0] = target_sym
+            res = f"({' '.join(toks)})"
+            return f"(not {res})" if is_neg else res
+        return atom_str
+
+    # Sync domain.predicates
+    new_preds = []
+    for p in blueprint_data.get("predicates", []):
+        new_preds.append(_replace_sym(p))
+    blueprint_data["predicates"] = new_preds
+
+    # Sync actions preconditions and effects
+    for act in blueprint_data.get("actions", []):
+        if isinstance(act, dict):
+            act["preconditions"] = [_replace_sym(p) for p in act.get("preconditions", [])]
+            act["effects"] = [_replace_sym(e) for e in act.get("effects", [])]
+
+    return blueprint_data
+
+def compile_pddl_programmatically(blueprint_data: dict, problem_pddl: Optional[str] = None) -> str:
     """
     Deterministic conversion of a DomainBlueprint JSON dictionary
     into perfectly indented, parenthetically closed Lisp PDDL code strings.
     """
-    raw_dname = blueprint_data.get("domain_name", "generated_domain")
+    if problem_pddl:
+        synchronize_ast_predicate_symbols(blueprint_data, problem_pddl)
+    prob_meta = extract_pddl_problem_metadata(problem_pddl) if (problem_pddl and isinstance(problem_pddl, str)) else {}
+    raw_dname = prob_meta.get("domain_name") or blueprint_data.get("domain_name", "generated_domain")
     domain_name = re.sub(r'\.pddl$', '', str(raw_dname), flags=re.IGNORECASE)
     domain_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', domain_name)
     if not domain_name:
@@ -227,28 +351,79 @@ def compile_pddl_programmatically(blueprint_data: dict) -> str:
     pddl_lines.append(f"(define (domain {domain_name})")
     req_str = " ".join(requirements) if isinstance(requirements, list) else ":strips :typing"
     has_typing = ":typing" in req_str
+    has_negative_preconditions = ":negative-preconditions" in req_str
     pddl_lines.append(f"  (:requirements {req_str})")
     pddl_lines.append("")
     
     # 2. Types Hierarchy Block
+    def _sanitize_type_token(t_val: Any) -> Optional[str]:
+        if not t_val:
+            return None
+        s = str(t_val).strip()
+        if not s or s.lower() in ("none", "null"):
+            return None
+        # PDDL 2.1 lexical rule: '/' is illegal in PDDL identifiers; sanitize to '_'
+        s = re.sub(r"[^a-zA-Z0-9_\-]", "_", s).strip("_")
+        return s if s else None
+
     normalized_types = {}
     if isinstance(types, dict):
         for child, parent in types.items():
-            if child and str(child).lower() != "object":
-                normalized_types[str(child).strip()] = str(parent).strip() if parent and str(parent).lower() not in ["none", str(child).lower()] else None
+            c_clean = _sanitize_type_token(child)
+            p_clean = _sanitize_type_token(parent)
+            if c_clean and c_clean.lower() != "object":
+                normalized_types[c_clean] = p_clean if p_clean and p_clean.lower() != c_clean.lower() else None
     elif isinstance(types, list):
         for item in types:
             if "-" in str(item):
                 parts = str(item).split("-")
                 children = parts[0].strip().split()
-                parent = parts[1].strip()
+                parent = _sanitize_type_token(parts[1].strip())
                 for c in children:
-                    if c and c.lower() != "object":
-                        normalized_types[c] = parent if parent and parent.lower() not in ["none", c.lower()] else None
+                    c_clean = _sanitize_type_token(c)
+                    if c_clean and c_clean.lower() != "object":
+                        normalized_types[c_clean] = parent if parent and parent.lower() != c_clean.lower() else None
             else:
                 for c in str(item).strip().split():
-                    if c and c.lower() != "object":
-                        normalized_types[c] = None
+                    c_clean = _sanitize_type_token(c)
+                    if c_clean and c_clean.lower() != "object":
+                        normalized_types[c_clean] = None
+
+    def _resolve_type_expr(raw_t: Any) -> str:
+        if not raw_t:
+            return "object"
+        s = str(raw_t).strip()
+        if "/" in s or "|" in s:
+            parts = [ _sanitize_type_token(p) for p in re.split(r"[/|]", s) if _sanitize_type_token(p) ]
+            if len(parts) >= 2:
+                # If a synthesized supertype 'a_b' was declared in normalized_types, use it; otherwise find common supertype
+                joined = "_".join(parts)
+                if joined in normalized_types:
+                    for p in parts:
+                        if p not in normalized_types or not normalized_types[p]:
+                            normalized_types[p] = joined
+                    return joined
+                sup = parts[0]
+                for nxt in parts[1:]:
+                    sup = find_common_supertype(sup, nxt, normalized_types)
+                return sup
+        clean_t = _sanitize_type_token(s)
+        return clean_t if clean_t else "object"
+
+    # Sanitize any slash-types inside predicates and action parameters
+    predicates = [
+        re.sub(
+            r"(\?\w+\s*-\s*)([a-zA-Z0-9_\-/|]+)",
+            lambda m: m.group(1) + _resolve_type_expr(m.group(2)),
+            str(p)
+        )
+        for p in predicates
+    ]
+    for act in actions:
+        if isinstance(act, dict) and isinstance(act.get("parameters"), dict):
+            act["parameters"] = {k: _resolve_type_expr(v) for k, v in act["parameters"].items()}
+        elif hasattr(act, "parameters") and isinstance(getattr(act, "parameters"), dict):
+            setattr(act, "parameters", {k: _resolve_type_expr(v) for k, v in getattr(act, "parameters").items()})
 
     # Auto-discover types from predicates and action parameters (only when :typing is active)
     if has_typing:
@@ -269,11 +444,31 @@ def compile_pddl_programmatically(blueprint_data: dict) -> str:
                     if ptype and str(ptype).lower() != "object":
                         discovered_types.add(str(ptype))
 
+        # Auto-discover types from fixed problem instance (:objects ...)
+        # (Classical PDDL 2.1: every type used to declare objects in problem :objects must exist in domain :types)
+        if prob_meta and isinstance(prob_meta, dict):
+            for obj_name, obj_type in prob_meta.get("objects", {}).items():
+                if obj_type and str(obj_type).lower() != "object":
+                    discovered_types.add(str(obj_type))
+
         # Auto-discover object constants appearing in action preconditions and effects
-        # (Classical PDDL 2.1: any non-variable literal argument in action schemas is an object constant)
+        # (Classical PDDL 2.1: any non-variable literal argument in action schemas is an object constant,
+        #  typed according to the declared predicate parameter signature at that argument position)
         raw_constants = getattr(blueprint_data, "constants", {}) if hasattr(blueprint_data, "constants") else blueprint_data.get("constants", {})
         if not isinstance(raw_constants, dict):
             raw_constants = {}
+        else:
+            raw_constants = dict(raw_constants)
+
+        pred_param_types: dict = {}
+        for pred in predicates:
+            clean_p = str(pred).strip("() ")
+            if not clean_p:
+                continue
+            ptoks = clean_p.split()
+            psym = ptoks[0].lower()
+            parsed_params = parse_pddl_typed_params(ptoks[1:])
+            pred_param_types[psym] = [ptype for _, ptype in parsed_params]
 
         for act in actions:
             if isinstance(act, dict):
@@ -296,17 +491,102 @@ def compile_pddl_programmatically(blueprint_data: dict) -> str:
                     clean = clean[3:].strip('() ')
                 parts = clean.split()
                 if len(parts) > 1:
-                    for arg in parts[1:]:
+                    psym = parts[0].lower()
+                    expected_types = pred_param_types.get(psym, [])
+                    for arg_idx, arg in enumerate(parts[1:]):
                         if (
                             not arg.startswith("?")
                             and not arg.replace('.', '', 1).isdigit()
                             and VALID_IDENTIFIER.match(arg)
                             and arg.lower() not in PDDL_KEYWORDS
-                            and arg not in normalized_types
                             and arg not in bare_param_names
                         ):
-                            if arg not in raw_constants:
-                                raw_constants[arg] = "object"
+                            inferred_t = expected_types[arg_idx] if arg_idx < len(expected_types) else "object"
+                            if inferred_t.lower() == arg.lower():
+                                inferred_t = normalized_types.get(arg) or "object"
+                            if arg not in raw_constants or (raw_constants[arg] == "object" and inferred_t != "object"):
+                                raw_constants[arg] = inferred_t
+
+        # Universal PDDL 2.1 Herbrand Universe Scoping Invariant:
+        # 1) Domain (:constants ...) and Problem (:objects ...) share the global object namespace and MUST be disjoint.
+        #    Any symbol already declared in problem (:objects ...) MUST NOT appear in domain (:constants ...).
+        # 2) Any symbol appearing in problem (:init ...) or (:goal ...) that is NOT declared in problem (:objects ...)
+        #    is formally a domain constant and must be declared in (:constants ...) with its predicate argument type.
+        if prob_meta and isinstance(prob_meta, dict):
+            VALID_IDENTIFIER = re.compile(r'^[a-zA-Z][a-zA-Z0-9_\-]*$')
+            PDDL_KEYWORDS = {"not", "and", "or", "imply", "exists", "forall", "object", "-", "="}
+            prob_objs = prob_meta.get("objects", {})
+            if not isinstance(prob_objs, dict):
+                prob_objs = {}
+            prob_obj_lower = {str(k).strip().lower() for k in prob_objs.keys()}
+            for cname in list(raw_constants.keys()):
+                if str(cname).strip().lower() in prob_obj_lower:
+                    raw_constants.pop(cname, None)
+
+            # If any problem instance object was accidentally hardcoded inside an action schema
+            # (which causes VAL syntax crash 'Object with unknown type: ...' because problem objects cannot be domain constants),
+            # parameterize it cleanly as an action parameter variable.
+            prob_obj_map = {str(k).strip().lower(): (str(k).strip(), str(v).strip()) for k, v in prob_objs.items()}
+            for act in actions:
+                act_params = act.get("parameters", {}) if isinstance(act, dict) else getattr(act, "parameters", {})
+                if not isinstance(act_params, dict):
+                    continue
+                act_precs = act.get("preconditions", []) if isinstance(act, dict) else getattr(act, "preconditions", [])
+                act_effs = act.get("effects", []) if isinstance(act, dict) else getattr(act, "effects", [])
+                for atom_list in [act_precs, act_effs]:
+                    for idx, atom in enumerate(atom_list):
+                        norm_atom = normalize_pddl_expression(atom)
+                        clean = norm_atom.strip('() ')
+                        is_neg = clean.lower().startswith("not")
+                        if is_neg:
+                            clean = clean[3:].strip('() ')
+                        parts = clean.split()
+                        if len(parts) > 1:
+                            new_parts = [parts[0]]
+                            changed = False
+                            for arg in parts[1:]:
+                                arg_low = arg.lower()
+                                if not arg.startswith("?") and arg_low in prob_obj_map:
+                                    orig_k, orig_t = prob_obj_map[arg_low]
+                                    var_name = f"?{orig_k}"
+                                    new_parts.append(var_name)
+                                    changed = True
+                                    if var_name not in act_params and orig_k not in act_params:
+                                        act_params[var_name] = orig_t
+                                else:
+                                    new_parts.append(arg)
+                            if changed:
+                                new_atom_str = f"({' '.join(new_parts)})"
+                                if is_neg:
+                                    new_atom_str = f"(not {new_atom_str})"
+                                atom_list[idx] = new_atom_str
+            prob_atoms = (
+                flatten_atoms_list(prob_meta.get("initial_state", []))
+                + flatten_atoms_list(prob_meta.get("goal_state", []))
+            )
+            for atom in prob_atoms:
+                norm_atom = normalize_pddl_expression(atom)
+                clean = norm_atom.strip('() ')
+                if clean.lower().startswith("not"):
+                    clean = clean[3:].strip('() ')
+                parts = clean.split()
+                if len(parts) > 1:
+                    psym = parts[0].lower()
+                    expected_types = pred_param_types.get(psym, [])
+                    for arg_idx, arg in enumerate(parts[1:]):
+                        if (
+                            not arg.startswith("?")
+                            and not arg.replace('.', '', 1).isdigit()
+                            and VALID_IDENTIFIER.match(arg)
+                            and arg.lower() not in PDDL_KEYWORDS
+                            and arg.lower() not in prob_obj_lower
+                            and arg not in normalized_types
+                        ):
+                            inferred_t = expected_types[arg_idx] if arg_idx < len(expected_types) else "object"
+                            if inferred_t.lower() == arg.lower():
+                                inferred_t = normalized_types.get(arg) or "object"
+                            if arg not in raw_constants or (raw_constants[arg] == "object" and inferred_t != "object"):
+                                raw_constants[arg] = inferred_t
 
         if isinstance(blueprint_data, dict):
             blueprint_data["constants"] = raw_constants
@@ -393,6 +673,7 @@ def compile_pddl_programmatically(blueprint_data: dict) -> str:
         
     # 3. Predicates Block & Auto-Discovery
     # Build initial pred_map from declared predicates
+    PDDL_RESERVED_PRED_NAMES = {"not", "and", "or", "imply", "exists", "forall", "object", "-", "="}
     pred_map = {}
     for pred in predicates:
         clean = str(pred).strip()
@@ -405,6 +686,8 @@ def compile_pddl_programmatically(blueprint_data: dict) -> str:
         if not tokens:
             continue
         pname = tokens[0]
+        if pname.lower() in PDDL_RESERVED_PRED_NAMES:
+            continue
         params = parse_pddl_typed_params(tokens[1:])
         if pname not in pred_map:
             pred_map[pname] = params
@@ -432,12 +715,14 @@ def compile_pddl_programmatically(blueprint_data: dict) -> str:
         all_atoms = flatten_atoms_list(act_precs) + flatten_atoms_list(act_effs)
         for atom in all_atoms:
             clean = atom.strip('() ')
-            if clean.lower().startswith("not"):
+            while clean.lower().startswith("not"):
                 clean = clean[3:].strip('() ')
             tokens = clean.split()
             if not tokens:
                 continue
             pname = tokens[0]
+            if pname.lower() in PDDL_RESERVED_PRED_NAMES:
+                continue
             args = tokens[1:]
 
             inferred_types = []
@@ -464,6 +749,41 @@ def compile_pddl_programmatically(blueprint_data: dict) -> str:
                         unified_params.append((v1, sup))
                     pred_map[pname] = unified_params
 
+    # Unify pred_map with ground atoms in fixed problem PDDL (:init and :goal)
+    if prob_meta and isinstance(prob_meta, dict):
+        prob_objs = prob_meta.get("objects", {})
+        if not isinstance(prob_objs, dict):
+            prob_objs = {}
+        all_known_obj_types = {str(k).lower(): str(v) for k, v in {**(raw_constants or {}), **prob_objs}.items() if v}
+        prob_atoms = (
+            flatten_atoms_list(prob_meta.get("initial_state", []))
+            + flatten_atoms_list(prob_meta.get("goal_state", []))
+        )
+        for atom in prob_atoms:
+            clean = atom.strip('() ')
+            while clean.lower().startswith("not"):
+                clean = clean[3:].strip('() ')
+            tokens = clean.split()
+            if not tokens:
+                continue
+            pname = tokens[0]
+            if pname.lower() in PDDL_RESERVED_PRED_NAMES:
+                continue
+            args = tokens[1:]
+            inferred_types = [all_known_obj_types.get(arg.lower(), "object") for arg in args]
+            if pname not in pred_map:
+                pred_map[pname] = [(f"?x{i+1}", inferred_types[i]) for i in range(len(args))]
+            else:
+                existing_params = pred_map[pname]
+                if len(existing_params) == len(inferred_types):
+                    pred_map[pname] = [
+                        (v1, find_common_supertype(t1, t2, normalized_types) if has_typing else "object")
+                        for (v1, t1), t2 in zip(existing_params, inferred_types)
+                    ]
+                else:
+                    # Immutable Problem Contract Invariant: Problem :init/:goal arity is fixed ground truth.
+                    pred_map[pname] = [(f"?x{i+1}", inferred_types[i]) for i in range(len(args))]
+
     if pred_map:
         pddl_lines.append("  (:predicates")
         for pname, params in pred_map.items():
@@ -487,6 +807,66 @@ def compile_pddl_programmatically(blueprint_data: dict) -> str:
 
         flat_preconds = flatten_atoms_list(act_obj.preconditions)
         flat_effects = sanitize_action_effects(act_obj.effects)
+
+        # In Classical PDDL 2.1, predicates cannot be signature-overloaded with multiple arities.
+        # Prune precondition and effect atoms whose argument count contradicts the declared predicate signature in pred_map.
+        sanitized_preconds = []
+        for prec in flat_preconds:
+            clean_p = prec.strip('() ')
+            is_neg = clean_p.lower().startswith("not")
+            if is_neg and not has_negative_preconditions:
+                continue
+            if is_neg:
+                clean_p = clean_p[3:].strip('() ')
+            pparts = clean_p.split()
+            if pparts:
+                ppname = pparts[0]
+                if ppname in pred_map and len(pparts[1:]) != len(pred_map[ppname]):
+                    continue
+            sanitized_preconds.append(prec)
+        flat_preconds = sanitized_preconds
+        sanitized_effects = []
+        for eff in flat_effects:
+            clean_eff = eff.strip('() ')
+            if clean_eff.lower().startswith("not"):
+                clean_eff = clean_eff[3:].strip('() ')
+            eparts = clean_eff.split()
+            if eparts:
+                epname = eparts[0]
+                if epname in pred_map and len(eparts[1:]) != len(pred_map[epname]):
+                    continue
+            sanitized_effects.append(eff)
+        flat_effects = sanitized_effects
+
+        # Resolve contradictory simultaneous action effects ((P ...) and (not (P ...)))
+        # under Classical STRIPS state-transition semantics (Fox & Long 2003):
+        pos_atoms_set = set()
+        neg_atoms_set = set()
+        for e in flat_effects:
+            clean = e.strip('() ')
+            if clean.lower().startswith("not"):
+                neg_atoms_set.add(normalize_pddl_expression(clean[3:].strip('() ')))
+            else:
+                pos_atoms_set.add(normalize_pddl_expression(clean))
+        
+        contradictions = pos_atoms_set.intersection(neg_atoms_set)
+        if contradictions:
+            norm_preconds = {normalize_pddl_expression(p.strip('() ')) for p in flat_preconds if not p.strip('() ').lower().startswith("not")}
+            resolved_effects = []
+            for e in flat_effects:
+                clean = e.strip('() ')
+                is_neg = clean.lower().startswith("not")
+                core = normalize_pddl_expression(clean[3:].strip('() ') if is_neg else clean)
+                if core in contradictions:
+                    in_pre = core in norm_preconds
+                    # If in preconditions, action consumes it: keep negative effect (not core), discard positive effect core
+                    if in_pre and not is_neg:
+                        continue
+                    # If NOT in preconditions, action establishes it: keep positive effect core, discard negative effect (not core)
+                    if not in_pre and is_neg:
+                        continue
+                resolved_effects.append(e)
+            flat_effects = resolved_effects
 
         # In Classical PDDL 2.1, free/unbound variables in action schemas violate AST well-formedness.
         # Ensure all variables in preconditions and effects are declared in parameters.
@@ -555,157 +935,37 @@ def compile_pddl_programmatically(blueprint_data: dict) -> str:
     pddl_lines.append(")")
     return "\n".join(pddl_lines)
 
-def compile_problem_pddl(problem_blueprint_data: dict, domain_blueprint_data: Optional[dict] = None) -> str:
-    """
-    Deterministically converts a ProblemBlueprint JSON dictionary
-    into a PDDL problem file string.
-    Automatically filters out any objects declared as domain constants to avoid
-    'duplicate objects' validator errors in classical PDDL 2.1.
-    """
-    raw_pname = problem_blueprint_data.get("problem_name", "generated_problem")
-    problem_name = re.sub(r'\.pddl$', '', str(raw_pname), flags=re.IGNORECASE)
-    problem_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', problem_name)
-    if not problem_name:
-        problem_name = "generated_problem"
-
-    raw_dname = problem_blueprint_data.get("domain_name", "generated_domain")
-    domain_name = re.sub(r'\.pddl$', '', str(raw_dname), flags=re.IGNORECASE)
-    domain_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', domain_name)
-    if not domain_name:
-        domain_name = "generated_domain"
-
-    raw_objects = problem_blueprint_data.get("objects", {})
-    objects = dict(raw_objects) if isinstance(raw_objects, dict) else {}
-
-    # In Classical PDDL 2.1, objects declared in domain (:constants ...) are in global scope.
-    # Declaring the same identifier in problem (:objects ...) causes Fast Downward / VAL to reject
-    # the problem with "Found the following duplicate objects". We filter them out deterministically.
-    if domain_blueprint_data and isinstance(domain_blueprint_data, dict):
-        domain_constants = domain_blueprint_data.get("constants", {})
-        if domain_constants and isinstance(domain_constants, dict):
-            for cname in domain_constants:
-                if cname in objects:
-                    del objects[cname]
-
-    initial_state = problem_blueprint_data.get("initial_state", [])
-    goal_state = problem_blueprint_data.get("goal_state", [])
-
-    pddl_lines = []
-
-    # 1. Header
-    pddl_lines.append(f"(define (problem {problem_name})")
-    pddl_lines.append(f"  (:domain {domain_name})")
-    pddl_lines.append("")
-
-    # Determine whether typing is active
-    has_typing = False
-    if domain_blueprint_data and isinstance(domain_blueprint_data, dict):
-        reqs = domain_blueprint_data.get("requirements", [])
-        if isinstance(reqs, list) and ":typing" in reqs:
-            has_typing = True
-        elif isinstance(reqs, str) and ":typing" in reqs:
-            has_typing = True
-    else:
-        has_typing = any(t and str(t).lower() != "object" for t in objects.values())
-
-    # Auto-discover objects appearing in initial_state and goal_state that were omitted from objects dict
-    all_prob_atoms = flatten_atoms_list(initial_state) + flatten_atoms_list(goal_state)
-    for atom in all_prob_atoms:
-        clean = atom.strip('() ')
-        if clean.lower().startswith("not"):
-            clean = clean[3:].strip('() ')
-        parts = clean.split()
-        VALID_IDENTIFIER = re.compile(r'^[a-zA-Z][a-zA-Z0-9_\-]*$')
-        PDDL_KEYWORDS = {"not", "and", "or", "imply", "exists", "forall", "object", "-", "="}
-        if len(parts) > 1:
-            for obj in parts[1:]:
-                if (
-                    not obj.startswith("?")
-                    and not obj.replace('.', '', 1).isdigit()
-                    and VALID_IDENTIFIER.match(obj)
-                    and obj.lower() not in PDDL_KEYWORDS
-                    and obj not in objects
-                ):
-                    if domain_blueprint_data and isinstance(domain_blueprint_data, dict):
-                        domain_constants = domain_blueprint_data.get("constants", {})
-                        if domain_constants and obj in domain_constants:
-                            continue
-                        domain_types = domain_blueprint_data.get("types", {})
-                        if domain_types and obj in domain_types:
-                            continue
-                    objects[obj] = "object"
-
-    # Classical PDDL 2.1 Typing AST Invariant:
-    # Domain constants and problem objects share the object namespace and MUST be disjoint.
-    # Any symbol declared as a domain constant cannot also be declared in problem (:objects ...).
-    if domain_blueprint_data and isinstance(domain_blueprint_data, dict):
-        dom_consts = domain_blueprint_data.get("constants", {})
-        if dom_consts and isinstance(dom_consts, dict):
-            for cname in dom_consts:
-                objects.pop(str(cname).strip(), None)
-
-    # 2. Objects
-    if objects:
-        pddl_lines.append("  (:objects")
-        if has_typing:
-            supertype_map = {}
-            for name, obj_type in objects.items():
-                t = str(obj_type) if obj_type else "object"
-                supertype_map.setdefault(t, []).append(str(name))
-            for t, names in supertype_map.items():
-                names_str = " ".join(names)
-                pddl_lines.append(f"    {names_str} - {t}")
-        else:
-            pddl_lines.append(f"    {' '.join(objects.keys())}")
-        pddl_lines.append("  )")
-        pddl_lines.append("")
-
-    # 3. Initial State
-    pddl_lines.append("  (:init")
-    pddl_lines.extend([f"    {normalize_pddl_expression(s)}" for s in initial_state])
-    pddl_lines.append("  )")
-    pddl_lines.append("")
-
-    # 4. Goal State
-    goal_str = " ".join([normalize_pddl_expression(g) for g in goal_state])
-    pddl_lines.append(f"  (:goal (and {goal_str}))")
-    pddl_lines.append(")")
-
-    return "\n".join(pddl_lines)
-
 def run_generation_node(state: dict) -> dict:
     """
     Phase 2.2 Node: Programmatically compiles the DomainBlueprint JSON
-    into valid Lisp PDDL code without calling an LLM.
+    into valid Lisp PDDL code without calling an LLM, holding the fixed
+    ground-truth problem PDDL (P_gold) read-only.
     """
     import time
     start_t = time.time()
     blueprint_data = state.get("pddl_domain_blueprint", {})
     if hasattr(blueprint_data, "model_dump"): 
-        blueprint_data = blueprint_data.model_dump() #model_dump is a built-in method from Pydantic V2 used to convert a Pydantic model instance into a standard Python
+        blueprint_data = blueprint_data.model_dump()
     elif hasattr(blueprint_data, "dict"):
         blueprint_data = blueprint_data.dict()
-    
-    # Compile Domain
-    compiled_pddl = compile_pddl_programmatically(blueprint_data)
+
+    problem_pddl = state.get("initial_problem_pddl") or state.get("generated_problem_pddl") or ""
+    if problem_pddl:
+        prob_meta = extract_pddl_problem_metadata(problem_pddl)
+        if prob_meta.get("domain_name") and isinstance(blueprint_data, dict):
+            blueprint_data["domain_name"] = prob_meta["domain_name"]
+            state["pddl_domain_blueprint"] = blueprint_data
+        state["generated_problem_pddl"] = problem_pddl
+        if "initial_problem_pddl" not in state or not state["initial_problem_pddl"]:
+            state["initial_problem_pddl"] = problem_pddl
+
+    # Compile Domain against fixed P_gold
+    compiled_pddl = compile_pddl_programmatically(blueprint_data, problem_pddl=problem_pddl)
     state["generated_domain_pddl"] = compiled_pddl
     if "initial_domain_pddl" not in state or not state["initial_domain_pddl"]:
         state["initial_domain_pddl"] = compiled_pddl
     if "initial_pddl_domain_blueprint" not in state or not state["initial_pddl_domain_blueprint"]:
         state["initial_pddl_domain_blueprint"] = blueprint_data
-
-    # Compile Problem
-    problem_blueprint_data = state.get("pddl_problem_blueprint")
-    if problem_blueprint_data:
-        if hasattr(problem_blueprint_data, "model_dump"):
-            problem_blueprint_data = problem_blueprint_data.model_dump()
-        elif hasattr(problem_blueprint_data, "dict"):
-            problem_blueprint_data = problem_blueprint_data.dict()
-            
-        compiled_problem_pddl = compile_problem_pddl(problem_blueprint_data, domain_blueprint_data=blueprint_data)
-        state["generated_problem_pddl"] = compiled_problem_pddl
-        if "initial_problem_pddl" not in state or not state["initial_problem_pddl"]:
-            state["initial_problem_pddl"] = compiled_problem_pddl
 
     latencies = state.get("node_latencies", {})
     latencies["generate"] = round(latencies.get("generate", 0.0) + (time.time() - start_t), 3)

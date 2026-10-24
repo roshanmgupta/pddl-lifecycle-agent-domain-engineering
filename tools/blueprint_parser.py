@@ -30,6 +30,8 @@ def clean_blueprint_expression(raw_s: str) -> Optional[str]:
         s = f"({s}"
     if not s.endswith(")"):
         s = f"{s})"
+    while re.match(r"^\(\s*not\s*\(\s*not\s*(\(.+\))\s*\)\s*\)$", s, flags=re.IGNORECASE):
+        s = re.sub(r"^\(\s*not\s*\(\s*not\s*(\(.+\))\s*\)\s*\)$", r"\1", s, flags=re.IGNORECASE).strip()
     return s
 
 def parse_pddl_domain_to_blueprint(pddl_str: str) -> Dict[str, Any]:
@@ -40,6 +42,8 @@ def parse_pddl_domain_to_blueprint(pddl_str: str) -> Dict[str, Any]:
     """
     if not pddl_str or not pddl_str.strip():
         return {}
+
+    pddl_str = re.sub(r";[^\n]*", "", pddl_str)
 
     domain_name = re.search(r"\(\s*domain\s+([a-zA-Z0-9_\-]+)", pddl_str, re.IGNORECASE)
     dname = domain_name.group(1) if domain_name else "unnamed_domain"
@@ -154,13 +158,15 @@ def parse_pddl_domain_to_blueprint(pddl_str: str) -> Dict[str, Any]:
         "actions": actions
     }
 
-def parse_pddl_problem_to_blueprint(pddl_str: str) -> Dict[str, Any]:
+def extract_pddl_problem_metadata(pddl_str: str) -> Dict[str, Any]:
     """
-    Parses a raw PDDL problem string into a structured Problem Blueprint dictionary.
-    Uses balanced S-expression depth parsing for :init and :goal clauses.
+    Extracts structured metadata (problem_name, domain_name, objects, initial_state, goal_state)
+    from a fixed raw PDDL problem string (P_gold) using balanced S-expression depth parsing.
     """
     if not pddl_str or not pddl_str.strip():
         return {}
+
+    pddl_str = re.sub(r";[^\n]*", "", pddl_str)
 
     prob_name = re.search(r"\(\s*problem\s+([a-zA-Z0-9_\-]+)", pddl_str, re.IGNORECASE)
     pname = prob_name.group(1) if prob_name else "unnamed_problem"
@@ -181,7 +187,7 @@ def parse_pddl_problem_to_blueprint(pddl_str: str) -> Dict[str, Any]:
                 continue
             if tok == "-":
                 if i + 1 < len(tokens):
-                    target_type = tokens[i + 1]
+                    target_type = tokens[i + 1].lower()
                     for p in pending:
                         objs_dict[p] = target_type
                     pending = []

@@ -1,4 +1,5 @@
 import os
+import re
 import tempfile
 from typing import Dict, Any, List
 from schemas.pddl_blueprint import (
@@ -7,7 +8,7 @@ from schemas.pddl_blueprint import (
     RepairOperationType,
     HistoricalProblemCase
 )
-from nodes.generation import compile_pddl_programmatically, compile_problem_pddl
+from nodes.generation import compile_pddl_programmatically
 from tools.symbolic_oracles import run_val_validator, run_fast_downward
 
 def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -56,25 +57,25 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
         for case_idx, case_data in enumerate(regression_suite):
             if isinstance(case_data, dict):
                 case_id = case_data.get("case_id", f"historical_case_{case_idx+1}")
-                prob_bp = dict(case_data.get("problem_blueprint", {}))
+                hist_prob_pddl = case_data.get("problem_pddl") or case_data.get("raw_pddl") or ""
             elif isinstance(case_data, HistoricalProblemCase):
                 case_id = case_data.case_id
-                prob_bp = case_data.problem_blueprint.model_dump()
+                hist_prob_pddl = case_data.problem_pddl
             else:
                 continue
 
-            # Ensure problem domain_name strictly matches active domain_blueprint domain_name
-            if domain_blueprint and "domain_name" in domain_blueprint:
-                prob_bp["domain_name"] = domain_blueprint["domain_name"]
-
-            # Compile historical problem PDDL
-            try:
-                hist_prob_pddl = compile_problem_pddl(prob_bp, domain_blueprint_data=domain_blueprint)
-            except Exception as e:
-                err_msg = f"[REGRESSION_ERROR]: Failed to compile historical problem '{case_id}': {str(e)}"
-                verification_errors.append(err_msg)
-                has_regression_failure = True
+            if not hist_prob_pddl:
                 continue
+
+            # Ensure problem (:domain ...) strictly matches active domain_blueprint domain_name
+            if domain_blueprint and "domain_name" in domain_blueprint:
+                hist_prob_pddl = re.sub(
+                    r"\(\s*:domain\s+[a-zA-Z0-9_\-]+\s*\)",
+                    f"(:domain {domain_blueprint['domain_name']})",
+                    hist_prob_pddl,
+                    count=1,
+                    flags=re.IGNORECASE
+                )
 
             problem_file_path = os.path.join(temp_dir, f"problem_{case_id}.pddl")
             with open(problem_file_path, "w", encoding="utf-8") as f:

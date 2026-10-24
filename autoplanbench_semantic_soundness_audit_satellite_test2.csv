@@ -1,0 +1,2 @@
+domain,agent_type,gold_operator_count,generated_operator_count,matched_operator_count,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,val_internal_valid,val_standard_transfer_valid,semantic_verdict,action_bijection_mapping
+satellite,CLOSED_LOOP_AST_AGENT,5,5,5,0.9778,1.0,1.0,0.9333,1.0,True,True,SOUND_AND_CONVERSANT,"{""turn_satellite"": ""turn_to"", ""switch_on_instrument"": ""switch_on"", ""switch_off_instrument"": ""switch_off"", ""calibrate_instrument"": ""calibrate"", ""take_image"": ""take_image""}"

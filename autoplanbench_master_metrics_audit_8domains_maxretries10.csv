@@ -1,0 +1,27 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+gripper,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,False,2,False,1,0.4259,0.2778,0.6667,0.3333,1.0,1.0,0,0,0,0,2,2,6.6e-05,20.29,22187,1345,23532,0.004135,E: Plan Execution Rejection on Standard Domain,PRECONDITION_MISALIGNMENT,
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.00568,23.6,4873,816,5689,0.001221,A.1: First-Attempt Direct Success,NONE,
+satellite,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,11,False,10,0.57,0.61,0.6,0.5,1.0,1.0,0,0,0,0,0,0,2.4e-05,166.89,181214,15258,196472,0.036337,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+rovers,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,11,False,10,0.9626,0.8878,1.0,1.0,1.0,1.0,0,0,0,0,0,0,4.9e-05,275.9,218331,23881,242212,0.047078,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+barman14-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,11,False,10,0.7646,0.791,0.7556,0.7472,1.0,1.0,0,0,0,0,0,0,2.8e-05,335.46,246752,26045,272797,0.05264,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"

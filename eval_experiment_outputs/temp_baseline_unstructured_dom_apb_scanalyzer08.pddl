@@ -1,0 +1,32 @@
+(define (domain scanalyzer08)
+  (:requirements :strips :typing)
+  (:types car segment - object)
+  (:predicates
+    (on ?c - car ?s - segment)
+    (analyzed ?c - car)
+    (cycle2 ?s1 - segment ?s2 - segment)
+    (cycle2_analysis ?s1 - segment ?s2 - segment)
+    (cycle4 ?s1 - segment ?s2 - segment ?s3 - segment ?s4 - segment)
+    (cycle4_analysis ?s1 - segment ?s2 - segment ?s3 - segment ?s4 - segment)
+  )
+  (:action analyze_cycle2
+    :parameters (?c - car ?d - car ?a - segment ?b - segment)
+    :precondition (and (cycle2_analysis ?a ?b) (on ?c ?a) (on ?d ?b))
+    :effect (and (not (on ?c ?a)) (not (on ?d ?b)) (on ?c ?b) (on ?d ?a) (analyzed ?c))
+  )
+  (:action analyze_cycle4
+    :parameters (?e - car ?f - car ?g - car ?h - car ?a - segment ?b - segment ?c - segment ?d - segment)
+    :precondition (and (cycle4_analysis ?a ?b ?c ?d) (on ?e ?a) (on ?f ?b) (on ?g ?c) (on ?h ?d))
+    :effect (and (not (on ?e ?a)) (not (on ?f ?b)) (not (on ?g ?c)) (not (on ?h ?d)) (on ?e ?d) (on ?f ?a) (on ?g ?b) (on ?h ?c) (analyzed ?e))
+  )
+  (:action rotate_cycle2
+    :parameters (?c - car ?d - car ?a - segment ?b - segment)
+    :precondition (and (cycle2 ?a ?b) (on ?c ?a) (on ?d ?b))
+    :effect (and (not (on ?c ?a)) (not (on ?d ?b)) (on ?c ?b) (on ?d ?a))
+  )
+  (:action rotate_cycle4
+    :parameters (?e - car ?f - car ?g - car ?h - car ?a - segment ?b - segment ?c - segment ?d - segment)
+    :precondition (and (cycle4 ?a ?b ?c ?d) (on ?e ?a) (on ?f ?b) (on ?g ?c) (on ?h ?d))
+    :effect (and (not (on ?e ?a)) (not (on ?f ?b)) (not (on ?g ?c)) (not (on ?h ?d)) (on ?e ?d) (on ?f ?a) (on ?g ?b) (on ?h ?c))
+  )
+)
