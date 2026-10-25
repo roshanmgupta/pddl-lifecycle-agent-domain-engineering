@@ -1,39 +1,44 @@
-(define (domain scanalyzer3d)
+(define (domain TPP-Propositional)
   (:requirements :strips :typing)
 
   (:types
-    car physical_entity segment - object
+    level locatable place - object
+    depot market - place
+    goods truck - locatable
   )
 
   (:predicates
-    (CYCLE-2 ?a - segment ?b - segment)
-    (CYCLE-2-WITH-ANALYSIS ?a - segment ?b - segment)
-    (on ?car - car ?seg - segment)
-    (analyzed ?car - car)
+    (at ?x - locatable ?y - place)
+    (connected ?x - place ?y - place)
+    (next ?x - level ?y - level)
+    (loaded ?x - goods ?y - truck ?z - level)
+    (ready-to-load ?x - goods ?y - place ?z - level)
+    (stored ?x - goods ?y - level)
+    (on-sale ?x - goods ?y - place ?z - level)
   )
 
-  (:action analyze_cycle_length_2
-    :parameters (?c - car ?d - car ?a - segment ?b - segment)
-    :precondition (and (CYCLE-2-WITH-ANALYSIS ?a ?b) (on ?c ?a) (on ?d ?b))
-    :effect (and (on ?c ?b) (on ?d ?a) (analyzed ?c) (not (on ?c ?a)) (not (on ?d ?b)))
+  (:action drive
+    :parameters (?a - truck ?b - place ?c - place)
+    :precondition (and (at ?a ?b) (connected ?b ?c))
+    :effect (and (not (at ?a ?b)) (at ?a ?c))
   )
 
-  (:action analyze_cycle_length_4
-    :parameters (?e - car ?f - car ?g - car ?h - car ?a - segment ?b - segment ?c - segment ?d - segment)
-    :precondition (and (CYCLE-2-WITH-ANALYSIS ?a ?b) (on ?e ?a) (on ?f ?b) (on ?g ?c) (on ?h ?d))
-    :effect (and (on ?e ?d) (on ?f ?a) (on ?g ?b) (on ?h ?c) (analyzed ?e) (not (on ?e ?a)) (not (on ?f ?b)) (not (on ?g ?c)) (not (on ?h ?d)))
+  (:action load
+    :parameters (?a - goods ?b - truck ?c - market ?e - level ?g - level ?d - level ?f - level)
+    :precondition (and (at ?b ?c) (loaded ?a ?b ?f) (ready-to-load ?a ?c ?e) (next ?e ?d) (next ?g ?f))
+    :effect (and (not (loaded ?a ?b ?f)) (not (ready-to-load ?a ?c ?e)) (loaded ?a ?b ?g) (ready-to-load ?a ?c ?d))
   )
 
-  (:action rotate_cars_length_2
-    :parameters (?c - car ?d - car ?a - segment ?b - segment)
-    :precondition (and (CYCLE-2 ?a ?b) (on ?c ?a) (on ?d ?b))
-    :effect (and (on ?c ?b) (on ?d ?a) (not (on ?c ?a)) (not (on ?d ?b)))
+  (:action unload
+    :parameters (?a - goods ?b - truck ?c - depot ?e - level ?d - level ?g - level ?f - level)
+    :precondition (and (at ?b ?c) (loaded ?a ?b ?e) (stored ?a ?f) (next ?e ?d) (next ?g ?f))
+    :effect (and (not (loaded ?a ?b ?e)) (not (stored ?a ?f)) (loaded ?a ?b ?d) (stored ?a ?g))
   )
 
-  (:action rotate_cars_length_4
-    :parameters (?e - car ?f - car ?g - car ?h - car ?a - segment ?b - segment ?c - segment ?d - segment)
-    :precondition (and (CYCLE-2-WITH-ANALYSIS ?a ?b) (on ?e ?a) (on ?f ?b) (on ?g ?c) (on ?h ?d))
-    :effect (and (on ?e ?d) (on ?f ?a) (on ?g ?b) (on ?h ?c) (not (on ?e ?a)) (not (on ?f ?b)) (not (on ?g ?c)) (not (on ?h ?d)))
+  (:action buy
+    :parameters (?b - goods ?a - truck ?c - market ?e - level ?d - level ?g - level ?f - level)
+    :precondition (and (at ?a ?c) (on-sale ?b ?c ?e) (ready-to-load ?b ?c ?f) (next ?e ?d) (next ?g ?f))
+    :effect (and (not (on-sale ?b ?c ?e)) (not (ready-to-load ?b ?c ?f)) (on-sale ?b ?c ?d) (ready-to-load ?b ?c ?g))
   )
 
 )

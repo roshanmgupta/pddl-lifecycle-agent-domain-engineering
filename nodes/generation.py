@@ -734,20 +734,21 @@ def compile_pddl_programmatically(blueprint_data: dict, problem_pddl: Optional[s
                 else:
                     inferred_types.append("object")
 
-            if pname not in pred_map:
+            matching_key = next((k for k in pred_map.keys() if k.lower() == pname.lower()), None)
+            if not matching_key:
                 param_tuples = [
                     (f"?x{i+1}" if not arg.startswith("?") else arg, inferred_types[i])
                     for i, arg in enumerate(args)
                 ]
                 pred_map[pname] = param_tuples
             else:
-                existing_params = pred_map[pname]
+                existing_params = pred_map[matching_key]
                 if len(existing_params) == len(inferred_types):
                     unified_params = []
                     for (v1, t1), t2 in zip(existing_params, inferred_types):
                         sup = find_common_supertype(t1, t2, normalized_types) if has_typing else "object"
                         unified_params.append((v1, sup))
-                    pred_map[pname] = unified_params
+                    pred_map[matching_key] = unified_params
 
     # Unify pred_map with ground atoms in fixed problem PDDL (:init and :goal)
     if prob_meta and isinstance(prob_meta, dict):
@@ -771,18 +772,19 @@ def compile_pddl_programmatically(blueprint_data: dict, problem_pddl: Optional[s
                 continue
             args = tokens[1:]
             inferred_types = [all_known_obj_types.get(arg.lower(), "object") for arg in args]
-            if pname not in pred_map:
+            matching_key = next((k for k in pred_map.keys() if k.lower() == pname.lower()), None)
+            if not matching_key:
                 pred_map[pname] = [(f"?x{i+1}", inferred_types[i]) for i in range(len(args))]
             else:
-                existing_params = pred_map[pname]
+                existing_params = pred_map[matching_key]
                 if len(existing_params) == len(inferred_types):
-                    pred_map[pname] = [
+                    pred_map[matching_key] = [
                         (v1, find_common_supertype(t1, t2, normalized_types) if has_typing else "object")
                         for (v1, t1), t2 in zip(existing_params, inferred_types)
                     ]
                 else:
                     # Immutable Problem Contract Invariant: Problem :init/:goal arity is fixed ground truth.
-                    pred_map[pname] = [(f"?x{i+1}", inferred_types[i]) for i in range(len(args))]
+                    pred_map[matching_key] = [(f"?x{i+1}", inferred_types[i]) for i in range(len(args))]
 
     if pred_map:
         pddl_lines.append("  (:predicates")
@@ -821,7 +823,8 @@ def compile_pddl_programmatically(blueprint_data: dict, problem_pddl: Optional[s
             pparts = clean_p.split()
             if pparts:
                 ppname = pparts[0]
-                if ppname in pred_map and len(pparts[1:]) != len(pred_map[ppname]):
+                matching_k = next((k for k in pred_map.keys() if k.lower() == ppname.lower()), None)
+                if matching_k and len(pparts[1:]) != len(pred_map[matching_k]):
                     continue
             sanitized_preconds.append(prec)
         flat_preconds = sanitized_preconds
@@ -833,7 +836,8 @@ def compile_pddl_programmatically(blueprint_data: dict, problem_pddl: Optional[s
             eparts = clean_eff.split()
             if eparts:
                 epname = eparts[0]
-                if epname in pred_map and len(eparts[1:]) != len(pred_map[epname]):
+                matching_k = next((k for k in pred_map.keys() if k.lower() == epname.lower()), None)
+                if matching_k and len(eparts[1:]) != len(pred_map[matching_k]):
                     continue
             sanitized_effects.append(eff)
         flat_effects = sanitized_effects

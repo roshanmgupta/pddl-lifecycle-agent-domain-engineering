@@ -139,6 +139,26 @@ def prioritize_diagnostic_reports(reports: List[DiagnosticReport], max_items: in
         raw_r = (str(r.raw_log) + " " + str(r.suggested_repair_hint)).lower()
         if r.repair_operation_type == RepairOperationType.PRECONDITION_INSERTION and ("could not find a plan" in raw_r or "unsolvable" in raw_r or "deadlock" in raw_r):
             continue
+
+        # First-Order Schema Invariant: In Classical PDDL, action schemas are parameterized over variables (?var)
+        # or declared domain constants. If a report proposes inserting a precondition or effect containing
+        # concrete problem-instance objects (e.g. from a VAL plan execution trace), reject it to prevent schema poisoning.
+        if r.repair_operation_type in (RepairOperationType.PRECONDITION_INSERTION, RepairOperationType.EFFECT_ALIGNMENT):
+            hint_str = str(r.suggested_repair_hint)
+            atoms = re.findall(r"'\(([a-zA-Z0-9_\-]+(?:\s+[a-zA-Z0-9_\-]+)+)\)'", hint_str) or re.findall(r"\(([a-zA-Z0-9_\-]+(?:\s+[a-zA-Z0-9_\-]+)+)\)", hint_str)
+            has_ground_leak = False
+            for atom in atoms:
+                toks = atom.strip().split()
+                if toks and toks[0].lower() not in ["and", "or", "not", "imply"]:
+                    for arg in toks[1:]:
+                        if not arg.startswith("?") and not arg.isdigit():
+                            has_ground_leak = True
+                            break
+                if has_ground_leak:
+                    break
+            if has_ground_leak:
+                continue
+
         filtered_reports.append(r)
     reports = filtered_reports or reports
 
@@ -662,6 +682,20 @@ A timeout is NOT evidence that the goal is unreachable, so reasoning reserved fo
 (relaxing or removing preconditions to "open" the reachable state space) does not apply here.
 Report only defects that are directly evidenced by the domain/problem structure or the causal analysis above.
 """
+    has_transfer_rejection = any("Plan Transfer Rejection" in err for err in raw_errors)
+    if has_transfer_rejection and not val_syntax_or_type_error:
+        focus_guidance += """
+CRITICAL PLAN TRANSFER REJECTION (GROUND OBJECT SEPARATION INVARIANT):
+The synthesized plan solved the generated domain D_gen, but VAL failed execution on the reference gold domain D_gold.
+The VAL error trace includes concrete ground objects from the problem instance (e.g. 'truck-1', 'package-2', 'capacity-3').
+MANDATORY REPAIR GUIDANCE:
+1. NEVER propose adding or asserting concrete ground objects (e.g. 'truck-1', 'package-2') into action schemas in domain 'actions'! Action schemas must use variables starting with '?' (e.g. '?truck', '?package').
+2. Plan transfer failures indicate that an action schema in D_gen has either:
+   - Missing necessary preconditions (such as checking capacity or spatial status), OR
+   - An inverted state transition effect (such as incrementing instead of decrementing capacity, or deleting the wrong fluent).
+Inspect the action schemas and ensure state transitions and prerequisites faithfully match the requirements.
+"""
+
     has_deterministic_causal_fault = bool(ungroundable_preconditions or orphaned_goals or internal_contradictions or directional_traps or bilateral_mutex_faults)
     if planner_unsolvability and not val_syntax_or_type_error:
         if has_deterministic_causal_fault:
@@ -679,6 +713,8 @@ MANDATORY DIAGNOSTIC AUDIT SEQUENCE:
    - When Fast Downward completely explores the state space without finding a solution (deadlock), the reachable state space is over-constrained.
    - Audit action preconditions: check if any action contains an overly restrictive, unseeded, or non-goal precondition (such as requiring a resource/passenger count when none exists, or requiring a condition that cannot be established prior to the action).
    - If a precondition over-constrains reachability and is not physically required by the requirements to fire the action, RELAX or REMOVE that precondition to open the reachable solution corridor!
+   - PRECONDITION PRESERVATION: NEVER relax, remove, or delete a precondition that is physically required by the action or explicitly stated in the requirements (e.g. requiring an entity to be clear, on a surface, inside a container, or held/lifted by an agent before loading/dropping). Legitimate preconditions must be preserved; reachability deadlocks are typically resolved by restoring missing positive effects on releasing/vacating actions, NOT by gutting preconditions!
+   - PROHIBITION OF TAUTOLOGICAL / DUMMY LITERALS: Never propose or write '(true)', '(false)', or tautological disjunctions in preconditions or effects. In Classical PDDL 2.1 (:strips :typing), relaxing a precondition strictly means removing the unneeded atom from the '(and ...)' conjunction. Writing '(or ... (true))' is an invalid syntax construct.
    - MONOTONICITY OF REACHABILITY: Adding new preconditions strictly shrinks the state space. NEVER propose PRECONDITION_INSERTION when the solver is already in reachability deadlock!
 2. UNUSABLE OBJECTS & OVERLY NARROW ACTION PARAMETERS:
    - Check if any objects in fixed problem ':objects' have types that cannot be accepted by any action parameter in the domain (e.g. an action parameter requires a leaf subtype instead of the common supertype, or domain 'types' omitted the supertype link).

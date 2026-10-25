@@ -194,6 +194,37 @@ def run_causal_triage_analysis(
     objects_raw = prob_meta.get("objects", {})
     is_subtype = _build_subtype_checker(dom_types_raw)
 
+    dom_preds_raw = getattr(domain_bp, "predicates", []) if hasattr(domain_bp, "predicates") else domain_bp.get("predicates", [])
+    dom_pred_sigs: Dict[str, Tuple[str, ...]] = {}
+    for p_str in dom_preds_raw:
+        p_clean = p_str.strip("() ").strip()
+        if not p_clean:
+            continue
+        toks = p_clean.split()
+        if not toks:
+            continue
+        p_name = toks[0]
+        args_tokens = toks[1:]
+        types_list = []
+        curr_vars = []
+        i = 0
+        while i < len(args_tokens):
+            tok = args_tokens[i]
+            if tok == "-":
+                if i + 1 < len(args_tokens):
+                    type_name = args_tokens[i + 1].lower()
+                    for _ in curr_vars:
+                        types_list.append(type_name)
+                    curr_vars = []
+                    i += 2
+                    continue
+            elif tok.startswith("?"):
+                curr_vars.append(tok)
+            i += 1
+        for _ in curr_vars:
+            types_list.append("object")
+        dom_pred_sigs[p_name] = tuple(types_list)
+
     all_objs: Dict[str, str] = {}
     if isinstance(constants_raw, dict):
         for k, v in constants_raw.items():
@@ -751,14 +782,28 @@ def run_causal_triage_analysis(
                 })
                 continue
 
-            # Sub-case B: Search P_gold :init for specialized predicate alt_p matching req_types
+            # Sub-case B: Search P_gold :init and declared domain predicates for specialized predicate alt_p matching req_types
             matching_alt_preds = []
             for alt_p, sigs in init_types_by_pred.items():
-                if alt_p == pname:
+                if alt_p.lower() == pname.lower():
                     continue
                 for sig in sigs:
-                    if len(sig) == len(req_types) and all(is_subtype(s_t, r_t) for s_t, r_t in zip(sig, req_types)):
-                        # Score similarity to pname
+                    if len(sig) == len(req_types) and all(is_subtype(r_t, s_t) or is_subtype(s_t, r_t) for s_t, r_t in zip(sig, req_types)):
+                        alt_clean = alt_p.lower().replace("-", "_")
+                        p_clean = pname.lower().replace("-", "_")
+                        alt_tokens = set(alt_clean.split("_"))
+                        p_tokens = set(p_clean.split("_"))
+                        overlap = len(alt_tokens.intersection(p_tokens))
+                        ratio = difflib.SequenceMatcher(None, p_clean, alt_clean).ratio()
+                        score = (100 * overlap) + (50 * ratio) + 20.0
+                        matching_alt_preds.append((score, alt_p, sig, "init"))
+                        break
+
+            for alt_p, dom_sig in dom_pred_sigs.items():
+                if alt_p.lower() == pname.lower():
+                    continue
+                if len(dom_sig) == len(req_types) and all(is_subtype(r_t, s_t) or is_subtype(s_t, r_t) for s_t, r_t in zip(dom_sig, req_types)):
+                    if not any(x[1].lower() == alt_p.lower() for x in matching_alt_preds):
                         alt_clean = alt_p.lower().replace("-", "_")
                         p_clean = pname.lower().replace("-", "_")
                         alt_tokens = set(alt_clean.split("_"))
@@ -766,20 +811,28 @@ def run_causal_triage_analysis(
                         overlap = len(alt_tokens.intersection(p_tokens))
                         ratio = difflib.SequenceMatcher(None, p_clean, alt_clean).ratio()
                         score = (100 * overlap) + (50 * ratio)
-                        matching_alt_preds.append((score, alt_p, sig))
-                        break
+                        matching_alt_preds.append((score, alt_p, dom_sig, "domain_predicates"))
 
             if matching_alt_preds:
                 matching_alt_preds.sort(key=lambda x: x[0], reverse=True)
                 best_alt_p = matching_alt_preds[0][1]
-                sample_facts = init_facts.get(best_alt_p, [])
-                sample_str = f" (e.g. '({best_alt_p} {' '.join(sample_facts[0])})')" if sample_facts else ""
-                reason_msg = (
-                    f"Precondition '{canon}' in action '{act_name}' requires argument types {req_types}, "
-                    f"which has ZERO matching facts in P_gold :init for predicate '{pname}' (and no action produces it from the initial state). "
-                    f"However, P_gold :init declares initial facts for {req_types} under the specialized predicate symbol '{best_alt_p}'{sample_str}. "
-                    f"In domain 'predicates', action '{act_name}' preconditions, and any related effects, replace '{pname}' with the specialized P_gold symbol '{best_alt_p}'."
-                )
+                source_type = matching_alt_preds[0][3]
+                if source_type == "init":
+                    sample_facts = init_facts.get(best_alt_p, [])
+                    sample_str = f" (e.g. '({best_alt_p} {' '.join(sample_facts[0])})')" if sample_facts else ""
+                    reason_msg = (
+                        f"Precondition '{canon}' in action '{act_name}' requires argument types {req_types}, "
+                        f"which has ZERO matching facts in P_gold :init for predicate '{pname}' (and no action produces it from the initial state). "
+                        f"However, P_gold :init declares initial facts for {req_types} under the specialized predicate symbol '{best_alt_p}'{sample_str}. "
+                        f"In domain 'predicates', action '{act_name}' preconditions, and any related effects, replace '{pname}' with the specialized P_gold symbol '{best_alt_p}'."
+                    )
+                else:
+                    reason_msg = (
+                        f"Precondition '{canon}' in action '{act_name}' requires argument types {req_types}, "
+                        f"which has ZERO matching facts in P_gold :init for predicate '{pname}' (and no action produces it). "
+                        f"However, domain 'predicates' declares predicate '({best_alt_p} ...)' specifically for types {list(matching_alt_preds[0][2])}. "
+                        f"In action '{act_name}' preconditions, replace '{canon}' with '({best_alt_p} {' '.join(args)})' to bind the correct relation."
+                    )
                 ungroundable_preconditions.append({
                     "action_name": act_name,
                     "predicate": pname,
@@ -809,7 +862,9 @@ def run_causal_triage_analysis(
                 continue
 
             # Sub-case D: General fallback diagnostic
-            if pname not in init_facts:
+            init_facts_lower = {k.lower(): v for k, v in init_facts.items()}
+            init_types_lower = {k.lower(): v for k, v in init_types_by_pred.items()}
+            if pname.lower() not in init_facts_lower:
                 reason_msg = (
                     f"Precondition '{canon}' in action '{act_name}' is unreachable: predicate '{pname}' has ZERO facts in P_gold :init "
                     f"and ZERO actions in the domain produce '({pname} ...)' from the initial state! "
@@ -817,7 +872,7 @@ def run_causal_triage_analysis(
                     f"or replace '{pname}' with the matching predicate from P_gold :init ({sorted(init_facts.keys())})."
                 )
             else:
-                avail = [list(ft) for ft in sorted(init_types_by_pred.get(pname, set()))]
+                avail = [list(ft) for ft in sorted(init_types_lower.get(pname.lower(), set()))]
                 reason_msg = (
                     f"Precondition '{canon}' in action '{act_name}' requires argument types {req_types}, "
                     f"which has ZERO matching facts in P_gold :init (available :init type signatures for '{pname}': {avail}). "

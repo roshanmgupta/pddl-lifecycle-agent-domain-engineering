@@ -10,3 +10,17 @@ INFO     translator stdin: None
 INFO     translator time limit: None
 INFO     translator memory limit: None
 INFO     translator command line string: 'C:\Users\Sru"
+scanalyzer08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.9166,0.75,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,240.15,104298,6940,111238,0.019809,C.T: Syntactically Valid but Planner Search Timeout (Unsolvability Not Proven),PLANNER_SEARCH_TIMEOUT,Planner Error: Planner Timeout: Fast Downward search did not terminate within 30 seconds (unsolvability NOT proven; the search budget was exhausted).
+pipesworld-notankage04-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,0.9606,0.9373,0.9444,1.0,1.0,1.0,0,0,0,0,5,5,0.000373,74.52,38463,7237,45700,0.010112,A.2: Refined Success via Feedback Loops,RECOVERED,
+elevators08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,15,15,0.001047,93.01,28842,3343,32185,0.006332,A.2: Refined Success via Feedback Loops,RECOVERED,
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.8778,0.9,0.7333,1.0,1.0,1.0,0,0,0,0,0,0,2.9e-05,83.46,97511,6542,104053,0.018552,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+goldminer,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,0.9841,1.0,0.9524,1.0,1.0,1.0,0,0,0,0,5,5,0.000134,63.57,55865,6934,62799,0.01254,A.2: Refined Success via Feedback Loops,RECOVERED,
+floortile,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,0.9324,0.7973,1.0,1.0,1.0,1.0,0,0,0,0,8,8,0.000183,51.7,44695,4373,49068,0.009328,A.2: Refined Success via Feedback Loops,RECOVERED,
+tpp06-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,5.4e-05,8.61,5053,853,5906,0.00127,A.1: First-Attempt Direct Success,NONE,
