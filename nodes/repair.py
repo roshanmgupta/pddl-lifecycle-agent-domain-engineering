@@ -47,12 +47,30 @@ def run_repair_node(state: dict) -> dict:
                 + "\nNote: Do NOT repeat previously rejected modifications or alternate parameter types back and forth. Apply a globally consistent resolution across all actions.\n"
             )
 
+    target_elements = set()
+    for r in state.get("diagnostic_reports", []):
+        fe = r.get("faulty_element") if isinstance(r, dict) else getattr(r, "faulty_element", "")
+        if fe:
+            target_elements.add(str(fe).strip())
+    
+    target_guidance = ""
+    if target_elements and not any(t.lower() in ("types", "predicates", "constants") for t in target_elements):
+        target_list_str = ", ".join(sorted(target_elements))
+        target_guidance = f"""
+    CRITICAL SURGICAL EDITING INVARIANT (TARGET ACTION SCHEMA: {target_list_str}):
+    Symbolic oracle diagnostics localized the fault strictly to: {target_list_str}.
+    All other actions in the domain blueprint are already verified and correct.
+    Do NOT modify, alter, add, or delete any preconditions or effects in actions other than {target_list_str}!
+    Copy all other actions EXACTLY as they appear in the CURRENT DOMAIN BLUEPRINT.
+    """
+
     prompt = f"""
     You are an expert PDDL Knowledge Engineer specializing in formal domain model repair.
     Your task is to repair the existing PDDL Domain blueprint (D_gen) to resolve the diagnostic errors reported by symbolic oracles against the fixed ground-truth problem instance (P_gold).
     Because the problem instance (P_gold) is held fixed for formal verification, you must ONLY repair and output the DomainBlueprint JSON object ("domain_name", "requirements", "types", "constants", "predicates", "actions").
     Treat the provided domain blueprint as a working draft to surgically edit, not as disposable context.
     Preserve all elements that are already correct and apply the smallest set of changes needed to satisfy oracle feedback.
+    {target_guidance}
 
     Original Requirements Text & Fixed Problem Contract:
     {requirements_text}
@@ -89,6 +107,30 @@ def run_repair_node(state: dict) -> dict:
         dom_dict = repaired_domain_blueprint.model_dump()
         if prob_meta.get("domain_name"):
             dom_dict["domain_name"] = prob_meta["domain_name"]
+
+        # Surgical Isolation: Preserve non-diagnosed actions against stochastic drift
+        if target_elements and not any(t.lower() in ("types", "predicates", "constants") for t in target_elements):
+            import re
+            def _norm_action_token(s: str) -> str:
+                clean = re.sub(r"^(domain\.)?actions?\.", "", str(s).strip("'\"` "), flags=re.IGNORECASE)
+                return clean.lower().replace("-", "").replace("_", "")
+
+            norm_targets = {_norm_action_token(t) for t in target_elements if t}
+            orig_action_map = {
+                (a.get("action_name") or a.get("name")): a 
+                for a in domain_blueprint.get("actions", []) if isinstance(a, dict)
+            }
+            preserved_actions = []
+            for a in dom_dict.get("actions", []):
+                aname = a.get("action_name") or a.get("name") if isinstance(a, dict) else ""
+                norm_aname = _norm_action_token(aname)
+                is_target = any(norm_aname == nt or nt in norm_aname or norm_aname in nt for nt in norm_targets)
+                if aname and (not is_target) and aname in orig_action_map:
+                    preserved_actions.append(orig_action_map[aname])
+                else:
+                    preserved_actions.append(a)
+            dom_dict["actions"] = preserved_actions
+
         state["pddl_domain_blueprint"] = dom_dict
 
         # Update Telemetry Metrics
@@ -97,8 +139,24 @@ def run_repair_node(state: dict) -> dict:
         state["total_tokens"] = state.get("total_tokens", 0) + usage.get("total_tokens", 0)
         state["estimated_cost_usd"] = round(state.get("estimated_cost_usd", 0.0) + usage.get("estimated_cost_usd", 0.0), 6)
         print("[Repair Node]: LLM domain repair successfully completed.")
-        repaired_actions = [a.get("action_name") for a in dom_dict.get("actions", []) if isinstance(a, dict)]
-        print(f"  --- [REPAIR APPLIED (Iteration {iteration})]: Repaired Actions ({len(repaired_actions)}): {repaired_actions}")
+        orig_actions_dict = {
+            (a.get("action_name") or a.get("name")): a 
+            for a in domain_blueprint.get("actions", []) if isinstance(a, dict)
+        }
+        modified_actions = []
+        preserved_actions_list = []
+        for a in dom_dict.get("actions", []):
+            aname = a.get("action_name") or a.get("name") if isinstance(a, dict) else ""
+            if aname:
+                if aname in orig_actions_dict and a == orig_actions_dict[aname]:
+                    preserved_actions_list.append(aname)
+                else:
+                    modified_actions.append(aname)
+
+        if modified_actions:
+            print(f"  --- [REPAIR APPLIED (Iteration {iteration})]: Surgically Modified Action(s): {modified_actions} | Preserved Actions ({len(preserved_actions_list)}): {preserved_actions_list}")
+        else:
+            print(f"  --- [REPAIR APPLIED (Iteration {iteration})]: Non-action Schema Modification (Types/Predicates/Constants) | Preserved Actions ({len(preserved_actions_list)}): {preserved_actions_list}")
     except Exception as llm_err:
         print(f"[Repair Node ERROR]: LLM structured repair invocation failed: {llm_err}")
         # Strictly record the failure; NO deterministic fallbacks or ground-truth injection

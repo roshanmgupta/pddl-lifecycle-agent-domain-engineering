@@ -1,13 +1,28 @@
 ================================================================================
-CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (TASK 1: CAPABILITY EXTENSION)
-DOMAIN: DEPOT
+CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (CAPABILITY EXTENSION)
+BASELINE DOMAIN: DEPOT -> EVOLVED DOMAIN: DEPOT (DIRECT CROSS-DOCKING)
 ================================================================================
-REQUIREMENT SUMMARY:
-Extend the existing operational model of depot with an incremental feature request.
-The domain must now support high-throughput express operations with specialized tooling prerequisites.
+REQUIREMENT SPECIFICATION (AUTOPLANBENCH / CLASSICAL PLANNING GROUNDING):
+Extend the existing operational model of the depot domain to support direct vehicle-to-vehicle cross-docking operations.
 
-EVOLUTION RULES:
-1. Synthesize an extended action schema or specialized capability flag supporting advanced operations.
-2. CRITICAL PRESERVATION MANDATE: Backward compatibility across historical legacy problem instances
-   (instance-1 to instance-3) must be 100% strictly preserved.
-3. The Phase 4 Regression Gatekeeper will evaluate both the target problem and all historical test cases.
+The baseline domain enables:
+- driving a truck from one place to another place
+- a hoist lifting a crate from a surface (pallet or crate) at a place
+- a hoist dropping a crate onto a clear surface at a place
+- a hoist loading a held crate into a truck at a place
+- a hoist unloading a crate from a truck at a place
+
+CAPABILITY EXTENSION REQUIREMENTS:
+1. New Action Schema:
+   - Name: cross_load (or cross-load)
+   - Parameters:
+     ?h - hoist, ?c - crate, ?from_truck - truck, ?to_truck - truck, ?p - place
+   - Preconditions:
+     The hoist ?h must be at place ?p and available. The source truck ?from_truck must be at place ?p. The destination truck ?to_truck must be at place ?p. The crate ?c must currently be in the source truck: (in ?c ?from_truck).
+   - Effects:
+     The crate ?c is loaded directly into the destination truck: (in ?c ?to_truck).
+     The crate ?c is no longer in the source truck: (not (in ?c ?from_truck)).
+     The hoist ?h remains available: (available ?h).
+
+SOLVABILITY PRESERVATION MANDATE:
+All baseline action schemas (Drive, Lift, Drop, Load, Unload) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.

@@ -1,5 +1,0 @@
-(fill-shot shot4 cocktail1 dispenser1 ingredient1)
-(fill-shot shot3 cocktail3 dispenser2 ingredient2)
-(fill-shot shot2 cocktail2 dispenser2 ingredient2)
-(fill-shot shot1 cocktail4 dispenser1 ingredient1)
-; cost = 4 (unit cost)

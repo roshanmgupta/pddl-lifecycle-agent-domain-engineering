@@ -1,0 +1,121 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+gripper,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000363,70.76,22332,1751,24083,0.0044,A.2: Refined Success via Feedback Loops,RECOVERED,
+gripper,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,9.3e-05,23.24,12115,979,13094,0.002405,A.2: Refined Success via Feedback Loops,RECOVERED,
+gripper,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.00027,24.48,843,341,1184,0.000331,A.1: First-Attempt Direct Success,NONE,
+gripper,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,24.45,843,332,1175,0.000326,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.007813,62.5,5187,851,6038,0.001289,A.1: First-Attempt Direct Success,NONE,
+depot,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.010351,52.81,5187,846,6033,0.001286,A.1: First-Attempt Direct Success,NONE,
+depot,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,59.99,7796,3064,10860,0.003008,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+depot,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,12.95,1516,595,2111,0.000584,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+satellite,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,0.9778,1.0,0.9333,1.0,1.0,1.0,0,0,0,0,5,5,0.000199,118.46,20923,1633,22556,0.004118,A.2: Refined Success via Feedback Loops,RECOVERED,
+satellite,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.9333,1.0,0.8,1.0,1.0,1.0,0,0,0,0,0,0,4.3e-05,194.8,43468,4089,47557,0.008974,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+satellite,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000145,10.51,942,499,1441,0.000441,A.1: First-Attempt Direct Success,NONE,
+satellite,ZERO_SHOT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000244,10.39,942,517,1459,0.000451,A.1: First-Attempt Direct Success,NONE,
+rovers,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,0.8333,1.0,0.8333,0.6667,1.0,1.0,0,0,0,0,11,11,0.000232,37.96,5992,1777,7769,0.001965,A.1: First-Attempt Direct Success,NONE,
+rovers,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,0.8333,1.0,0.8333,0.6667,1.0,1.0,0,0,0,0,11,11,0.000462,46.57,5992,1777,7769,0.001965,A.1: First-Attempt Direct Success,NONE,
+rovers,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,11,11,0.000138,29.28,2402,1507,3909,0.001264,A.1: First-Attempt Direct Success,NONE,
+rovers,ZERO_SHOT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,11,11,0.00038,48.45,2401,1353,3754,0.001172,A.1: First-Attempt Direct Success,NONE,
+barman14-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.952,0.9601,0.9167,0.9792,1.0,1.0,0,0,0,0,0,0,0.0,810.55,138886,19389,158275,0.032466,C.T: Syntactically Valid but Planner Search Timeout (Unsolvability Not Proven),PLANNER_SEARCH_TIMEOUT,Planner Error: Planner Timeout: Fast Downward search did not terminate within 30 seconds (unsolvability NOT proven; the search budget was exhausted).
+barman14-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.866,0.7993,0.9583,0.8403,1.0,1.0,0,0,0,0,0,0,1.9e-05,381.81,62635,12479,75114,0.016883,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+barman14-bfs,ABLATION_NO_AST,ELICITATION,False,True,False,False,False,False,5,False,4,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,302.31,15325,7771,23096,0.006961,C.T: Syntactically Valid but Planner Search Timeout (Unsolvability Not Proven),PLANNER_SEARCH_TIMEOUT,
+barman14-bfs,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,25.88,3025,1532,4557,0.001373,C.T: Syntactically Valid but Planner Search Timeout (Unsolvability Not Proven),PLANNER_SEARCH_TIMEOUT,
+elevators08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,False,False,6,True,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,15,15,0.001227,421.7,115641,10186,125827,0.023458,A.2: Refined Success via Feedback Loops,RECOVERED,"Plan Transfer Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Type-checking move-up-slow ...action passes type checking. Type-checking move-down-slow ..."
+elevators08,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.5843,0.6695,0.8333,0.25,1.0,1.0,0,0,0,0,0,0,4.6e-05,210.36,53803,5961,59764,0.011647,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+elevators08,ABLATION_NO_AST,ELICITATION,True,True,True,True,False,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,15,15,0.001364,13.55,2507,804,3311,0.000858,A.1: First-Attempt Direct Success,NONE,
+elevators08,ZERO_SHOT,ELICITATION,True,True,True,True,False,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,15,15,0.001057,20.2,2507,855,3362,0.000889,A.1: First-Attempt Direct Success,NONE,
+floortile,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,8,8,0.0006,69.37,25484,2568,28052,0.005363,A.2: Refined Success via Feedback Loops,RECOVERED,
+floortile,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,8,8,0.000324,27.8,5403,991,6394,0.001405,A.1: First-Attempt Direct Success,NONE,
+floortile,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,8,8,0.000545,23.45,1821,822,2643,0.000766,A.1: First-Attempt Direct Success,NONE,
+floortile,ZERO_SHOT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,8,8,0.000397,15.9,1821,822,2643,0.000766,A.1: First-Attempt Direct Success,NONE,
+parking11,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,4,True,3,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,50,50,1.032887,157.28,67781,4830,72611,0.013065,A.2: Refined Success via Feedback Loops,RECOVERED,
+parking11,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.9222,0.8667,0.95,0.95,1.0,1.0,0,0,0,0,0,0,2.2e-05,424.73,49129,4121,53250,0.009842,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+parking11,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,50,50,1.396897,31.12,1987,554,2541,0.00063,A.1: First-Attempt Direct Success,NONE,
+parking11,ZERO_SHOT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,50,50,1.124507,27.77,1987,576,2563,0.000644,A.1: First-Attempt Direct Success,NONE,
+goldminer,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,0.9524,1.0,0.9524,0.9048,0.9333,1.0,0,0,0,0,5,5,0.000123,245.91,48912,5454,54366,0.010609,A.2: Refined Success via Feedback Loops,RECOVERED,
+goldminer,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.9111,1.0,0.8571,0.8762,1.0,1.0,0,0,0,0,0,0,2.5e-05,177.26,46993,5342,52335,0.010254,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+goldminer,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,0.9524,1.0,0.9524,0.9048,1.0,1.0,0,0,0,0,5,5,0.000152,12.36,1373,636,2009,0.000588,A.1: First-Attempt Direct Success,NONE,
+goldminer,ZERO_SHOT,ELICITATION,True,True,True,True,True,True,1,False,0,0.9746,1.0,1.0,0.9238,1.0,1.0,0,0,0,0,5,5,0.000116,35.06,1372,593,1965,0.000562,A.1: First-Attempt Direct Success,NONE,
+transport08-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,4,True,3,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000139,146.02,55580,3453,59033,0.010409,A.2: Refined Success via Feedback Loops,RECOVERED,
+transport08-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.000128,137.11,47833,3374,51207,0.009199,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+transport08-bfs,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000147,18.45,1411,467,1878,0.000492,A.1: First-Attempt Direct Success,NONE,
+transport08-bfs,ZERO_SHOT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000239,11.86,1411,471,1882,0.000494,A.1: First-Attempt Direct Success,NONE,
+scanalyzer08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,0.875,0.625,1.0,1.0,1.0,1.0,0,0,0,0,6,6,0.001047,94.03,28713,2843,31556,0.006013,A.2: Refined Success via Feedback Loops,RECOVERED,
+scanalyzer08,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,6,6,0.002068,47.9,5908,914,6822,0.001435,A.1: First-Attempt Direct Success,NONE,
+scanalyzer08,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,6,6,0.000418,47.54,2588,844,3432,0.000895,A.1: First-Attempt Direct Success,NONE,
+scanalyzer08,ZERO_SHOT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,6,6,0.001048,20.34,2589,898,3487,0.000927,A.1: First-Attempt Direct Success,NONE,
+visitall,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,3,3,8.2e-05,35.17,19400,756,20156,0.003364,A.2: Refined Success via Feedback Loops,RECOVERED,
+visitall,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,3,3,0.000127,27.24,11522,389,11911,0.001962,A.2: Refined Success via Feedback Loops,RECOVERED,
+visitall,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,3,3,0.000133,14.02,1939,377,2316,0.000517,A.2: Refined Success via Feedback Loops,RECOVERED,
+visitall,ZERO_SHOT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,3,3,6.6e-05,3.54,726,150,876,0.000199,A.1: First-Attempt Direct Success,NONE,
+pipesworld-notankage04-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,4,True,3,0.9044,0.891,0.8889,0.9333,1.0,1.0,0,0,0,0,5,5,0.000224,364.14,72168,7813,79981,0.015513,A.2: Refined Success via Feedback Loops,RECOVERED,
+pipesworld-notankage04-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.9435,0.8305,1.0,1.0,1.0,1.0,0,0,0,0,0,0,3.5e-05,376.73,57422,9204,66626,0.014136,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+pipesworld-notankage04-bfs,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.9791,0.9373,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,226.69,13544,6536,20080,0.005953,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+pipesworld-notankage04-bfs,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.9791,0.9373,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,30.41,2627,1259,3886,0.001149,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+woodworking08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.9903,0.982,1.0,0.989,1.0,1.0,0,0,0,0,0,0,9.1e-05,873.22,176020,24470,200490,0.041085,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+woodworking08,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,108.64,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,Agent Execution Crash: [ALERT] OpenRouter LLM API Error for Model 'deepseek/deepseek-chat': Connection error.
+woodworking08,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,1.65,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+woodworking08,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,52.83,4667,2304,6971,0.002082,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+tpp06-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000132,23.09,5201,875,6076,0.001305,A.1: First-Attempt Direct Success,NONE,
+tpp06-bfs,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,6.4e-05,20.28,5201,875,6076,0.001305,A.1: First-Attempt Direct Success,NONE,
+tpp06-bfs,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,7.2e-05,12.68,1339,676,2015,0.000606,A.1: First-Attempt Direct Success,NONE,
+tpp06-bfs,ZERO_SHOT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000228,10.84,1339,678,2017,0.000608,A.1: First-Attempt Direct Success,NONE,
+pegsol08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,9,9,0.000234,11.54,7246,502,7748,0.001388,A.1: First-Attempt Direct Success,NONE,
+pegsol08,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,9,9,0.000263,13.43,7246,500,7746,0.001387,A.1: First-Attempt Direct Success,NONE,
+pegsol08,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,9,9,0.000181,11.08,6250,411,6661,0.001184,A.1: First-Attempt Direct Success,NONE,
+pegsol08,ZERO_SHOT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,9,9,0.000214,11.21,6250,408,6658,0.001182,A.1: First-Attempt Direct Success,NONE,

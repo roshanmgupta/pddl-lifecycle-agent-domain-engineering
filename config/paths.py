@@ -80,32 +80,67 @@ def get_nl2pddl_prompts_dir() -> Path:
 
 
 # ==============================================================================
-# 2. Temporary Working & Solver Files
+# 2. Results, Temporary Working & Solver Files
 # ==============================================================================
 
+def get_results_dir() -> Path:
+    """Master results directory (default: results)."""
+    p = resolve_path("RESULTS_DIR", "results")
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+
+def get_temp_dir() -> Path:
+    """Isolated scratch/working directory for temporary solver artifacts (default: results/temp)."""
+    p = get_results_dir() / "temp"
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+
+def get_runs_dir() -> Path:
+    """Dedicated directory housing per-run isolated output folders (default: results/runs)."""
+    p = get_results_dir() / "runs"
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+
+def create_run_directory(tag: str = "run") -> Path:
+    """
+    Creates an isolated, timestamped run directory for an experiment or execution pass.
+    Directory structure: results/runs/<tag>_<YYYYMMDD_HHMMSS>/
+    Contains an 'artifacts/' subdirectory for intermediate solver/oracle files.
+    """
+    import time
+    clean_tag = tag.strip().replace(" ", "_").replace("/", "_").replace("\\", "_")
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    run_dir = get_runs_dir() / f"{clean_tag}_{timestamp}"
+    (run_dir / "artifacts").mkdir(parents=True, exist_ok=True)
+    return run_dir
+
+
 def get_temp_domain_path() -> str:
-    """Temporary domain PDDL file path (default: temp_domain.pddl)."""
-    return str(resolve_path("TEMP_DOMAIN_PATH", "temp_domain.pddl"))
+    """Temporary domain PDDL file path inside results/temp/."""
+    return str(get_temp_dir() / "temp_domain.pddl")
 
 
 def get_temp_problem_path() -> str:
-    """Temporary problem PDDL file path (default: temp_problem.pddl)."""
-    return str(resolve_path("TEMP_PROBLEM_PATH", "temp_problem.pddl"))
+    """Temporary problem PDDL file path inside results/temp/."""
+    return str(get_temp_dir() / "temp_problem.pddl")
 
 
 def get_temp_gt_domain_path() -> str:
-    """Temporary ground-truth domain PDDL file path for cross-validation (default: temp_domain_gt.pddl)."""
-    return str(resolve_path("TEMP_GT_DOMAIN_PATH", "temp_domain_gt.pddl"))
+    """Temporary ground-truth domain PDDL file path for cross-validation inside results/temp/."""
+    return str(get_temp_dir() / "temp_domain_gt.pddl")
 
 
 def get_temp_plan_path() -> str:
-    """Temporary planner output SAS plan path (default: sas_plan)."""
-    return str(resolve_path("TEMP_PLAN_PATH", "sas_plan"))
+    """Temporary planner output SAS plan path inside results/temp/."""
+    return str(get_temp_dir() / "sas_plan")
 
 
 def get_temp_eval_plan_path() -> str:
-    """Temporary evaluation plan text path (default: temp_eval_plan.txt)."""
-    return str(resolve_path("TEMP_EVAL_PLAN_PATH", "temp_eval_plan.txt"))
+    """Temporary evaluation plan text path inside results/temp/."""
+    return str(get_temp_dir() / "temp_eval_plan.txt")
 
 
 # ==============================================================================
@@ -113,29 +148,38 @@ def get_temp_eval_plan_path() -> str:
 # ==============================================================================
 
 def get_eval_output_dir() -> Path:
-    """Evaluation experiment artifacts & benchmark runner scratch directory (default: eval_experiment_outputs)."""
-    env_key = "OUTPUT_DIR_EVAL" if os.getenv("OUTPUT_DIR_EVAL") else "GENERATED_OUTPUT_DIR"
-    return resolve_path(env_key, "eval_experiment_outputs")
+    """Evaluation experiment artifacts scratch directory (default: results/eval_artifacts)."""
+    p = resolve_path("OUTPUT_DIR_EVAL", "results/eval_artifacts")
+    p.mkdir(parents=True, exist_ok=True)
+    return p
 
 
 def get_generated_output_dir() -> Path:
-    """General generated outputs & evaluation runner directory (default: eval_experiment_outputs)."""
-    return get_eval_output_dir()
+    """General generated outputs directory (default: results/generated)."""
+    p = resolve_path("GENERATED_OUTPUT_DIR", "results/generated")
+    p.mkdir(parents=True, exist_ok=True)
+    return p
 
 
 def get_flaw_output_dir() -> Path:
-    """Curated Flaw Repair outputs directory (default: PDDLLifeCycleBench_Output_Flaw)."""
-    return resolve_path("OUTPUT_DIR_FLAW", "PDDLLifeCycleBench_Output_Flaw")
+    """Curated Flaw Repair outputs directory (default: results/generated/repair)."""
+    p = resolve_path("OUTPUT_DIR_FLAW", "results/generated/repair")
+    p.mkdir(parents=True, exist_ok=True)
+    return p
 
 
 def get_evolve_output_dir() -> Path:
-    """Continuous Evolution outputs directory (default: PDDLLifeCycleBench_Output__Evolve)."""
-    return resolve_path("OUTPUT_DIR_EVOLVE", "PDDLLifeCycleBench_Output__Evolve")
+    """Continuous Evolution outputs directory (default: results/generated/evolution)."""
+    p = resolve_path("OUTPUT_DIR_EVOLVE", "results/generated/evolution")
+    p.mkdir(parents=True, exist_ok=True)
+    return p
 
 
 def get_elicitation_output_dir() -> Path:
-    """Fresh Elicitation outputs directory (default: PDDLLifeCycleBench_Output_Elicitation)."""
-    return resolve_path("OUTPUT_DIR_ELICITATION", "PDDLLifeCycleBench_Output_Elicitation")
+    """Fresh Elicitation outputs directory (default: results/generated/elicitation)."""
+    p = resolve_path("OUTPUT_DIR_ELICITATION", "results/generated/elicitation")
+    p.mkdir(parents=True, exist_ok=True)
+    return p
 
 
 def get_generated_domain_filename() -> str:

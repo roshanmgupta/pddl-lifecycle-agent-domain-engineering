@@ -3,7 +3,7 @@ import time
 from typing import List, Dict, Any, Optional
 from benchmark.schema import BenchmarkTask, LifecycleTaskType
 from eval.metrics import EvaluationMetrics
-from eval.baselines import run_zero_shot_baseline, run_unstructured_retry_baseline
+from eval.baselines import run_zero_shot_baseline, run_unstructured_retry_baseline, run_no_ast_ablation
 from graph import pddl_lifecycle_graph
 from tools.symbolic_oracles import run_val_validator, run_fast_downward_with_plan
 from config.paths import get_eval_output_dir
@@ -71,13 +71,22 @@ def run_evaluation_on_task(task: BenchmarkTask, agent_type: str, max_iterations:
         if result.get("error"):
             error_summary = result["error"]
 
-    elif agent_type in ["UNSTRUCTURED_RETRY", "ABLATION_NO_AST"]:
+    elif agent_type == "UNSTRUCTURED_RETRY":
         result = run_unstructured_retry_baseline(task, max_retries=max_iterations)
         generated_domain_pddl = result.get("generated_domain_pddl", "")
         generated_problem_pddl = result.get("generated_problem_pddl", "")
         iterations_used = result.get("iterations_used", max_iterations)
         tot_tokens = result.get("total_tokens", 0)
         est_cost = result.get("estimated_cost_usd", 0.0)
+
+    elif agent_type == "ABLATION_NO_AST":
+        result = run_no_ast_ablation(task, max_retries=max_iterations)
+        generated_domain_pddl = result.get("generated_domain_pddl", "")
+        generated_problem_pddl = result.get("generated_problem_pddl", "")
+        iterations_used = result.get("iterations_used", max_iterations)
+        tot_tokens = result.get("total_tokens", 0)
+        est_cost = result.get("estimated_cost_usd", 0.0)
+        diagnostic_reports = result.get("diagnostic_reports", [])
 
     elif agent_type in ["CLOSED_LOOP_AST_AGENT", "ABLATION_NO_TRIAGE"]:
         initial_state = {
@@ -182,19 +191,16 @@ def evaluate_candidate_pddl(
 
     # Oracle 1: VAL Syntax & Semantics
     is_syntax_valid, val_log = run_val_validator(eval_dom_file, eval_prob_file)
+    svr_syntax_valid_rate = 1.0 if is_syntax_valid else 0.0
 
     # Oracle 2: Fast Downward Search & Oracle 3: VAL Plan Certification
     is_plan_valid = False
     plan_execution_valid = False
-    semantic_soundness_valid = None
-    logic_match_score = None
     plan_length = None
     plan_cost = None
     search_time = None
 
     if is_syntax_valid:
-        # For Synthetic Fault Repair & Evolution, vocabulary is shared with D_gt, so direct VAL is valid.
-        # For Elicitation, vocabulary is generated from NL, so direct VAL would fail due to lexical naming differences.
         fd_gt_path = str(eval_dom_gt_file) if (eval_dom_gt_file and task.task_type != LifecycleTaskType.ELICITATION) else None
         fd_res = run_fast_downward_with_plan(
             eval_dom_file, 
@@ -203,46 +209,46 @@ def evaluate_candidate_pddl(
         )
         is_plan_valid = fd_res["is_solvable"]
         plan_execution_valid = fd_res["val_plan_valid"]
-        semantic_soundness_valid = fd_res.get("semantic_soundness_valid")
         plan_length = fd_res["plan_length"]
         plan_cost = fd_res["plan_cost"]
         search_time = fd_res["search_time"]
-
-        # For Elicitation tasks: Evaluate Action Reconstruction Error (ARE) against ground truth
-        if task.task_type == LifecycleTaskType.ELICITATION and getattr(task, "ground_truth_domain_pddl", None):
-            try:
-                from eval.action_reconstruction import evaluate_action_reconstruction
-                are_res = evaluate_action_reconstruction(task.ground_truth_domain_pddl, generated_domain_pddl)
-                logic_match_score = are_res.get("macro_structural_f1")
-                # Structural alignment score is recorded; plan execution is verified by VAL
-                semantic_soundness_valid = plan_execution_valid
-            except Exception as e:
-                logic_match_score = None
-                semantic_soundness_valid = False
 
         if not is_plan_valid:
             error_summary = "Planner Unsolvability: " + fd_res["raw_fd_log"][:200]
         elif not plan_execution_valid:
             error_summary = "Plan Certification Failed: " + fd_res.get("val_log", "")[:200]
-        elif semantic_soundness_valid is False and task.task_type != LifecycleTaskType.ELICITATION:
-            error_summary = "Semantic Soundness Failed (D_gt Rejected Plan): " + fd_res.get("semantic_soundness_log", "")[:200]
     else:
         error_summary = "VAL Validation Error: " + val_log[:200]
 
-    # -------------------------------------------------------------
-    # Task-Specific Secondary Metrics
-    # -------------------------------------------------------------
-    # A. Fault Repair Verification
-    is_repaired = False
-    if task.task_type == LifecycleTaskType.SYNTHETIC_FAULT_REPAIR:
-        is_repaired = is_syntax_valid and is_plan_valid and plan_execution_valid and (semantic_soundness_valid if semantic_soundness_valid is not None else True)
+    # Target Plan Validity (TPV): Solvable by planner AND verified valid by VAL
+    tpv_target_plan_valid = bool(is_syntax_valid and is_plan_valid and plan_execution_valid)
 
-    # B. Fault Localization Accuracy
-    top1, top3, mrr = compute_fault_localization_metrics(task.gold_fault_element, diagnostic_reports or [])
+    # -------------------------------------------------------------
+    # Structural Reconstruction Metrics (Oswald 2024 / Aineto 2022)
+    # -------------------------------------------------------------
+    macro_structural_f1 = None
+    precondition_f1 = None
+    add_effect_f1 = None
+    delete_effect_f1 = None
+    action_f1 = None
 
-    # C. Domain Evolution & Regression Suite
-    evolution_capability_valid = None
-    regression_pass_rate = None
+    gt_dom_str = getattr(task, "ground_truth_domain_pddl", None) or getattr(task, "initial_domain_pddl", None)
+    if gt_dom_str:
+        try:
+            from eval.action_reconstruction import evaluate_action_reconstruction
+            are_res = evaluate_action_reconstruction(gt_dom_str, generated_domain_pddl)
+            macro_structural_f1 = are_res.get("macro_structural_f1")
+            precondition_f1 = are_res.get("mean_precondition_f1")
+            add_effect_f1 = are_res.get("mean_add_effect_f1")
+            delete_effect_f1 = are_res.get("mean_delete_effect_f1")
+            action_f1 = are_res.get("action_f1")
+        except Exception:
+            pass
+
+    # -------------------------------------------------------------
+    # Domain Evolution & Reference Suite Coverage (Cov_ref)
+    # -------------------------------------------------------------
+    cov_ref_coverage_rate = None
     hist_passed = None
     hist_total = None
 
@@ -252,24 +258,11 @@ def evaluate_candidate_pddl(
         m_dom = re.search(r"\(\s*domain\s+([a-zA-Z0-9_\-]+)\s*\)", generated_domain_pddl, re.IGNORECASE)
         dom_name = m_dom.group(1) if m_dom else None
 
-        # Check new capability
-        target_prob_file = eval_prob_file
-        if task.evolution_target_problem_pddl:
-            target_prob_file = os.path.join(eval_dir, f"eval_evol_target_{task.task_id}_{agent_type}.pddl")
-            t_content = task.evolution_target_problem_pddl
-            if dom_name:
-                t_content = re.sub(r"\(\s*:domain\s+[a-zA-Z0-9_\-]+\s*\)", f"(:domain {dom_name})", t_content, count=1, flags=re.IGNORECASE)
-            with open(target_prob_file, "w", encoding="utf-8") as f:
-                f.write(t_content)
-        
-        evol_res = run_fast_downward_with_plan(eval_dom_file, target_prob_file)
-        evolution_capability_valid = evol_res["is_solvable"] and evol_res["val_plan_valid"]
-
-        # Run historical regression suite
-        if task.historical_regression_problems:
-            hist_total = len(task.historical_regression_problems)
+        bench_problems = getattr(task, "baseline_benchmark_problems", []) or getattr(task, "historical_regression_problems", []) or []
+        if bench_problems:
+            hist_total = len(bench_problems)
             hist_passed = 0
-            for idx, hist_pddl in enumerate(task.historical_regression_problems):
+            for idx, hist_pddl in enumerate(bench_problems):
                 hist_prob_file = os.path.join(eval_dir, f"eval_hist_{task.task_id}_{idx}.pddl")
                 h_content = hist_pddl
                 if dom_name:
@@ -279,48 +272,56 @@ def evaluate_candidate_pddl(
                 h_res = run_fast_downward_with_plan(eval_dom_file, hist_prob_file)
                 if h_res["is_solvable"] and h_res["val_plan_valid"]:
                     hist_passed += 1
-            regression_pass_rate = round(hist_passed / hist_total, 3) if hist_total > 0 else 1.0
+            cov_ref_coverage_rate = round((hist_passed / hist_total) * 100.0, 2) if hist_total > 0 else 100.0
 
     # -------------------------------------------------------------
-    # Primary Metric: End-to-End Verified Lifecycle Success
+    # Standardized Behavioral Classification Code
     # -------------------------------------------------------------
-    e2e_success = False
-    if is_syntax_valid and is_plan_valid and plan_execution_valid:
-        if task.task_type == LifecycleTaskType.ELICITATION:
-            e2e_success = True
-        elif task.task_type == LifecycleTaskType.SYNTHETIC_FAULT_REPAIR:
-            e2e_success = is_repaired
-        elif task.task_type == LifecycleTaskType.DOMAIN_EVOLUTION:
-            no_regression = (regression_pass_rate is None or regression_pass_rate == 1.0)
-            e2e_success = bool(evolution_capability_valid and no_regression)
+    if task.task_type == LifecycleTaskType.DOMAIN_EVOLUTION:
+        if not is_syntax_valid:
+            behavioral_code = "E.S"
+        elif not tpv_target_plan_valid:
+            behavioral_code = "E.T"
+        elif cov_ref_coverage_rate is not None and cov_ref_coverage_rate < 100.0:
+            behavioral_code = "E.B"
+        elif iterations_used <= 1:
+            behavioral_code = "E.1"
+        else:
+            behavioral_code = "E.2"
+    else:
+        if not is_syntax_valid:
+            behavioral_code = "S.S"
+        elif not tpv_target_plan_valid:
+            behavioral_code = "S.T"
+        elif iterations_used <= 1:
+            behavioral_code = "S.1"
+        else:
+            behavioral_code = "S.2"
 
     return EvaluationMetrics(
         task_id=task.task_id,
         domain_family=task.domain_family,
         task_type=task.task_type.value,
         agent_type=agent_type,
-        e2e_success=e2e_success,
-        is_syntax_valid=is_syntax_valid,
-        is_plan_valid=is_plan_valid,
-        plan_execution_valid=plan_execution_valid,
-        semantic_soundness_valid=semantic_soundness_valid,
-        logic_match_score=logic_match_score,
-        is_repaired=is_repaired,
-        fault_localization_top1=top1,
-        fault_localization_top3=top3,
-        fault_localization_mrr=mrr,
-        evolution_capability_valid=evolution_capability_valid,
-        regression_pass_rate=regression_pass_rate,
-        historical_problems_passed=hist_passed,
-        historical_problems_total=hist_total,
+        svr_syntax_valid_rate=svr_syntax_valid_rate,
+        tpv_target_plan_valid=tpv_target_plan_valid,
+        cov_ref_coverage_rate=cov_ref_coverage_rate,
+        reference_instances_passed=hist_passed,
+        reference_instances_total=hist_total,
+        macro_structural_f1=macro_structural_f1,
+        precondition_f1=precondition_f1,
+        add_effect_f1=add_effect_f1,
+        delete_effect_f1=delete_effect_f1,
+        action_f1=action_f1,
+        plan_length=plan_length,
+        plan_cost=plan_cost,
+        search_time=search_time,
         iterations_used=iterations_used,
         execution_time_seconds=round(execution_time_seconds, 2),
         total_tokens=total_tokens,
         estimated_cost_usd=estimated_cost_usd,
-        error_summary=error_summary,
-        plan_length=plan_length,
-        plan_cost=plan_cost,
-        search_time=search_time
+        behavioral_code=behavioral_code,
+        error_summary=error_summary
     )
 
 def run_benchmark_suite(
@@ -363,14 +364,18 @@ def run_benchmark_suite(
     return all_metrics
 
 def generate_evaluation_report(metrics_list: List[EvaluationMetrics]) -> str:
-    """Generates a rigorous Markdown report summarizing primary and secondary metrics."""
+    """
+    Generates a rigorous, publication-ready Markdown report summarizing primary operational
+    and structural metrics grounded in classical automated planning literature.
+    Removes redundant, heuristic, and ungrounded metrics.
+    """
     lines = [
         "# Empirical Lifecycle Evaluation Report",
         "",
-        "## 1. Primary & Secondary Benchmark Comparison Table",
+        "## 1. Standardized Operational & Structural Benchmark Comparison Table",
         "",
-        "| Agent Architecture | Tasks | E2E Success (%) | Syntax (%) | Solvable (%) | Plan Certified (%) | Repair (%) | Fault Top-1 (%) | Regression Pass (%) | Avg Iters | Avg Latency (s) | Avg Cost ($) |",
-        "|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
+        "| Agent Architecture | Tasks | SVR (%) | TPV (%) | Cov_ref (%) | Macro F1 | Pre F1 | Add F1 | Del F1 | Mean |Plan| | Mean Iters (k) | Latency (s) | Cost ($) |",
+        "|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
     ]
 
     agent_groups: Dict[str, List[EvaluationMetrics]] = {}
@@ -381,50 +386,61 @@ def generate_evaluation_report(metrics_list: List[EvaluationMetrics]) -> str:
 
     for agent, group in agent_groups.items():
         total = len(group)
-        e2e_count = sum(1 for m in group if m.e2e_success)
-        syntax_count = sum(1 for m in group if m.is_syntax_valid)
-        plan_count = sum(1 for m in group if m.is_plan_valid)
-        cert_count = sum(1 for m in group if m.plan_execution_valid)
-        
-        repair_tasks = [m for m in group if m.task_type == LifecycleTaskType.SYNTHETIC_FAULT_REPAIR.value]
-        repair_count = sum(1 for m in repair_tasks if m.is_repaired)
-        
-        fault_top1_tasks = [m for m in group if m.fault_localization_top1 is not None]
-        fault_top1_count = sum(1 for m in fault_top1_tasks if m.fault_localization_top1)
+        svr_count = sum(1 for m in group if m.svr_syntax_valid_rate >= 1.0)
+        tpv_count = sum(1 for m in group if m.tpv_target_plan_valid)
 
-        reg_tasks = [m for m in group if m.regression_pass_rate is not None]
-        avg_reg = round((sum(m.regression_pass_rate for m in reg_tasks) / len(reg_tasks)) * 100, 1) if reg_tasks else "N/A"
+        cov_tasks = [m for m in group if m.cov_ref_coverage_rate is not None]
+        avg_cov = round(sum(m.cov_ref_coverage_rate for m in cov_tasks) / len(cov_tasks), 1) if cov_tasks else "N/A"
 
-        e2e_pct = round((e2e_count / total) * 100, 1) if total > 0 else 0.0
-        syntax_pct = round((syntax_count / total) * 100, 1) if total > 0 else 0.0
-        plan_pct = round((plan_count / total) * 100, 1) if total > 0 else 0.0
-        cert_pct = round((cert_count / total) * 100, 1) if total > 0 else 0.0
-        repair_pct = round((repair_count / len(repair_tasks)) * 100, 1) if repair_tasks else "N/A"
-        top1_pct = round((fault_top1_count / len(fault_top1_tasks)) * 100, 1) if fault_top1_tasks else "N/A"
+        f1_tasks = [m for m in group if m.macro_structural_f1 is not None]
+        avg_macro_f1 = round(sum(m.macro_structural_f1 for m in f1_tasks) / len(f1_tasks), 3) if f1_tasks else "N/A"
 
-        avg_iters = round(sum(m.iterations_used for m in group) / total, 1) if total > 0 else 0.0
+        pre_tasks = [m for m in group if m.precondition_f1 is not None]
+        avg_pre_f1 = round(sum(m.precondition_f1 for m in pre_tasks) / len(pre_tasks), 3) if pre_tasks else "N/A"
+
+        add_tasks = [m for m in group if m.add_effect_f1 is not None]
+        avg_add_f1 = round(sum(m.add_effect_f1 for m in add_tasks) / len(add_tasks), 3) if add_tasks else "N/A"
+
+        del_tasks = [m for m in group if m.delete_effect_f1 is not None]
+        avg_del_f1 = round(sum(m.delete_effect_f1 for m in del_tasks) / len(del_tasks), 3) if del_tasks else "N/A"
+
+        valid_plans = [m for m in group if m.tpv_target_plan_valid and m.plan_length is not None]
+        avg_plan_len = round(sum(m.plan_length for m in valid_plans) / len(valid_plans), 1) if valid_plans else "N/A"
+
+        svr_pct = round((svr_count / total) * 100, 1) if total > 0 else 0.0
+        tpv_pct = round((tpv_count / total) * 100, 1) if total > 0 else 0.0
+
+        avg_iters = round(sum(m.iterations_used for m in group) / total, 2) if total > 0 else 0.0
         avg_time = round(sum(m.execution_time_seconds for m in group) / total, 2) if total > 0 else 0.0
         avg_cost = round(sum(m.estimated_cost_usd for m in group) / total, 6) if total > 0 else 0.0
 
-        top1_str = f"{top1_pct}%" if isinstance(top1_pct, float) else top1_pct
-        repair_str = f"{repair_pct}%" if isinstance(repair_pct, float) else repair_pct
-        reg_str = f"{avg_reg}%" if isinstance(avg_reg, float) else avg_reg
+        cov_str = f"{avg_cov}%" if isinstance(avg_cov, (int, float)) else avg_cov
 
-        lines.append(f"| **{agent}** | {total} | **{e2e_pct}%** | {syntax_pct}% | {plan_pct}% | {cert_pct}% | {repair_str} | {top1_str} | {reg_str} | {avg_iters} | {avg_time}s | ${avg_cost:.4f} |")
+        lines.append(
+            f"| **{agent}** | {total} | {svr_pct}% | **{tpv_pct}%** | {cov_str} | "
+            f"{avg_macro_f1} | {avg_pre_f1} | {avg_add_f1} | {avg_del_f1} | "
+            f"{avg_plan_len} | {avg_iters} | {avg_time}s | ${avg_cost:.4f} |"
+        )
 
     lines.extend([
         "",
         "## 2. Granular Task Execution Log",
         "",
-        "| Task ID | Agent Architecture | Task Type | E2E Success | Plan Certified | Fault Top-1 | Regression Pass | Diagnostic Summary |",
-        "|:---|:---|:---|:---:|:---:|:---:|:---:|:---|"
+        "| Task ID | Agent Architecture | SVR | TPV | Cov_ref | Macro F1 | |Plan| | Iters (k) | Code | Diagnostic Summary |",
+        "|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---|"
     ])
 
     for m in metrics_list:
         err = m.error_summary if m.error_summary else "Passed (Verified)"
         clean_err = err.encode("ascii", "ignore").decode("ascii").replace("|", "/").replace("\n", " ")[:60]
-        f_top1 = str(m.fault_localization_top1) if m.fault_localization_top1 is not None else "N/A"
-        r_rate = f"{round(m.regression_pass_rate*100)}%" if m.regression_pass_rate is not None else "N/A"
-        lines.append(f"| `{m.task_id}` | `{m.agent_type}` | `{m.task_type}` | **{m.e2e_success}** | {m.plan_execution_valid} | {f_top1} | {r_rate} | {clean_err} |")
+        c_rate = f"{round(m.cov_ref_coverage_rate)}%" if m.cov_ref_coverage_rate is not None else "N/A"
+        f1_str = f"{m.macro_structural_f1:.3f}" if m.macro_structural_f1 is not None else "N/A"
+        p_len = str(m.plan_length) if m.plan_length is not None else "N/A"
+        b_code = m.behavioral_code or "N/A"
+        lines.append(
+            f"| `{m.task_id}` | `{m.agent_type}` | {m.svr_syntax_valid_rate >= 1.0} | "
+            f"**{m.tpv_target_plan_valid}** | {c_rate} | {f1_str} | {p_len} | "
+            f"{m.iterations_used} | `{b_code}` | {clean_err} |"
+        )
 
     return "\n".join(lines)

@@ -1071,3 +1071,185 @@ def run_causal_triage_analysis(
         "top_action": ungroundable_preconditions[0]["action_name"] if ungroundable_preconditions else None,
         "diagnostic_summary": "\n".join(summary_lines)
     }
+
+
+def detect_add_precondition_clashes_and_ungrounded_dels(domain_bp: Any) -> List[Dict[str, Any]]:
+    """
+    Evaluates Yang et al. ARMS (2007) Invariants A.1 & A.2:
+    - A.1 (Add-Precondition Disjointness): An action should not assert an add effect
+          that is already declared in its preconditions (redundant/vacuous add effect).
+    - A.2 (Delete Groundedness): Every variable appearing in a delete effect
+          must be declared in the action's parameter list.
+    """
+    violations = []
+    actions = getattr(domain_bp, "actions", []) if hasattr(domain_bp, "actions") else (domain_bp.get("actions", []) if isinstance(domain_bp, dict) else [])
+    for act in actions:
+        act_name = getattr(act, "action_name", "") if hasattr(act, "action_name") else (act.get("action_name", "") if isinstance(act, dict) else "")
+        params = getattr(act, "parameters", {}) if hasattr(act, "parameters") else (act.get("parameters", {}) if isinstance(act, dict) else {})
+        param_vars = set(params.keys()) if isinstance(params, dict) else set(params)
+        
+        precs = getattr(act, "preconditions", []) if hasattr(act, "preconditions") else (act.get("preconditions", []) if isinstance(act, dict) else [])
+        effects = getattr(act, "effects", []) if hasattr(act, "effects") else (act.get("effects", []) if isinstance(act, dict) else [])
+        
+        prec_pos = set()
+        for p in precs:
+            canon, is_pos = normalize_atom_expression(p)
+            if canon and is_pos:
+                prec_pos.add(canon.lower())
+                
+        for eff in effects:
+            canon, is_pos = normalize_atom_expression(eff)
+            if not canon:
+                continue
+            if is_pos:
+                if canon.lower() in prec_pos:
+                    violations.append({
+                        "action": act_name,
+                        "type": "ADD_PRECONDITION_CLASH",
+                        "literal": canon,
+                        "description": f"Action '{act_name}' adds '{canon}' which is already required as a precondition (violates ARMS A.1)."
+                    })
+            else:
+                toks = canon.strip("() ").split()
+                if toks:
+                    for arg in toks[1:]:
+                        if arg.startswith("?") and arg not in param_vars:
+                            violations.append({
+                                "action": act_name,
+                                "type": "UNGROUNDED_DELETE",
+                                "literal": canon,
+                                "variable": arg,
+                                "description": f"Action '{act_name}' deletes '{canon}' with ungrounded variable '{arg}' not in parameters (violates ARMS A.2)."
+                            })
+    return violations
+
+
+def detect_unbalanced_frame_transitions(domain_bp: Any) -> List[Dict[str, Any]]:
+    """
+    Evaluates SAS+ / Frame Axiom Multi-Valued State-Variable Invariants:
+    When an action asserts a new state/location assignment for an entity
+    (e.g. (at ?x ?to) or (on ?x ?y) or (in ?x ?c)), it must delete the previous assignment
+    with the same primary entity argument to prevent object-cloning state anomalies.
+    """
+    violations = []
+    actions = getattr(domain_bp, "actions", []) if hasattr(domain_bp, "actions") else (domain_bp.get("actions", []) if isinstance(domain_bp, dict) else [])
+    for act in actions:
+        act_name = getattr(act, "action_name", "") if hasattr(act, "action_name") else (act.get("action_name", "") if isinstance(act, dict) else "")
+        effects = getattr(act, "effects", []) if hasattr(act, "effects") else (act.get("effects", []) if isinstance(act, dict) else [])
+        
+        pos_atoms = []
+        del_atoms = []
+        for eff in effects:
+            canon, is_pos = normalize_atom_expression(eff)
+            if not canon:
+                continue
+            toks = canon.strip("() ").split()
+            if not toks:
+                continue
+            if is_pos:
+                pos_atoms.append((toks[0].lower(), toks[1:]))
+            else:
+                del_atoms.append((toks[0].lower(), toks[1:]))
+                
+        frame_indicators = {"at", "on", "in", "carrying", "holding", "location", "pos"}
+        for p_name, args in pos_atoms:
+            if any(ind in p_name for ind in frame_indicators) and len(args) >= 2:
+                primary_entity = args[0]
+                has_delete = any(dp == p_name and d_args and d_args[0] == primary_entity for dp, d_args in del_atoms)
+                if not has_delete:
+                    violations.append({
+                        "action": act_name,
+                        "type": "UNBALANCED_FRAME_TRANSITION",
+                        "predicate": p_name,
+                        "entity": primary_entity,
+                        "description": f"Action '{act_name}' adds '({p_name} {' '.join(args)})' without deleting previous state for '{primary_entity}', risking object-cloning."
+                    })
+    return violations
+
+
+def detect_causal_type_mismatches(domain_bp: Any, problem_bp: Any = None) -> List[Dict[str, Any]]:
+    """
+    Evaluates Causal Producer-Consumer Type Signature Compatibility:
+    Verifies that all predicate invocations across action preconditions and effects
+    conform to declared predicate arity and parameter typing hierarchies.
+    """
+    violations = []
+    dom_types_raw = getattr(domain_bp, "types", {}) if hasattr(domain_bp, "types") else (domain_bp.get("types", {}) if isinstance(domain_bp, dict) else {})
+    is_subtype = _build_subtype_checker(dom_types_raw)
+    
+    dom_preds_raw = getattr(domain_bp, "predicates", []) if hasattr(domain_bp, "predicates") else (domain_bp.get("predicates", []) if isinstance(domain_bp, dict) else [])
+    pred_sigs: Dict[str, List[str]] = {}
+    for p_str in dom_preds_raw:
+        p_clean = p_str.strip("() ").strip()
+        if not p_clean:
+            continue
+        toks = p_clean.split()
+        if not toks:
+            continue
+        p_name = toks[0].lower()
+        args = toks[1:]
+        types_list = []
+        curr_vars = []
+        i = 0
+        while i < len(args):
+            tok = args[i]
+            if tok == "-":
+                if i + 1 < len(args):
+                    tname = args[i + 1].lower()
+                    for _ in curr_vars:
+                        types_list.append(tname)
+                    curr_vars = []
+                    i += 2
+                    continue
+            elif tok.startswith("?"):
+                curr_vars.append(tok)
+            i += 1
+        for _ in curr_vars:
+            types_list.append("object")
+        pred_sigs[p_name] = types_list
+
+    actions = getattr(domain_bp, "actions", []) if hasattr(domain_bp, "actions") else (domain_bp.get("actions", []) if isinstance(domain_bp, dict) else [])
+    for act in actions:
+        act_name = getattr(act, "action_name", "") if hasattr(act, "action_name") else (act.get("action_name", "") if isinstance(act, dict) else "")
+        params = getattr(act, "parameters", {}) if hasattr(act, "parameters") else (act.get("parameters", {}) if isinstance(act, dict) else {})
+        param_types = {k.lower(): str(v).lower() for k, v in params.items()} if isinstance(params, dict) else {}
+        
+        precs = getattr(act, "preconditions", []) if hasattr(act, "preconditions") else (act.get("preconditions", []) if isinstance(act, dict) else [])
+        effects = getattr(act, "effects", []) if hasattr(act, "effects") else (act.get("effects", []) if isinstance(act, dict) else [])
+        
+        for lit in precs + effects:
+            canon, _ = normalize_atom_expression(lit)
+            if not canon:
+                continue
+            toks = canon.strip("() ").split()
+            if not toks:
+                continue
+            p_name = toks[0].lower()
+            p_args = toks[1:]
+            
+            if p_name in pred_sigs:
+                expected_types = pred_sigs[p_name]
+                if len(p_args) != len(expected_types):
+                    violations.append({
+                        "action": act_name,
+                        "type": "ARITY_MISMATCH",
+                        "predicate": p_name,
+                        "expected_arity": len(expected_types),
+                        "actual_arity": len(p_args),
+                        "description": f"Action '{act_name}' uses '{p_name}' with {len(p_args)} args, expected {len(expected_types)}."
+                    })
+                else:
+                    for arg_var, exp_type in zip(p_args, expected_types):
+                        if arg_var.startswith("?") and arg_var.lower() in param_types:
+                            actual_type = param_types[arg_var.lower()]
+                            if exp_type != "object" and not is_subtype(actual_type, exp_type):
+                                violations.append({
+                                    "action": act_name,
+                                    "type": "TYPE_SIGNATURE_MISMATCH",
+                                    "predicate": p_name,
+                                    "variable": arg_var,
+                                    "actual_type": actual_type,
+                                    "expected_type": exp_type,
+                                    "description": f"Action '{act_name}' passes '{arg_var}' ({actual_type}) to '{p_name}' which expects '{exp_type}'."
+                                })
+    return violations

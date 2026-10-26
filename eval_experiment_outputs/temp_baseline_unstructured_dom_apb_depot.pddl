@@ -1,91 +1,50 @@
 (define (domain depots)
   (:requirements :strips :typing)
   (:types
-    depot distributor - Place
-    truck hoist - Locatable
-    pallet crate - Surface
+    place locatable - object
+    depot distributor - place
+    truck hoist surface - locatable
+    pallet crate - surface
   )
   
   (:predicates
-    (at ?obj - Object ?place - Place)
-    (clear ?obj - Object)
-    (available ?hoist - Hoist)
-    (on ?crate - Crate ?surface - Surface)
-    (lifting ?hoist - Hoist ?crate - Crate)
+    (at ?x ?y - locatable ?p - place)
+    (on ?x ?y - surface)
+    (clear ?x - surface)
+    (available ?h - hoist)
+    (lifting ?h - hoist ?c - crate)
+    (in ?c - crate ?t - truck)
   )
-
+  
   (:action drive
-    :parameters (?truck - Truck ?from - Place ?to - Place)
-    :precondition (at ?truck ?from)
-    :effect (and
-      (at ?truck ?to)
-      (not (at ?truck ?from))
-    )
+    :parameters (?t - truck ?from - place ?to - place)
+    :precondition (and (at ?t ?from) (not (= ?from ?to)))
+    :effect (and (not (at ?t ?from)) (at ?t ?to))
   )
-
+  
   (:action lift
-    :parameters (?hoist - Hoist ?crate - Crate ?surface - Surface ?place - Place)
-    :precondition (and
-      (at ?hoist ?place)
-      (available ?hoist)
-      (at ?crate ?place)
-      (on ?crate ?surface)
-      (clear ?crate)
-    )
-    :effect (and
-      (lifting ?hoist ?crate)
-      (clear ?surface)
-      (not (at ?crate ?place))
-      (not (clear ?crate))
-      (not (available ?hoist))
-      (not (on ?crate ?surface))
-    )
+    :parameters (?h - hoist ?c - crate ?s - surface ?p - place)
+    :precondition (and (at ?h ?p) (available ?h) (at ?c ?p) (on ?c ?s) (clear ?c))
+    :effect (and (not (at ?c ?p)) (not (clear ?c)) (not (available ?h)) (not (on ?c ?s)) 
+                 (lifting ?h ?c) (clear ?s))
   )
-
+  
   (:action drop
-    :parameters (?hoist - Hoist ?crate - Crate ?surface - Surface ?place - Place)
-    :precondition (and
-      (at ?hoist ?place)
-      (at ?surface ?place)
-      (clear ?surface)
-      (lifting ?hoist ?crate)
-    )
-    :effect (and
-      (available ?hoist)
-      (at ?crate ?place)
-      (clear ?crate)
-      (on ?crate ?surface)
-      (not (lifting ?hoist ?crate))
-      (not (clear ?surface))
-    )
+    :parameters (?h - hoist ?c - crate ?s - surface ?p - place)
+    :precondition (and (at ?h ?p) (at ?s ?p) (clear ?s) (lifting ?h ?c))
+    :effect (and (available ?h) (at ?c ?p) (clear ?c) (on ?c ?s) 
+                 (not (lifting ?h ?c)) (not (clear ?s)))
   )
-
+  
   (:action load
-    :parameters (?hoist - Hoist ?crate - Crate ?truck - Truck ?place - Place)
-    :precondition (and
-      (at ?hoist ?place)
-      (at ?truck ?place)
-      (lifting ?hoist ?crate)
-    )
-    :effect (and
-      (at ?crate ?truck)
-      (available ?hoist)
-      (not (lifting ?hoist ?crate))
-    )
+    :parameters (?h - hoist ?c - crate ?t - truck ?p - place)
+    :precondition (and (at ?h ?p) (at ?t ?p) (lifting ?h ?c))
+    :effect (and (in ?c ?t) (available ?h) (not (lifting ?h ?c)))
   )
-
+  
   (:action unload
-    :parameters (?hoist - Hoist ?crate - Crate ?truck - Truck ?place - Place)
-    :precondition (and
-      (at ?hoist ?place)
-      (at ?truck ?place)
-      (available ?hoist)
-      (at ?crate ?truck)
-    )
-    :effect (and
-      (lifting ?hoist ?crate)
-      (not (at ?crate ?truck))
-      (not (available ?hoist))
-    )
+    :parameters (?h - hoist ?c - crate ?t - truck ?p - place)
+    :precondition (and (at ?h ?p) (at ?t ?p) (available ?h) (in ?c ?t))
+    :effect (and (lifting ?h ?c) (not (in ?c ?t)) (not (available ?h)))
   )
 )

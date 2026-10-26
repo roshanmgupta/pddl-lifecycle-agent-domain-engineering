@@ -1,13 +1,30 @@
 ================================================================================
-CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (TASK 1: CAPABILITY EXTENSION)
-DOMAIN: GRIPPER
+CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (CAPABILITY EXTENSION)
+BASELINE DOMAIN: GRIPPER -> EVOLVED DOMAIN: GRIPPER (COOPERATIVE INTER-ROBOT TRANSFER)
 ================================================================================
-REQUIREMENT SUMMARY:
-Extend the existing operational model of gripper with an incremental feature request.
-The domain must now support high-throughput express operations with specialized tooling prerequisites.
+REQUIREMENT SPECIFICATION (AUTOPLANBENCH / CLASSICAL PLANNING GROUNDING):
+Extend the existing operational model of the multi-robot gripper domain to support direct cooperative inter-robot object transfers.
 
-EVOLUTION RULES:
-1. Synthesize an extended action schema or specialized capability flag supporting advanced operations.
-2. CRITICAL PRESERVATION MANDATE: Backward compatibility across historical legacy problem instances
-   (instance-1 to instance-3) must be 100% strictly preserved.
-3. The Phase 4 Regression Gatekeeper will evaluate both the target problem and all historical test cases.
+The baseline domain enables:
+- a robot moving between rooms: (move ?r - robot ?from ?to - room)
+- a robot picking up an object from a room using a free gripper: (pick ?r - robot ?obj - object ?room - room ?g - gripper)
+- a robot dropping an object in a room: (drop ?r - robot ?obj - object ?room - room ?g - gripper)
+
+CAPABILITY EXTENSION REQUIREMENTS:
+1. New Action Schema:
+   - Name: cooperative_transfer
+   - Parameters:
+     ?r1 - robot, ?r2 - robot, ?obj - object, ?g1 - gripper, ?g2 - gripper, ?room - room
+   - Preconditions:
+     Robot ?r1 must be at ?room: (at-robby ?r1 ?room).
+     Robot ?r2 must be at ?room: (at-robby ?r2 ?room).
+     Robot ?r1 must be carrying ?obj in gripper ?g1: (carry ?r1 ?obj ?g1).
+     Robot ?r2 must have gripper ?g2 free: (free ?r2 ?g2).
+   - Effects:
+     Robot ?r2 is now carrying ?obj in gripper ?g2: (carry ?r2 ?obj ?g2).
+     Robot ?r1 has gripper ?g1 free: (free ?r1 ?g1).
+     Robot ?r1 is no longer carrying ?obj in gripper ?g1: (not (carry ?r1 ?obj ?g1)).
+     Robot ?r2 gripper ?g2 is no longer free: (not (free ?r2 ?g2)).
+
+SOLVABILITY PRESERVATION MANDATE:
+All baseline action schemas (move, pick, drop) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.

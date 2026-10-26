@@ -1,13 +1,31 @@
 ================================================================================
-CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (TASK 1: CAPABILITY EXTENSION)
-DOMAIN: ROVERS
+CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (CAPABILITY EXTENSION)
+BASELINE DOMAIN: ROVERS -> EVOLVED DOMAIN: ROVERS (ORBITAL TELEMETRY RELAY)
 ================================================================================
-REQUIREMENT SUMMARY:
-Extend the existing operational model of rovers with an incremental feature request.
-The domain must now support high-throughput express operations with specialized tooling prerequisites.
+REQUIREMENT SPECIFICATION (AUTOPLANBENCH / CLASSICAL PLANNING GROUNDING):
+Extend the existing operational model of the rovers domain to incorporate direct orbital telemetry relay for scientific rock data.
 
-EVOLUTION RULES:
-1. Synthesize an extended action schema or specialized capability flag supporting advanced operations.
-2. CRITICAL PRESERVATION MANDATE: Backward compatibility across historical legacy problem instances
-   (instance-1 to instance-3) must be 100% strictly preserved.
-3. The Phase 4 Regression Gatekeeper will evaluate both the target problem and all historical test cases.
+The baseline domain enables:
+- navigating a rover between waypoints: (navigate ?x - rover ?y - waypoint ?z - waypoint)
+- sampling soil and rock samples into stores: (sample_soil ...), (sample_rock ...)
+- dropping sample store contents: (drop ?x - rover ?y - store)
+- calibrating cameras and taking multi-mode images: (calibrate ...), (take_image ...)
+- communicating scientific data through a line-of-sight lander with a free communication channel:
+  (communicate_soil_data ?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
+  (communicate_rock_data ?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
+  (communicate_image_data ?r - rover ?l - lander ?o - objective ?m - mode ?x - waypoint ?y - waypoint)
+
+CAPABILITY EXTENSION REQUIREMENTS:
+1. New Action Schema:
+   - Name: communicate_rock_data_orbital
+   - Parameters:
+     ?r - rover, ?p - waypoint, ?x - waypoint
+   - Preconditions:
+     The rover ?r must be at waypoint ?x: (at ?r ?x).
+     The rover ?r must have analyzed the rock sample from waypoint ?p: (have_rock_analysis ?r ?p).
+     The rover ?r must be available: (available ?r).
+   - Effects:
+     Asserts that rock data for waypoint ?p has been communicated: (communicated_rock_data ?p).
+
+SOLVABILITY PRESERVATION MANDATE:
+All baseline action schemas (navigate, sample_soil, sample_rock, drop, calibrate, take_image, communicate_soil_data, communicate_rock_data, communicate_image_data) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.

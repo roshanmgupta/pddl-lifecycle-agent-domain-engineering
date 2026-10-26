@@ -839,15 +839,19 @@ def get_lifecycle_flaw_pddl(domain_name: str, flaw_name: str) -> Dict[str, Any]:
     if os.path.exists(prob_file):
         with open(prob_file, "r", encoding="utf-8", errors="ignore") as f:
             res["problem"] = f.read()
-    spec_file = os.path.join(flaw_path, "complete_specification.txt")
+    spec_file = os.path.join(PDDL_LIFECYCLE_BENCH_ROOT, domain_name, "domain_encoding.txt")
+    if not os.path.exists(spec_file):
+        spec_file = os.path.join(flaw_path, "complete_specification.txt")
     if os.path.exists(spec_file):
         with open(spec_file, "r", encoding="utf-8", errors="ignore") as f:
-            res["specification"] = f.read()
+            res["specification"] = re.sub(r"\[NOTE:[^\]]+\]\s*", "", f.read()).strip()
     meta_file = os.path.join(flaw_path, "flaw_metadata.json")
     if os.path.exists(meta_file):
         import json
         with open(meta_file, "r", encoding="utf-8", errors="ignore") as f:
             res["metadata"] = json.load(f)
+            if res["metadata"].get("flaw_category") in ("BACKWARD_COMPATIBILITY_REGRESSION", "STATE_REACHABILITY_REGRESSION"):
+                res["metadata"]["flaw_category"] = "STATE_REACHABILITY_COLLAPSE"
     return res
 
 def list_lifecycle_evolutions(domain_name: str) -> List[str]:

@@ -1,17 +1,20 @@
-(define (domain visitall)
+(define (domain grid-visit-all)
   (:requirements :strips)
   (:types place - object)
   (:predicates 
-    (robot-at ?l - place)
-    (visited ?l - place)
+    (at-robot ?loc - place)
+    (visited ?loc - place)
     (connected ?from ?to - place)
   )
   (:action move
     :parameters (?from ?to - place)
-    :precondition (and (robot-at ?from) (connected ?from ?to))
+    :precondition (and 
+                    (at-robot ?from)
+                    (connected ?from ?to)
+                  )
     :effect (and 
-              (robot-at ?to)
-              (not (robot-at ?from))
+              (not (at-robot ?from))
+              (at-robot ?to)
               (visited ?to)
             )
   )

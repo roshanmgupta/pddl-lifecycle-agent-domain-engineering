@@ -318,6 +318,10 @@ def run_fast_downward_with_plan(
     If 'ground_truth_domain_path' is provided, performs non-circular Semantic Soundness Cross-Validation:
     validates the synthesized plan against D_gt using VAL, ensuring the plan obeys real-world invariants.
     """
+    from config.paths import get_temp_plan_path
+    if not plan_path:
+        plan_path = get_temp_plan_path()
+
     if plan_path and os.path.exists(plan_path):
         try:
             os.remove(plan_path)
@@ -336,16 +340,9 @@ def run_fast_downward_with_plan(
     raw_sas_plan_text = ""
 
     if is_ok:
-        if plan_path and os.path.exists(plan_path):
-            plan_file = plan_path
-        else:
-            from config.paths import get_temp_plan_path
-            plan_file = plan_path if plan_path else get_temp_plan_path()
-            if not os.path.exists(plan_file):
-                for candidate in ["sas_plan.1", "sas_plan.2", "sas_plan.3"]:
-                    if os.path.exists(candidate):
-                        plan_file = candidate
-                        break
+        plan_file = plan_path if (plan_path and os.path.exists(plan_path)) else ""
+        if not plan_file and os.path.exists("sas_plan"):
+            plan_file = "sas_plan"
 
         if os.path.exists(plan_file):
             try:
@@ -382,7 +379,7 @@ def run_fast_downward_with_plan(
             )
 
     # Clean up intermediate solver artifacts
-    for artifact in ["output.sas", "sas_plan", "sas_plan.1", "sas_plan.2", "sas_plan.3"]:
+    for artifact in ["output.sas", "sas_plan"]:
         if os.path.exists(artifact):
             try:
                 os.remove(artifact)

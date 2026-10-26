@@ -1,2 +1,0 @@
-(capture_image instrument0 satellite0 image0 star2 groundstation1)
-; cost = 1 (unit cost)

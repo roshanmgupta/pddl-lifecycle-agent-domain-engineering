@@ -1,5 +1,0 @@
-(traverse_waypoint rover0 waypoint0 waypoint2)
-(communicate_data rover0 objective0 image_data waypoint2)
-(communicate_data rover0 objective0 rock_data waypoint2)
-(communicate_data rover0 objective0 soil_data waypoint2)
-; cost = 4 (unit cost)

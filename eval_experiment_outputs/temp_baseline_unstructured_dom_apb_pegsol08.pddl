@@ -1,55 +1,62 @@
-(define (domain pegsol08)
-  (:requirements :strips :typing)
-  (:types location)
-  (:predicates
-    (in-line ?a ?b ?c - location)
-    (occupied ?loc - location)
-    (free ?loc - location)
-    (move-ended)
-    (last-visited ?loc - location)
-  )
-  (:action jump-new-move
-    :parameters (?a ?b ?c - location)
-    :precondition (and
-      (move-ended)
-      (in-line ?a ?b ?c)
-      (occupied ?a)
-      (occupied ?b)
-      (free ?c)
+(define (domain pegsolitaire-sequential)
+    (:requirements :strips :typing)
+    (:types location)
+    (:predicates 
+        (free ?l - location)
+        (occupied ?l - location)
+        (IN-LINE ?l1 ?l2 ?l3 - location)
+        (move-ended)
+        (last-visited ?l - location)
     )
-    :effect (and
-      (not (move-ended))
-      (not (occupied ?a))
-      (not (occupied ?b))
-      (occupied ?c)
-      (last-visited ?c)
-      (not (free ?c))
+    
+    (:action jump-new-move
+        :parameters (?A ?B ?C - location)
+        :precondition (and 
+            (move-ended)
+            (IN-LINE ?A ?B ?C)
+            (occupied ?A)
+            (occupied ?B)
+            (free ?C)
+        )
+        :effect (and 
+            (not (move-ended))
+            (not (occupied ?A))
+            (not (occupied ?B))
+            (occupied ?C)
+            (last-visited ?C)
+            (free ?A)
+            (free ?B)
+            (not (free ?C))
+        )
     )
-  )
-  (:action continue-jump
-    :parameters (?a ?b ?c - location)
-    :precondition (and
-      (last-visited ?a)
-      (in-line ?a ?b ?c)
-      (occupied ?a)
-      (occupied ?b)
-      (free ?c)
+    
+    (:action continue-jump
+        :parameters (?A ?B ?C - location)
+        :precondition (and 
+            (last-visited ?A)
+            (IN-LINE ?A ?B ?C)
+            (occupied ?A)
+            (occupied ?B)
+            (free ?C)
+        )
+        :effect (and 
+            (not (occupied ?A))
+            (not (occupied ?B))
+            (occupied ?C)
+            (last-visited ?C)
+            (free ?A)
+            (free ?B)
+            (not (free ?C))
+            (not (last-visited ?A))
+        )
     )
-    :effect (and
-      (not (occupied ?a))
-      (not (occupied ?b))
-      (occupied ?c)
-      (last-visited ?c)
-      (not (free ?c))
-      (not (last-visited ?a))
+    
+    (:action end-move
+        :parameters (?A - location)
+        :precondition (last-visited ?A)
+        :effect (and 
+            (move-ended)
+            (not (last-visited ?A))
+        )
     )
-  )
-  (:action end-move
-    :parameters (?a - location)
-    :precondition (last-visited ?a)
-    :effect (and
-      (move-ended)
-      (not (last-visited ?a))
-    )
-  )
 )

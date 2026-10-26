@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from pathlib import Path
 from typing import List, Optional, Dict, Any
@@ -31,7 +32,57 @@ def list_domain_flaws(domain_name: str) -> List[str]:
     flaws = [f.name for f in flaws_dir.iterdir() if f.is_dir()]
     return sorted(flaws)
 
-def load_flaw_task(domain_name: str, flaw_name: str) -> Optional[BenchmarkTask]:
+def find_causally_activating_problem(domain_name: str, flaw_name: str) -> Optional[Path]:
+    """
+    Finds the first problem instance that causally activates the flaw
+    (i.e. where the flawed domain fails VAL or Fast Downward, while the gold domain solves it).
+    Defaults to problem_flawed.pddl or instance-1.pddl.
+    """
+    flaw_dir = BENCHMARK_ROOT / domain_name / "flaws" / flaw_name
+    prob_flawed = flaw_dir / "problem_flawed.pddl"
+    if prob_flawed.exists():
+        return prob_flawed
+
+    dom_flawed = flaw_dir / "domain_flawed.pddl"
+    orig_dir = BENCHMARK_ROOT / domain_name / "orig_problems"
+    if not orig_dir.exists():
+        return None
+
+    probs = sorted(list(orig_dir.glob("*.pddl")), key=lambda p: (len(p.name), p.name))
+    if not probs:
+        return None
+
+    # Lazy import to prevent circular dependencies
+    from tools.symbolic_oracles import run_val_validator, run_fast_downward
+    gt_dom = BENCHMARK_ROOT / domain_name / "domain.pddl"
+
+    # 1. Quick test on instance-1 (most common)
+    p1 = orig_dir / "instance-1.pddl"
+    if p1.exists():
+        v1_ok, _ = run_val_validator(str(dom_flawed), str(p1))
+        if not v1_ok:
+            return p1
+        fd1_ok, _ = run_fast_downward(str(dom_flawed), str(p1))
+        if not fd1_ok:
+            return p1
+
+    # 2. If instance-1 bypassed the flaw, find the first problem instance where the flaw is activated
+    for p in probs:
+        v_ok, _ = run_val_validator(str(dom_flawed), str(p))
+        if not v_ok:
+            return p
+        fd_ok, _ = run_fast_downward(str(dom_flawed), str(p))
+        if not fd_ok:
+            if gt_dom.exists():
+                gt_ok, _ = run_fast_downward(str(gt_dom), str(p))
+                if gt_ok:
+                    return p
+            else:
+                return p
+    return p1 if p1.exists() else probs[0]
+
+
+def load_flaw_task(domain_name: str, flaw_name: str, problem_instance: Optional[str] = None) -> Optional[BenchmarkTask]:
     """
     Loads a single Category B flaw task from PDDLLifeCycleBench/<domain>/flaws/<flaw_name>.
     Constructs an executable BenchmarkTask with ground-truth metadata and oracle expectations.
@@ -42,21 +93,38 @@ def load_flaw_task(domain_name: str, flaw_name: str) -> Optional[BenchmarkTask]:
 
     dom_flawed = (flaw_dir / "domain_flawed.pddl").read_text(encoding="utf-8")
     meta = json.loads((flaw_dir / "flaw_metadata.json").read_text(encoding="utf-8"))
-    spec = (flaw_dir / "complete_specification.txt").read_text(encoding="utf-8")
+    
+    # Priority: Pure domain requirements from domain_encoding.txt (avoids bundled problem statements or notes)
+    domain_enc_file = BENCHMARK_ROOT / domain_name / "domain_encoding.txt"
+    if domain_enc_file.exists():
+        spec = domain_enc_file.read_text(encoding="utf-8")
+    else:
+        spec_file = flaw_dir / "complete_specification.txt"
+        spec = spec_file.read_text(encoding="utf-8") if spec_file.exists() else ""
+    spec = re.sub(r"\[NOTE:[^\]]+\]\s*", "", spec).strip()
     gt_dom = (BENCHMARK_ROOT / domain_name / "domain.pddl").read_text(encoding="utf-8")
 
-    # Use problem_flawed.pddl if present (e.g. initial/goal deadlocks), otherwise instance-1
-    prob_file = flaw_dir / "problem_flawed.pddl"
-    if not prob_file.exists():
-        prob_file = BENCHMARK_ROOT / domain_name / "orig_problems" / "instance-1.pddl"
-    prob_pddl = prob_file.read_text(encoding="utf-8") if prob_file.exists() else ""
+    # Select problem instance: explicit argument, problem_flawed.pddl, or causally activating problem
+    if problem_instance:
+        prob_file = BENCHMARK_ROOT / domain_name / "orig_problems" / problem_instance
+        if not prob_file.exists():
+            prob_file = Path(problem_instance)
+    else:
+        prob_file = find_causally_activating_problem(domain_name, flaw_name)
+        if not prob_file or not prob_file.exists():
+            prob_file = BENCHMARK_ROOT / domain_name / "orig_problems" / "instance-1.pddl"
+
+    prob_pddl = prob_file.read_text(encoding="utf-8") if (prob_file and prob_file.exists()) else ""
+    active_prob_name = prob_file.name if prob_file else "instance-1.pddl"
 
     fcat = meta.get("flaw_category", "UNKNOWN")
+    if fcat in ("BACKWARD_COMPATIBILITY_REGRESSION", "STATE_REACHABILITY_REGRESSION"):
+        fcat = "STATE_REACHABILITY_COLLAPSE"
     return BenchmarkTask(
         task_id=f"{domain_name}_{flaw_name}",
         domain_family=domain_name,
         task_type=LifecycleTaskType.SYNTHETIC_FAULT_REPAIR,
-        title=f"{domain_name.upper()} Flaw: {fcat}",
+        title=f"{domain_name.upper()} Flaw: {fcat} ({active_prob_name})",
         natural_language_requirements=spec,
         initial_domain_pddl=dom_flawed,
         initial_problem_pddl=prob_pddl,
@@ -87,14 +155,18 @@ def load_evolution_task(domain_name: str, evo_name: str) -> Optional[BenchmarkTa
 
     meta = json.loads((evo_dir / "evolution_metadata.json").read_text(encoding="utf-8"))
     spec = (evo_dir / "feature_request_specification.txt").read_text(encoding="utf-8")
-    gt_dom = (BENCHMARK_ROOT / domain_name / "domain.pddl").read_text(encoding="utf-8")
+    base_dom = (BENCHMARK_ROOT / domain_name / "domain.pddl").read_text(encoding="utf-8")
+    gt_evolved_file = evo_dir / "ground_truth_evolved_domain.pddl"
+    gt_dom = gt_evolved_file.read_text(encoding="utf-8") if gt_evolved_file.exists() else base_dom
     target_prob = (evo_dir / "target_problem.pddl").read_text(encoding="utf-8")
 
-    reg_probs = []
-    reg_dir = evo_dir / "historical_regression_problems"
-    if reg_dir.exists():
-        for rf in sorted(reg_dir.glob("*.pddl")):
-            reg_probs.append(rf.read_text(encoding="utf-8"))
+    base_probs = []
+    base_probs_dir = evo_dir / "baseline_benchmark_problems"
+    if not base_probs_dir.exists():
+        base_probs_dir = evo_dir / "historical_regression_problems"
+    if base_probs_dir.exists():
+        for rf in sorted(base_probs_dir.glob("*.pddl")):
+            base_probs.append(rf.read_text(encoding="utf-8"))
 
     cat = meta.get("evolution_category", "DOMAIN_EVOLUTION")
     return BenchmarkTask(
@@ -103,11 +175,11 @@ def load_evolution_task(domain_name: str, evo_name: str) -> Optional[BenchmarkTa
         task_type=LifecycleTaskType.DOMAIN_EVOLUTION,
         title=f"{domain_name.upper()} Evolution: {cat}",
         natural_language_requirements=spec,
-        initial_domain_pddl=gt_dom,
+        initial_domain_pddl=base_dom,
         initial_problem_pddl=target_prob,
         evolution_target_problem_pddl=target_prob,
-        historical_regression_problems=reg_probs,
-        expected_repair_behavior=meta.get("gatekeeper_requirement"),
+        baseline_benchmark_problems=base_probs,
+        expected_repair_behavior=meta.get("solvability_preservation_requirement") or meta.get("gatekeeper_requirement"),
         ground_truth_domain_pddl=gt_dom,
         ground_truth_problem_pddl=target_prob
     )
@@ -137,13 +209,16 @@ def load_elicitation_task(domain_name: str) -> Optional[BenchmarkTask]:
     dom_dir = BENCHMARK_ROOT / domain_name
     if not dom_dir.exists():
         return None
-    spec_file = dom_dir / "complete_specification.txt"
+    spec_file = dom_dir / "domain_encoding.txt"
+    if not spec_file.exists():
+        spec_file = dom_dir / "complete_specification.txt"
     dom_file = dom_dir / "domain.pddl"
     prob_files = sorted(list((dom_dir / "orig_problems").glob("instance-*.pddl")))
     if not spec_file.exists() or not dom_file.exists() or not prob_files:
         return None
 
     spec = spec_file.read_text(encoding="utf-8")
+    spec = re.sub(r"\[NOTE:[^\]]+\]\s*", "", spec).strip()
     gt_dom = dom_file.read_text(encoding="utf-8")
     gt_prob = prob_files[0].read_text(encoding="utf-8")
 

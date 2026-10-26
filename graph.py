@@ -2,6 +2,7 @@ import os
 from typing import TypedDict, List
 from langgraph.graph import StateGraph, END
 from nodes.elicitation import run_elicitation_node
+from nodes.evolution import run_evolution_node
 from nodes.generation import run_generation_node
 from nodes.triage import run_triage_node
 from nodes.repair import run_repair_node
@@ -99,10 +100,13 @@ def run_full_validation_node(state: AgentState) -> AgentState:
         
         if not plan_res["is_solvable"]:
             fd_log = plan_res.get("raw_fd_log", "")
+            is_translate_crash = any(k in fd_log.lower() for k in ["translate exit code", "undefined variable", "parsing error", "syntax error"])
             if plan_res.get("timed_out"):
                 # Search budget exhausted: NOT a proof of unsolvability, so it must not be
                 # reported as "Could not find a plan" (which triage treats as a proven deadlock).
                 err_msg = "Planner Error: " + fd_log
+            elif is_translate_crash:
+                err_msg = "Translator Syntax Error: " + fd_log
             else:
                 err_msg = "Planner Error: Could not find a plan. " + fd_log
             state["verification_errors"] = [err_msg]
@@ -145,11 +149,16 @@ MAX_ITERATIONS_DEFAULT = 5
 
 # 3. Router Functions for Closed Loop Workflow
 def route_after_validation(state: AgentState) -> str:
-    """If primary validation fails, route directly to triage. If validation passes and regression suite is present, route to maintenance; else complete at END."""
+    """If primary validation fails, route directly to triage. If validation passes and baseline benchmark suite is present, route to maintenance; else complete at END."""
     errors = state.get("verification_errors", [])
     if errors:
         return "triage"
-    suite = state.get("historical_regression_suite", [])
+    suite = (
+        state.get("baseline_benchmark_problems")
+        or state.get("benchmark_problem_distribution")
+        or state.get("historical_regression_suite")
+        or []
+    )
     if suite:
         return "maintenance"
     print("[SUCCESS]: Model successfully verified by Oracles (VAL & Fast Downward)!")
@@ -198,19 +207,22 @@ def route_after_triage(state: AgentState) -> str:
 
 def route_initial_entry(state: AgentState) -> str:
     """
-    If a flawed domain or pre-existing domain PDDL is already provided
-    (e.g. Category B Synthetic Fault Repair), bypass Phase 1 Elicitation & Generation entirely,
-    routing directly to Phase 2 Validation -> Phase 3 Triage & Repair.
+    Routes the workflow based on task type:
+    1. Phase 4 Domain Evolution tasks route to 'evolve' (Action Model Delta Synthesis).
+    2. Category B Synthetic Fault Repair tasks with pre-loaded flawed domains route to 'validate'.
+    3. Category A Elicitation tasks route to 'elicit'.
     """
+    if state.get("is_evolution_task"):
+        print("[GRAPH ROUTER]: Phase 4 Evolution task detected. Routing to Action Model Evolution node.")
+        return "evolve"
     if (
         state.get("is_synthetic_repair")
         or state.get("skip_elicitation")
         or (
             state.get("generated_domain_pddl")
-            and not state.get("is_evolution_task")
             and (state.get("verification_errors") or not state.get("requirements"))
         )
-        or (state.get("generated_domain_pddl") and state.get("pddl_domain_blueprint") and not state.get("is_evolution_task"))
+        or (state.get("generated_domain_pddl") and state.get("pddl_domain_blueprint"))
     ):
         print("[GRAPH ROUTER]: Pre-loaded domain detected for Repair. Bypassing Phase 1 Elicitation -> Starting at Validation.")
         return "validate"
@@ -220,6 +232,7 @@ def route_initial_entry(state: AgentState) -> str:
 builder = StateGraph(AgentState)
 
 builder.add_node("elicit", run_elicitation_node)
+builder.add_node("evolve", run_evolution_node)
 builder.add_node("generate", run_generation_node)
 builder.add_node("validate", run_full_validation_node)
 builder.add_node("maintenance", run_maintenance_node)
@@ -230,10 +243,12 @@ builder.set_conditional_entry_point(
     route_initial_entry,
     {
         "elicit": "elicit",
+        "evolve": "evolve",
         "validate": "validate"
     }
 )
 builder.add_edge("elicit", "generate")
+builder.add_edge("evolve", "generate")
 builder.add_edge("generate", "validate")
 builder.add_conditional_edges("validate", route_after_validation)
 builder.add_conditional_edges("maintenance", route_after_maintenance)

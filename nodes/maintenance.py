@@ -13,22 +13,27 @@ from tools.symbolic_oracles import run_val_validator, run_fast_downward
 
 def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Phase 4: Maintenance & Evolution Node.
+    Phase 4: Domain Model Evolution & Solvability Preservation Node.
     
-    Verifies that an updated/repaired domain blueprint maintains backward compatibility
-    with all historical problem instances stored in the regression suite.
+    In Classical Automated Planning (Fox & Long 2003; Haslum et al. 2019; McCluskey et al. 2017),
+    this node verifies Domain Subsumption: checking that an evolved domain Sigma' preserves plan reachability
+    (solvability) across the distribution of canonical benchmark problem instances Pi_ref = {P_1, ..., P_k}.
     """
     import time
     start_t = time.time()
     domain_blueprint = state.get("pddl_domain_blueprint")
     domain_pddl = state.get("generated_domain_pddl")
-    regression_suite = state.get("historical_regression_suite", [])
+    baseline_suite = (
+        state.get("baseline_benchmark_problems")
+        or state.get("benchmark_problem_distribution")
+        or []
+    )
 
-    if not regression_suite:
-        print("[Maintenance Node]: No historical test cases in regression suite. Skipping backward compatibility check.")
+    if not baseline_suite:
+        print("[Solvability Preservation]: No baseline benchmark problem instances provided. Skipping solvability preservation check.")
         return state
 
-    print(f"[Maintenance Node]: Running Phase 4 Backward Compatibility Suite on {len(regression_suite)} historical problem(s)...")
+    print(f"[Solvability Preservation Check]: Verifying plan reachability across {len(baseline_suite)} canonical baseline benchmark problem instance(s)...")
 
     # Ensure domain_blueprint is a dictionary if passed as a Pydantic model
     if hasattr(domain_blueprint, "model_dump"):
@@ -41,7 +46,7 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
         domain_pddl = compile_pddl_programmatically(domain_blueprint)
 
     if not domain_pddl:
-        print("[Maintenance Node Warning]: No compiled domain PDDL available for maintenance verification.")
+        print("[Solvability Preservation Warning]: No compiled domain PDDL available for solvability verification.")
         return state
 
     # Isolate Phase 4 error collectors to prevent inheriting stale errors
@@ -54,13 +59,19 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
         with open(domain_file_path, "w", encoding="utf-8") as f:
             f.write(domain_pddl)
 
-        for case_idx, case_data in enumerate(regression_suite):
+        for case_idx, case_data in enumerate(baseline_suite):
             if isinstance(case_data, dict):
-                case_id = case_data.get("case_id", f"historical_case_{case_idx+1}")
+                case_id = case_data.get("case_id", f"benchmark_instance_{case_idx+1}")
                 hist_prob_pddl = case_data.get("problem_pddl") or case_data.get("raw_pddl") or ""
-            elif isinstance(case_data, HistoricalProblemCase):
-                case_id = case_data.case_id
-                hist_prob_pddl = case_data.problem_pddl
+            elif isinstance(case_data, str):
+                # Raw PDDL problem string
+                # Extract problem name if available
+                prob_name_m = re.search(r"\(\s*problem\s+([a-zA-Z0-9_\-]+)\s*\)", case_data, re.IGNORECASE)
+                case_id = prob_name_m.group(1) if prob_name_m else f"benchmark_instance_{case_idx+1}"
+                hist_prob_pddl = case_data
+            elif hasattr(case_data, "problem_pddl"):
+                case_id = getattr(case_data, "case_id", f"benchmark_instance_{case_idx+1}")
+                hist_prob_pddl = getattr(case_data, "problem_pddl", "")
             else:
                 continue
 
@@ -81,17 +92,16 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
             with open(problem_file_path, "w", encoding="utf-8") as f:
                 f.write(hist_prob_pddl)
 
-            # Step 1: Check Syntax with VAL
+            # Step 1: Check Syntax & Types with VAL Oracle
             val_ok, val_log = run_val_validator(domain_file_path, problem_file_path)
             if not val_ok:
-                err_text = f"[REGRESSION_BREAKAGE]: Historical case '{case_id}' failed VAL syntax validation.\nLog: {val_log}"
+                err_text = f"[SOLVABILITY_PRESERVATION_BREAKAGE]: Benchmark instance '{case_id}' failed VAL syntax/type validation under evolved domain.\nLog: {val_log}"
                 print(f"  [FAIL] {err_text}")
-                import re
                 missing_pred_m = re.search(r"Predicate\s+(\w+)\s+not found", val_log)
-                hint = f"Historical test case '{case_id}' failed syntax validation with updated domain. Check for broken predicate definitions or arities."
+                hint = f"Benchmark instance '{case_id}' failed validation with evolved domain. Check for broken predicate definitions or arities."
                 if missing_pred_m:
                     pname = missing_pred_m.group(1)
-                    hint = f"Historical test case '{case_id}' failed because predicate '{pname}' is missing in the evolved domain. Declare '({pname} ...)' in domain 'predicates' with matching argument types to restore backward compatibility."
+                    hint = f"Benchmark instance '{case_id}' failed because predicate '{pname}' is missing in the evolved domain. Declare '({pname} ...)' in domain 'predicates' with matching argument types to preserve backward solvability."
 
                 verification_errors.append(err_text)
                 diagnostic_reports.append(
@@ -106,14 +116,14 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
                 has_regression_failure = True
                 continue
 
-            # Step 2: Check Plan Reachability with Fast Downward
+            # Step 2: Check Plan Reachability with Fast Downward Planning Oracle
             from tools.symbolic_oracles import run_fast_downward_with_plan
             plan_res = run_fast_downward_with_plan(domain_file_path, problem_file_path)
             fd_ok = plan_res["is_solvable"]
             fd_log = plan_res.get("raw_fd_log", "")
             
             if not fd_ok:
-                err_text = f"[REGRESSION_BREAKAGE]: Historical case '{case_id}' failed Fast Downward plan reachability.\nLog: {fd_log}"
+                err_text = f"[SOLVABILITY_PRESERVATION_BREAKAGE]: Benchmark instance '{case_id}' became unsolvable under evolved domain (Causal Reachability Deadlock).\nLog: {fd_log}"
                 print(f"  [FAIL] {err_text}")
                 verification_errors.append(err_text)
                 diagnostic_reports.append(
@@ -122,12 +132,12 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
                         repair_operation_type=RepairOperationType.REGRESSION_BACKWARD_COMPATIBILITY,
                         faulty_element=case_id,
                         raw_log=fd_log,
-                        suggested_repair_hint=f"Historical test case '{case_id}' became unsolvable with updated domain. Ensure newly added action preconditions do not over-constrain historical state transitions."
+                        suggested_repair_hint=f"Benchmark instance '{case_id}' became unsolvable with evolved domain. Ensure newly added action preconditions do not over-constrain baseline state transitions (separate new capability into a dedicated specialized action schema)."
                     )
                 )
                 has_regression_failure = True
             else:
-                print(f"  [PASS] Historical case '{case_id}' passed backward compatibility check!")
+                print(f"  [PASS] Benchmark instance '{case_id}' plan reachability preserved (Solvable=True)!")
                 hist_plans = list(state.get("historical_plan_results", []))
                 hist_plans.append({
                     "case_id": case_id,
@@ -141,7 +151,7 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
     else:
         state["verification_errors"] = []
         state["diagnostic_reports"] = []
-        print("[Maintenance Node]: All historical regression test cases passed successfully!")
+        print("[Solvability Preservation Certified]: All benchmark problem instances remain solvable under evolved domain!")
         
     latencies = state.get("node_latencies", {})
     latencies["maintenance"] = round(latencies.get("maintenance", 0.0) + (time.time() - start_t), 3)

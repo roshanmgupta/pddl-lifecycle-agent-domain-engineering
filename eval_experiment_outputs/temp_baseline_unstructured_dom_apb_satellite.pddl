@@ -1,53 +1,52 @@
 (define (domain satellite)
   (:requirements :strips)
+  (:types satellite instrument direction mode - object)
+  
   (:predicates
-    (supports ?instrument - instrument ?mode - mode)
-    (calibration_target ?instrument - instrument ?direction - direction)
-    (on_board ?instrument - instrument ?satellite - satellite)
-    (power_avail ?satellite - satellite)
-    (pointing ?satellite - satellite ?direction - direction)
-    (have_image ?direction - direction ?mode - mode)
-    (calibrated ?instrument - instrument)
-    (power_on ?instrument - instrument)
+    (supports ?i - instrument ?m - mode)
+    (calibration_target ?i - instrument ?d - direction)
+    (on_board ?i - instrument ?s - satellite)
+    (power_avail ?s - satellite)
+    (pointing ?s - satellite ?d - direction)
+    (power_on ?i - instrument)
+    (calibrated ?i - instrument)
+    (have_image ?d - direction ?m - mode)
   )
-
-  (:action turn_satellite
-    :parameters (?satellite - satellite ?from_direction - direction ?to_direction - direction)
-    :precondition (pointing ?satellite ?from_direction)
-    :effect (and
-      (pointing ?satellite ?to_direction)
-      (not (pointing ?satellite ?from_direction))
-    )
+  
+  (:action turn
+    :parameters (?s - satellite ?from - direction ?to - direction)
+    :precondition (and (pointing ?s ?from))
+    :effect (and (pointing ?s ?to) (not (pointing ?s ?from)))
   )
-
-  (:action switch_on_instrument
-    :parameters (?instrument - instrument ?satellite - satellite)
-    :precondition (and (on_board ?instrument ?satellite) (power_avail ?satellite))
-    :effect (and
-      (power_on ?instrument)
-      (not (calibrated ?instrument))
-      (not (power_avail ?satellite))
-    )
+  
+  (:action switch_on
+    :parameters (?i - instrument ?s - satellite)
+    :precondition (and (on_board ?i ?s) (power_avail ?s))
+    :effect (and (power_on ?i) (not (power_avail ?s)) (not (calibrated ?i)))
   )
-
-  (:action switch_off_instrument
-    :parameters (?instrument - instrument ?satellite - satellite)
-    :precondition (and (on_board ?instrument ?satellite) (power_on ?instrument))
-    :effect (and
-      (not (power_on ?instrument))
-      (power_avail ?satellite)
-    )
+  
+  (:action switch_off
+    :parameters (?i - instrument ?s - satellite)
+    :precondition (and (on_board ?i ?s) (power_on ?i))
+    :effect (and (power_avail ?s) (not (power_on ?i)))
   )
-
-  (:action calibrate_instrument
-    :parameters (?instrument - instrument ?satellite - satellite ?direction - direction)
-    :precondition (and (on_board ?instrument ?satellite) (calibration_target ?instrument ?direction) (pointing ?satellite ?direction) (power_on ?instrument))
-    :effect (calibrated ?instrument)
+  
+  (:action calibrate
+    :parameters (?s - satellite ?i - instrument ?d - direction)
+    :precondition (and (on_board ?i ?s)
+                       (calibration_target ?i ?d)
+                       (pointing ?s ?d)
+                       (power_on ?i))
+    :effect (and (calibrated ?i))
   )
-
+  
   (:action take_image
-    :parameters (?satellite - satellite ?direction - direction ?instrument - instrument ?mode - mode)
-    :precondition (and (calibrated ?instrument) (on_board ?instrument ?satellite) (supports ?instrument ?mode) (power_on ?instrument) (pointing ?satellite ?direction))
-    :effect (have_image ?direction ?mode)
+    :parameters (?s - satellite ?d - direction ?i - instrument ?m - mode)
+    :precondition (and (calibrated ?i)
+                       (on_board ?i ?s)
+                       (supports ?i ?m)
+                       (power_on ?i)
+                       (pointing ?s ?d))
+    :effect (and (have_image ?d ?m))
   )
 )

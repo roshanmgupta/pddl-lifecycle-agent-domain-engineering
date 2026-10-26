@@ -1,6 +1,0 @@
-(define (problem p1)
-  (:domain test)
-  (:objects c1 - container h1 - hand table - object)
-  (:init (on c1 table))
-  (:goal (holding h1 c1))
-)

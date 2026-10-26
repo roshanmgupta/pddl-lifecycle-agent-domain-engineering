@@ -256,9 +256,13 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
         return state
 
     if state.get("skip_triage"):
-        print("[Triage Node (ABLATION)]: Triage bypassed. Forwarding raw oracle errors directly to repair node.")
+        raw_msg = "\n".join(raw_errors)
+        # print("\n" + "=" * 75)
+        # print("[Triage Node (ABLATION - NO TRIAGE)]: Raw Oracle Feedback Forwarded to Repair:")
+        # print(raw_msg.strip()[:1500])
+        # print("=" * 75 + "\n", flush=True)
         state["diagnostic_reports"] = []
-        state["formatted_diagnostic_feedback"] = "Raw Oracle Verification Errors (Unstructured Feedback):\n" + "\n".join(raw_errors)
+        state["formatted_diagnostic_feedback"] = "Raw Oracle Verification Errors (Unstructured Feedback):\n" + raw_msg
         latencies = state.get("node_latencies", {})
         latencies["triage"] = round(latencies.get("triage", 0.0) + (time.time() - start_t), 3)
         state["node_latencies"] = latencies
@@ -289,10 +293,19 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
         return state
 
     domain_bp = state.get("pddl_domain_blueprint", {})
+    if (not domain_bp or not domain_bp.get("actions")) and state.get("generated_domain_pddl"):
+        from tools.blueprint_parser import parse_pddl_domain_to_blueprint
+        domain_bp = parse_pddl_domain_to_blueprint(state["generated_domain_pddl"])
+        state["pddl_domain_blueprint"] = domain_bp
     problem_pddl = state.get("initial_problem_pddl") or state.get("generated_problem_pddl") or ""
     prob_meta = extract_pddl_problem_metadata(problem_pddl) if problem_pddl else {}
     requirements_text = state.get("requirements", "")
     error_traces_str = "\n".join(raw_errors)
+
+    # print("\n" + "=" * 75)
+    # print("[Triage Node]: Raw Oracle Feedback Received for Triage Analysis:")
+    # print(error_traces_str.strip()[:1500])
+    # print("=" * 75 + "\n", flush=True)
 
     # Classical Action-Predicate Causal Dependency Graph & Reachability Triage Analysis
     causal_analysis = run_causal_triage_analysis(
@@ -304,7 +317,7 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["causal_graph_analysis"] = causal_analysis
     causal_summary = causal_analysis.get("diagnostic_summary", "")
 
-    val_syntax_or_type_error = any("VAL Error:" in err for err in raw_errors)
+    val_syntax_or_type_error = any("VAL Error:" in err or "Translator Syntax Error:" in err for err in raw_errors)
     focus_guidance = ""
     if val_syntax_or_type_error:
         val_type_diagnostics = []
@@ -312,10 +325,23 @@ def run_triage_node(state: Dict[str, Any]) -> Dict[str, Any]:
         unknown_type_entries = []
         current_val_action = None
         for err in raw_errors:
+            # Check multi-line Fast Downward translator syntax errors
+            m_undef_multi = re.search(r"Undefined variable\s+Got:\s*(\?[a-zA-Z0-9_\-]+)", err, re.DOTALL)
+            if m_undef_multi:
+                undef_var = m_undef_multi.group(1)
+                m_act_fd = re.search(r"Parsing action '([a-zA-Z0-9_\-]+)'", err)
+                act_hint = m_act_fd.group(1) if m_act_fd else current_val_action
+                target_act_hint = f"In action '{act_hint}'" if act_hint else "In the action schema using it"
+                val_type_diagnostics.append(
+                    f"  * Fast Downward Translator Error: 'Undefined variable Got: {undef_var}'.\n"
+                    f"    CRITICAL ROOT CAUSE: {target_act_hint}, variable '{undef_var}' is referenced in preconditions/effects but is not declared in :parameters.\n"
+                    f"    MANDATORY REPAIR ACTION: {target_act_hint}, add parameter '{undef_var}': 'object' (or its appropriate declared type) to its parameters."
+                )
+
             for line in err.splitlines():
                 if "...action passes type checking" in line or "Type-checking initial state" in line or "Type-checking goal state" in line or "Type problem in problem specification" in line:
                     current_val_action = None
-                m_act = re.search(r"Type-checking\s+([a-zA-Z0-9_\-]+)", line)
+                m_act = re.search(r"Type-checking\s+([a-zA-Z0-9_\-]+)", line) or re.search(r"Parsing action '([a-zA-Z0-9_\-]+)'", line)
                 if m_act:
                     current_val_action = m_act.group(1)
 
@@ -775,11 +801,11 @@ GROUNDED ACTION-PREDICATE CAUSAL DEPENDENCY & REACHABILITY ANALYSIS:
       SYSTEM_ORACLE_ERROR is strictly forbidden for domain AST defects, action precondition/effect errors, or planner solvability failures. SYSTEM_ORACLE_ERROR is reserved exclusively for missing host binary executables.
       Contradictory effects (e.g. simultaneously adding and deleting an atom) or invalid precondition syntax MUST be categorized under SYNTAX_PARSE or GROUNDING_UNSOLVABILITY with repair_operation_type EFFECT_ALIGNMENT or PRECONDITION_INSERTION/RELAXATION.
     - repair_operation_type: PRECONDITION_RELAXATION, PRECONDITION_INSERTION, EFFECT_ALIGNMENT, TYPE_ARITY_ALIGNMENT, ACTION_ADDITION, REGRESSION_BACKWARD_COMPATIBILITY, or GENERAL_AST_REPAIR
-    - faulty_element: Name of the specific domain action, predicate, 'types', or 'constants'
+    - faulty_element: Exact PDDL symbol name of the specific domain action (e.g. 'pick-up'), predicate, 'types', or 'constants' (use the exact PDDL identifier, not dot notation)
     - raw_log: Exact or summarized log snippet from the oracle
     - suggested_repair_hint: CRITICAL PRESCRIPTIVE REPAIR DIRECTIVE:
       Do NOT merely restate what happened or describe the symptom. Provide exact, actionable instructions targeting ONLY the Domain Blueprint:
-      1) The exact domain AST target to modify ('domain.types', 'domain.constants', 'domain.predicates', or 'domain.actions.<action_name>').
+      1) The exact domain AST target to modify (e.g. action 'pick-up', 'types', 'constants', or predicate '<name>').
       2) The concrete operation (e.g. 'ADD subtype link in domain.types', 'ADD action schema <name>', 'REPLACE precondition <pred> with <pred>', 'ADD positive effect <pred>').
       3) The exact PDDL literal or signature to write, and why it resolves the oracle failure.
 

@@ -1,13 +1,33 @@
 ================================================================================
-CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (TASK 1: CAPABILITY EXTENSION)
-DOMAIN: FLOORTILE
+CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (CAPABILITY EXTENSION)
+BASELINE DOMAIN: FLOORTILE -> EVOLVED DOMAIN: FLOORTILE (LATERAL TILE PAINTING)
 ================================================================================
-REQUIREMENT SUMMARY:
-Extend the existing operational model of floortile with an incremental feature request.
-The domain must now support high-throughput express operations with specialized tooling prerequisites.
+REQUIREMENT SPECIFICATION (AUTOPLANBENCH / CLASSICAL PLANNING GROUNDING):
+Extend the existing operational model of the floortile domain to support lateral tile painting operations to the right of the robot.
 
-EVOLUTION RULES:
-1. Synthesize an extended action schema or specialized capability flag supporting advanced operations.
-2. CRITICAL PRESERVATION MANDATE: Backward compatibility across historical legacy problem instances
-   (instance-1 to instance-3) must be 100% strictly preserved.
-3. The Phase 4 Regression Gatekeeper will evaluate both the target problem and all historical test cases.
+The baseline domain enables:
+- changing the color of a painting robot: (change-color ?r - robot ?c - color)
+- painting an adjacent tile above: (paint-up ?r - robot ?y - tile ?x - tile ?c - color)
+- painting an adjacent tile below: (paint-down ?r - robot ?y - tile ?x - tile ?c - color)
+- moving the robot up, down, right, and left across clear adjacent tiles:
+  (up ?r - robot ?x - tile ?y - tile)
+  (down ?r - robot ?x - tile ?y - tile)
+  (right ?r - robot ?x - tile ?y - tile)
+  (left ?r - robot ?x - tile ?y - tile)
+
+CAPABILITY EXTENSION REQUIREMENTS:
+1. New Action Schema:
+   - Name: paint-right
+   - Parameters:
+     ?r - robot, ?y - tile, ?x - tile, ?c - color
+   - Preconditions:
+     The robot ?r must have color ?c: (robot-has ?r ?c).
+     The robot ?r must be at tile ?x: (robot-at ?r ?x).
+     Tile ?y must be to the right of tile ?x: (right ?y ?x).
+     Tile ?y must be clear: (clear ?y).
+   - Effects:
+     Tile ?y is no longer clear: (not (clear ?y)).
+     Tile ?y is now painted with color ?c: (painted ?y ?c).
+
+SOLVABILITY PRESERVATION MANDATE:
+All baseline action schemas (change-color, paint-up, paint-down, up, down, right, left) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.

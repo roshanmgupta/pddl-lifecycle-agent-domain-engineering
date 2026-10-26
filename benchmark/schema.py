@@ -49,9 +49,9 @@ class BenchmarkTask(BaseModel):
         default=None,
         description="Description or specification of the intended behavior to be restored"
     )
-    historical_regression_problems: List[str] = Field(
+    baseline_benchmark_problems: List[str] = Field(
         default_factory=list,
-        description="List of legacy problem PDDL strings that must remain solvable after domain evolution"
+        description="List of baseline benchmark problem PDDL strings that must remain solvable after domain evolution to certify solvability preservation (domain subsumption)"
     )
     evolution_target_problem_pddl: Optional[str] = Field(
         default=None,

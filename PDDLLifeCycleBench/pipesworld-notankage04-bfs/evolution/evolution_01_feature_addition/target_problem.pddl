@@ -1,11 +1,26 @@
 
-(define (problem network1new_all_14_8_instance)
+(define (problem p01-net1-b6-g2_rt0_instance)
   (:domain pipesworld_strips)
   (:objects
 
-    	B10 B0 B1 B4 B6 B7 B12 B9 B3 B13 B8 B2 B11 B5 - batch-atom
+    	B0 B3 B1 B4 B2 B5 - batch-atom
 	A1 A2 A3 - area
 	S12 S13 - pipe
+	TA1-1-lco - tank-slot
+	TA1-1-gasoleo - tank-slot
+	TA1-1-rat-a - tank-slot
+	TA1-1-oca1 - tank-slot
+	TA1-1-oc1b - tank-slot
+	TA2-1-lco - tank-slot
+	TA2-1-gasoleo - tank-slot
+	TA2-1-rat-a - tank-slot
+	TA2-1-oca1 - tank-slot
+	TA2-1-oc1b - tank-slot
+	TA3-1-lco - tank-slot
+	TA3-1-gasoleo - tank-slot
+	TA3-1-rat-a - tank-slot
+	TA3-1-oca1 - tank-slot
+	TA3-1-oc1b - tank-slot
 	
 
   )
@@ -44,43 +59,73 @@
 	(connect A1 A3 S13)
 	
 
+    ;; Specify tank location
+    	(tank-slot-product-location TA1-1-lco lco A1)
+	(tank-slot-product-location TA1-1-gasoleo gasoleo A1)
+	(tank-slot-product-location TA1-1-rat-a rat-a A1)
+	(tank-slot-product-location TA1-1-oca1 oca1 A1)
+	(tank-slot-product-location TA1-1-oc1b oc1b A1)
+	(tank-slot-product-location TA2-1-lco lco A2)
+	(tank-slot-product-location TA2-1-gasoleo gasoleo A2)
+	(tank-slot-product-location TA2-1-rat-a rat-a A2)
+	(tank-slot-product-location TA2-1-oca1 oca1 A2)
+	(tank-slot-product-location TA2-1-oc1b oc1b A2)
+	(tank-slot-product-location TA3-1-lco lco A3)
+	(tank-slot-product-location TA3-1-gasoleo gasoleo A3)
+	(tank-slot-product-location TA3-1-rat-a rat-a A3)
+	(tank-slot-product-location TA3-1-oca1 oca1 A3)
+	(tank-slot-product-location TA3-1-oc1b oc1b A3)
+	
+
+    ;; Specify tank maximum capacity
+    	
+
+    ;; Specify tank product
+    	
+
     ;; Batch-atoms products
-    	(is-product B10 oca1)
-	(is-product B0 lco)
+    	(is-product B0 oc1b)
+	(is-product B3 rat-a)
 	(is-product B1 lco)
 	(is-product B4 lco)
-	(is-product B6 lco)
-	(is-product B7 oca1)
-	(is-product B12 rat-a)
-	(is-product B9 rat-a)
-	(is-product B3 lco)
-	(is-product B13 rat-a)
-	(is-product B8 rat-a)
 	(is-product B2 gasoleo)
-	(is-product B11 gasoleo)
 	(is-product B5 oca1)
 	
 
+    ;; Specify tank current volume
+    	
+
     ;; Batch-atoms initially located in areas
-    	(on B10 A2)
-	(on B0 A1)
-	(on B1 A2)
-	(on B4 A2)
-	(on B6 A2)
-	(on B12 A3)
-	(on B9 A2)
-	(on B3 A3)
-	(on B13 A2)
-	(on B8 A3)
-	(on B11 A2)
-	(on B5 A2)
+    	(on B0 A1)
+	(occupied TA1-1-oc1b)
+	
+	(on B3 A1)
+	(occupied TA1-1-rat-a)
+	
+	(on B1 A3)
+	(occupied TA3-1-lco)
+	
+	(on B2 A1)
+	(occupied TA1-1-gasoleo)
+	
+	(not-occupied TA1-1-lco)
+	(not-occupied TA1-1-oca1)
+	(not-occupied TA2-1-lco)
+	(not-occupied TA2-1-gasoleo)
+	(not-occupied TA2-1-rat-a)
+	(not-occupied TA2-1-oca1)
+	(not-occupied TA2-1-oc1b)
+	(not-occupied TA3-1-gasoleo)
+	(not-occupied TA3-1-rat-a)
+	(not-occupied TA3-1-oca1)
+	(not-occupied TA3-1-oc1b)
 	
 
     ;; Batch-atoms initially located in pipes
-    	(first B2 S12)
-	(last B2 S12)
-	(first B7 S13)
-	(last B7 S13)
+    	(first B4 S12)
+	(last B4 S12)
+	(first B5 S13)
+	(last B5 S13)
 	
     ;; Unitary pipeline segments
     		(unitary S12)
@@ -88,14 +133,10 @@
 
   )
   (:goal (and
-    	(on B10 A3)
-	(on B0 A2)
-	(on B4 A1)
-	(on B6 A1)
-	(on B12 A2)
-	(on B9 A3)
-	(on B8 A2)
-	(on B5 A1)
-	
+    	(on B2 A3)
+	(on B5 A2)
+			(normal S12)
+		(normal S13)
+
   ))
 )

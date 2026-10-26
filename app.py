@@ -83,7 +83,7 @@ import glob
 
 # Import Project Modules
 from benchmark.schema import BenchmarkTask, LifecycleTaskType
-from eval.baselines import run_zero_shot_baseline, run_unstructured_retry_baseline
+from eval.baselines import run_zero_shot_baseline, run_unstructured_retry_baseline, run_no_ast_ablation
 from eval.benchmark_runner import evaluate_candidate_pddl
 from graph import pddl_lifecycle_graph, AgentState
 from tools.blueprint_parser import parse_pddl_domain_to_blueprint
@@ -325,13 +325,15 @@ system_choice = st.sidebar.selectbox(
     options=[
         "CLOSED_LOOP_AST_AGENT",
         "ABLATION_NO_TRIAGE",
+        "ABLATION_NO_AST",
         "UNSTRUCTURED_RETRY",
         "ZERO_SHOT"
     ],
     format_func=lambda x: {
         "CLOSED_LOOP_AST_AGENT": "🧠 Closed-Loop AST Agent (Diagnostic LLM + Surgical AST)",
-        "ABLATION_NO_TRIAGE": "🔬 Ablation: No Triage (Closed-Loop without Diagnostic Agent)",
-        "UNSTRUCTURED_RETRY": "⚡ Baseline: Unstructured Retry (Direct PDDL Re-prompting)",
+        "ABLATION_NO_TRIAGE": "🔬 Ablation: No Triage (AST Blueprint + Raw Trace Errors) [Tests H2]",
+        "ABLATION_NO_AST": "🔬 Ablation: No AST (Direct PDDL Text + Diagnostic Triage) [Tests H1]",
+        "UNSTRUCTURED_RETRY": "⚡ Baseline: Unstructured Retry (Direct PDDL + Raw Trace Errors)",
         "ZERO_SHOT": "🎯 Baseline: Zero-Shot (Direct PDDL, No Feedback Loop)"
     }.get(x, x),
     help="Select which system architecture to execute and evaluate against classical oracles."
@@ -340,7 +342,9 @@ system_choice = st.sidebar.selectbox(
 if system_choice == "CLOSED_LOOP_AST_AGENT":
     st.sidebar.caption("✨ **Proposed Thesis Method**: Pydantic AST schema elicitation, compiler, VAL/FD oracles, Diagnostic LLM Agent for fault localization, surgical AST repair.")
 elif system_choice == "ABLATION_NO_TRIAGE":
-    st.sidebar.caption("🔬 **Thesis Ablation**: Closed-loop agent without diagnostic triage. Raw terminal error logs from VAL/FD are routed directly to repair without root-cause localization.")
+    st.sidebar.caption("🔬 **Thesis Ablation (Tests H2)**: AST Blueprint + compiler, but closed-loop without diagnostic triage. Raw terminal error logs from VAL/FD are routed directly to repair.")
+elif system_choice == "ABLATION_NO_AST":
+    st.sidebar.caption("🔬 **Thesis Ablation (Tests H1)**: LLM repairs raw PDDL text directly. Receives structured Diagnostic Triage reports and repair hints, but without an AST Blueprint or Python compiler.")
 elif system_choice == "UNSTRUCTURED_RETRY":
     st.sidebar.caption("⚡ **Literature Baseline**: LLM directly outputs raw PDDL text. Iteratively re-prompted with raw VAL/FD terminal error logs (no AST schema, no diagnostic triage).")
 elif system_choice == "ZERO_SHOT":
@@ -365,7 +369,7 @@ active_task = BenchmarkTask(
     initial_problem_pddl=ref_inst if ('ref_inst' in locals() and ref_inst) else "",
     ground_truth_domain_pddl=ref_dom if ('ref_dom' in locals() and ref_dom) else "",
     ground_truth_problem_pddl=ref_inst if ('ref_inst' in locals() and ref_inst) else "",
-    historical_regression_problems=[
+    baseline_benchmark_problems=[
         c.get("problem_pddl") or c.get("raw_pddl") or ""
         for c in historical_suite_input
     ] if enable_maintenance else []
@@ -432,7 +436,8 @@ if run_agent:
             "verification_errors": initial_errors_input,
             "diagnostic_reports": [],
             "formatted_diagnostic_feedback": "",
-            "historical_regression_suite": historical_suite_input if enable_maintenance else [],
+            "baseline_benchmark_problems": historical_suite_input if enable_maintenance else [],
+            "benchmark_problem_distribution": historical_suite_input if enable_maintenance else [],
             "iteration_count": 0,
             "max_iterations": max_iterations,
             "generated_plan_result": {},
@@ -476,14 +481,14 @@ if run_agent:
                             
                     elif node_name == "maintenance":
                         m_errors = node_output.get("verification_errors", [])
-                        reg_suite = current_state.get("historical_regression_suite", [])
-                        if reg_suite:
+                        bench_suite = current_state.get("baseline_benchmark_problems", []) or current_state.get("benchmark_problem_distribution", [])
+                        if bench_suite:
                             if not m_errors:
-                                status_container.write(f"🛡️ **Node 4 [MAINTENANCE]**: Phase 4 Historical Regression Suite passed ({len(reg_suite)} test case(s))! Backward compatibility verified.")
+                                status_container.write(f"🛡️ **Node 4 [MAINTENANCE]**: Phase 4 Baseline Benchmark Suite passed ({len(bench_suite)} test case(s))! Solvability preservation verified.")
                             else:
-                                status_container.write(f"🚨 **Node 4 [MAINTENANCE]**: Historical regression detected on {len(m_errors)} test case(s):")
+                                status_container.write(f"🚨 **Node 4 [MAINTENANCE]**: Solvability preservation breakage detected on {len(m_errors)} test case(s):")
                                 for err_idx, err_msg in enumerate(m_errors, 1):
-                                    status_container.caption(f"  * Regression #{err_idx}: `{err_msg}`")
+                                    status_container.caption(f"  * Breakage #{err_idx}: `{err_msg}`")
                         time.sleep(0.3)
                             
                     elif node_name == "triage":
@@ -679,7 +684,62 @@ if run_agent:
             status_container.update(label=f"❌ Execution Error: {str(e)}", state="error")
             st.error(f"Execution Error: {str(e)}")
 
-    # CASE 3: ZERO-SHOT BASELINE
+    # CASE 3: ABLATION NO AST (Direct Text Repair + Structured Diagnostic Triage)
+    elif system_choice == "ABLATION_NO_AST":
+        st.markdown("### 🔬 Live Execution Stream: `ABLATION_NO_AST` (Tests H1)")
+        status_container = st.status("🔬 Running Ablation: No AST (Direct Text + Diagnostic Triage)...", expanded=True)
+        status_container.write("Direct PDDL text repair using structured Diagnostic Triage reports (No AST blueprint, no compiler)...")
+        try:
+            t0 = time.time()
+            base_res = run_no_ast_ablation(active_task, max_retries=max_iterations)
+            exec_time = time.time() - t0
+            
+            status_container.write(f"-> Completed in {exec_time:.2f}s | Iterations: {base_res.get('iterations_used', 1)} | Tokens: {base_res.get('total_tokens', 0)}")
+            
+            current_state = {
+                "system_type": "ABLATION_NO_AST",
+                "requirements": user_requirements,
+                "generated_domain_pddl": base_res.get("generated_domain_pddl", ""),
+                "generated_problem_pddl": base_res.get("generated_problem_pddl", ""),
+                "initial_domain_pddl": initial_domain_pddl_input,
+                "initial_problem_pddl": initial_problem_pddl_input,
+                "verification_errors": [base_res["error"]] if base_res.get("error") else [],
+                "diagnostic_reports": base_res.get("diagnostic_reports", []),
+                "iteration_count": base_res.get("iterations_used", 1),
+                "total_tokens": base_res.get("total_tokens", 0),
+                "total_prompt_tokens": base_res.get("prompt_tokens", 0),
+                "total_completion_tokens": base_res.get("completion_tokens", 0),
+                "estimated_cost_usd": base_res.get("estimated_cost_usd", 0.0),
+                "node_latencies": {"ablation_no_ast": exec_time}
+            }
+            
+            metrics = evaluate_candidate_pddl(
+                task=active_task,
+                agent_type="ABLATION_NO_AST",
+                generated_domain_pddl=base_res.get("generated_domain_pddl", ""),
+                generated_problem_pddl=base_res.get("generated_problem_pddl", ""),
+                iterations_used=base_res.get("iterations_used", 1),
+                execution_time_seconds=exec_time,
+                total_tokens=base_res.get("total_tokens", 0),
+                estimated_cost_usd=base_res.get("estimated_cost_usd", 0.0),
+                diagnostic_reports=base_res.get("diagnostic_reports", []),
+                error_summary=base_res.get("error")
+            )
+            st.session_state["active_run_metrics"] = metrics
+            st.session_state["final_state"] = current_state
+            saved_info = save_output_to_disk(current_state, active_task)
+            st.session_state["last_saved_info"] = saved_info
+            
+            if metrics.e2e_success:
+                status_container.update(label="✅ Ablation No-AST Finished! Model Verified (E2E Success = True)", state="complete", expanded=True)
+            else:
+                status_container.update(label="⚠️ Ablation No-AST Finished: Model Unverified (E2E Success = False)", state="error", expanded=True)
+                
+        except Exception as e:
+            status_container.update(label=f"❌ Execution Error: {str(e)}", state="error")
+            st.error(f"Execution Error: {str(e)}")
+
+    # CASE 4: ZERO-SHOT BASELINE
     elif system_choice == "ZERO_SHOT":
         st.markdown("### 🔄 Live Execution Stream: `ZERO_SHOT`")
         status_container = st.status("🎯 Running Zero-Shot Baseline (Single-Pass Direct Generation)...", expanded=True)
@@ -1101,32 +1161,28 @@ if final_state:
                     f"Reason: `{run_m.error_summary or 'Oracle checks did not fully pass.'}`"
                 )
 
+            st.markdown("##### 🛡️ Primary Operational Verification Metrics (Symbolic Oracles)")
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("E2E Verified Success", "PASS ✅" if run_m.e2e_success else "FAIL ❌")
-            c2.metric("Syntax Validity (SVR)", "100% (Valid) 🛡️" if run_m.is_syntax_valid else "0% (Syntax Error) ⚠️")
-            c3.metric("Solvability Rate (SR)", f"Solvable ({run_m.plan_length or 0} steps)" if run_m.is_plan_valid else "Unsolvable ❌")
-            c4.metric("Plan Validity Rate (PVR)", "100% (Certified) ✅" if run_m.plan_execution_valid else "0% (Uncertified) ⚠️")
+            c1.metric("Syntax Validity Rate (SVR)", "100% (Valid) 🛡️" if run_m.svr_syntax_valid_rate >= 1.0 else "0% (Syntax Error) ⚠️")
+            c2.metric("Target Plan Validity (TPV)", "PASS (Certified) ✅" if run_m.tpv_target_plan_valid else "FAIL (Unsound) ❌")
+            c3.metric("Plan Length (|Plan|)", f"{run_m.plan_length or 0} steps" if run_m.tpv_target_plan_valid else "N/A")
+            cov_label = f"{run_m.cov_ref_coverage_rate:.1f}% ({run_m.reference_instances_passed or 0}/{run_m.reference_instances_total or 0})" if run_m.cov_ref_coverage_rate is not None else "N/A (Target Task)"
+            c4.metric("Ref Suite Coverage (Cov_ref)", cov_label)
 
+            if run_m.macro_structural_f1 is not None:
+                st.markdown("##### 🧬 Structural Reconstruction Conformance (Oswald et al. 2024 / Aineto et al. 2022)")
+                s1, s2, s3, s4 = st.columns(4)
+                s1.metric("Macro Structural F1", f"{run_m.macro_structural_f1:.4f}")
+                s2.metric("Precondition F1 (Pre_F1)", f"{run_m.precondition_f1:.4f}" if run_m.precondition_f1 is not None else "N/A")
+                s3.metric("Add-Effect F1 (Add_F1)", f"{run_m.add_effect_f1:.4f}" if run_m.add_effect_f1 is not None else "N/A")
+                s4.metric("Delete-Effect F1 (Del_F1)", f"{run_m.delete_effect_f1:.4f}" if run_m.delete_effect_f1 is not None else "N/A")
+
+            st.markdown("##### ⚡ Diagnostic Efficiency & Computational Cost")
             c5, c6, c7, c8 = st.columns(4)
-            c5.metric("Repair Iterations (k <= 10)", f"{run_m.iterations_used} / 10")
+            c5.metric("Repair Iterations (k)", f"{run_m.iterations_used}")
             c6.metric("Execution Latency", f"{run_m.execution_time_seconds:.2f}s")
             c7.metric("Total Tokens", f"{run_m.total_tokens:,}")
             c8.metric("Estimated Cost", f"${run_m.estimated_cost_usd:.6f}")
-
-            # Task-specific secondary metrics from Table 1
-            if run_m.is_repaired or (run_m.fault_localization_top1 is not None):
-                st.markdown("##### 🔍 Fault Repair & Diagnostic Accuracy (Category B)")
-                f1, f2, f3 = st.columns(3)
-                f1.metric("Repair Success (RSR)", "100% (Repaired) ✅" if run_m.is_repaired else "0% (Unresolved) ❌")
-                f2.metric("Fault Localisation (FLA Top-1)", "Rank 1 Match 🎯" if run_m.fault_localization_top1 else "Not Top-1")
-                f3.metric("Fault Localisation (FLA MRR)", f"{run_m.fault_localization_mrr or 0.0:.3f}")
-
-            if run_m.evolution_capability_valid is not None or run_m.regression_pass_rate is not None:
-                st.markdown("##### 🛡️ Evolution & Regression Preservation (Category C)")
-                e1, e2 = st.columns(2)
-                e1.metric("Evolution Capability Solved", "Yes ✅" if run_m.evolution_capability_valid else "No ❌")
-                pass_pct = f"{round((run_m.regression_pass_rate or 0.0)*100)}%"
-                e2.metric("Regression Preservation (RPR)", f"{pass_pct} ({run_m.historical_problems_passed or 0}/{run_m.historical_problems_total or 0})")
         else:
             st.info("Run the agent or a baseline above to inspect active lifecycle scorecard metrics.")
 

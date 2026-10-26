@@ -1,6 +1,0 @@
-(load_package package-2 truck-1 city-loc-3)
-(load_package package-1 truck-1 city-loc-3)
-(drive_vehicle truck-1 city-loc-3 city-loc-2)
-(unload_package package-2 truck-1 city-loc-2)
-(unload_package package-1 truck-1 city-loc-2)
-; cost = 5 (unit cost)

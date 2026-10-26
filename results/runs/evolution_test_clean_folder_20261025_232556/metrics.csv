@@ -1,0 +1,2 @@
+domain,evolution_task,agent_type,svr_syntax_valid_rate,tpv_target_plan_valid,cov_ref_coverage_rate,reference_instances_passed,reference_instances_total,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,plan_length,plan_cost,iterations_used,behavioral_code,wall_clock_seconds,total_tokens,estimated_cost_usd,error_summary
+satellite,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,1.0,True,100.0,3,3,1.0,1.0,1.0,1.0,0.9091,0,0,1,E.1,35.89,3517,0.0,

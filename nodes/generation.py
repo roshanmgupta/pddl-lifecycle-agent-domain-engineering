@@ -425,6 +425,12 @@ def compile_pddl_programmatically(blueprint_data: dict, problem_pddl: Optional[s
         elif hasattr(act, "parameters") and isinstance(getattr(act, "parameters"), dict):
             setattr(act, "parameters", {k: _resolve_type_expr(v) for k, v in getattr(act, "parameters").items()})
 
+    raw_constants = getattr(blueprint_data, "constants", {}) if hasattr(blueprint_data, "constants") else blueprint_data.get("constants", {})
+    if not isinstance(raw_constants, dict):
+        raw_constants = {}
+    else:
+        raw_constants = dict(raw_constants)
+
     # Auto-discover types from predicates and action parameters (only when :typing is active)
     if has_typing:
         discovered_types = set()

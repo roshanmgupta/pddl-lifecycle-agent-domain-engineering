@@ -1,0 +1,10 @@
+domain,evolution_task,agent_type,instance_idx,is_solvable,val_valid,error
+satellite,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,1,True,True,
+satellite,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,2,True,True,
+satellite,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,3,True,True,
+depot,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,1,True,True,
+depot,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,2,True,True,
+depot,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,3,True,True,
+gripper,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,1,True,True,
+gripper,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,2,True,True,
+gripper,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,3,True,True,

@@ -1,0 +1,2 @@
+domain,flaw,agent,flaw_category,gold_target_action,fla_correct,iterations_used,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,e2e_success,behavioral_code
+blocksworld,flaw_01_type_signature_arity,CLOSED_LOOP_AST_AGENT,TYPE_SIGNATURE_ARITY_INVERSION,pick-up,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success

@@ -1,0 +1,4 @@
+domain,evolution_task,agent_type,instance_idx,is_solvable,val_valid,error
+pipesworld-notankage04-bfs,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,1,True,True,
+pipesworld-notankage04-bfs,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,2,True,True,
+pipesworld-notankage04-bfs,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,3,False,False,VAL Syntax Error: VAL Parser Crash (exit code 3221225477): Syntax violation detected. Check for undeclared variables or inline type annotations in action expressions.

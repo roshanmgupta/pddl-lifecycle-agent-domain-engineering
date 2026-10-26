@@ -1,106 +1,106 @@
 (define (domain elevators-sequencedstrips)
-  (:requirements :strips :typing)
-  (:types 
+  (:requirements :strips :typing :negative-preconditions)
+  (:types
     count - object
     passenger - object
     elevator - object
-    fast-elevator - elevator
     slow-elevator - elevator
+    fast-elevator - elevator
   )
 
-  (:predicates 
-    (next ?x - count ?y - count)
-    (above ?x - count ?y - count)
-    (lift-at ?e - elevator ?c - count)
-    (passengers ?e - elevator ?d - count)
-    (can-hold ?e - elevator ?c - count)
-    (reachable-floor ?e - elevator ?c - count)
-    (passenger-at ?p - passenger ?c - count)
-    (has-boarded ?p - passenger ?e - elevator)
+  (:predicates
+    (next ?a ?b - count)
+    (above ?a ?b - count)
+    (lift-at ?e - elevator ?f - count)
+    (passengers ?e - elevator ?n - count)
+    (can-hold ?e - elevator ?n - count)
+    (reachable-floor ?e - elevator ?f - count)
+    (passenger-at ?p - passenger ?f - count)
+    (boarded ?p - passenger ?e - elevator)
   )
 
-  (:action move-slow-elevator-up
-    :parameters (?e - slow-elevator ?from - count ?to - count)
-    :precondition (and 
-      (lift-at ?e ?from) 
-      (above ?from ?to) 
-      (reachable-floor ?e ?to)
-    )
-    :effect (and 
-      (lift-at ?e ?to) 
-      (not (lift-at ?e ?from))
-    )
+  (:action move-slow-down
+    :parameters (?e - slow-elevator ?from ?to - count)
+    :precondition (and
+                   (lift-at ?e ?from)
+                   (above ?from ?to)
+                   (reachable-floor ?e ?to)
+                 )
+    :effect (and
+              (not (lift-at ?e ?from))
+              (lift-at ?e ?to)
+            )
   )
 
-  (:action move-slow-elevator-down
-    :parameters (?e - slow-elevator ?from - count ?to - count)
-    :precondition (and 
-      (lift-at ?e ?from) 
-      (above ?from ?to) 
-      (reachable-floor ?e ?to)
-    )
-    :effect (and 
-      (lift-at ?e ?to) 
-      (not (lift-at ?e ?from))
-    )
+  (:action move-slow-up
+    :parameters (?e - slow-elevator ?from ?to - count)
+    :precondition (and
+                   (lift-at ?e ?from)
+                   (above ?to ?from)
+                   (reachable-floor ?e ?to)
+                 )
+    :effect (and
+              (not (lift-at ?e ?from))
+              (lift-at ?e ?to)
+            )
   )
 
-  (:action move-fast-elevator-up
-    :parameters (?e - fast-elevator ?from - count ?to - count)
-    :precondition (and 
-      (lift-at ?e ?from) 
-      (above ?from ?to) 
-      (reachable-floor ?e ?to)
-    )
-    :effect (and 
-      (lift-at ?e ?to) 
-      (not (lift-at ?e ?from))
-    )
+  (:action move-fast-down
+    :parameters (?e - fast-elevator ?from ?to - count)
+    :precondition (and
+                   (lift-at ?e ?from)
+                   (above ?from ?to)
+                   (reachable-floor ?e ?to)
+                 )
+    :effect (and
+              (not (lift-at ?e ?from))
+              (lift-at ?e ?to)
+            )
   )
 
-  (:action move-fast-elevator-down
-    :parameters (?e - fast-elevator ?from - count ?to - count)
-    :precondition (and 
-      (lift-at ?e ?from) 
-      (above ?from ?to) 
-      (reachable-floor ?e ?to)
-    )
-    :effect (and 
-      (lift-at ?e ?to) 
-      (not (lift-at ?e ?from))
-    )
+  (:action move-fast-up
+    :parameters (?e - fast-elevator ?from ?to - count)
+    :precondition (and
+                   (lift-at ?e ?from)
+                   (above ?to ?from)
+                   (reachable-floor ?e ?to)
+                 )
+    :effect (and
+              (not (lift-at ?e ?from))
+              (lift-at ?e ?to)
+            )
   )
 
-  (:action board-passenger
-    :parameters (?p - passenger ?e - elevator ?c - count ?d - count ?e - count)
-    :precondition (and 
-      (lift-at ?e ?c) 
-      (passenger-at ?p ?c) 
-      (passengers ?e ?d) 
-      (can-hold ?e ?e) 
-      (next ?d ?e)
-    )
-    :effect (and 
-      (has-boarded ?p ?e) 
-      (passengers ?e ?e) 
-      (not (passenger-at ?p ?c)) 
-      (not (passengers ?e ?d))
-    )
+  (:action board
+    :parameters (?p - passenger ?e - elevator ?f - count ?d ?e_count - count)
+    :precondition (and
+                   (lift-at ?e ?f)
+                   (passenger-at ?p ?f)
+                   (passengers ?e ?d)
+                   (next ?d ?e_count)
+                   (can-hold ?e ?e_count)
+                 )
+    :effect (and
+              (not (passenger-at ?p ?f))
+              (not (passengers ?e ?d))
+              (boarded ?p ?e)
+              (passengers ?e ?e_count)
+            )
   )
 
-  (:action leave-elevator
-    :parameters (?p - passenger ?e - elevator ?c - count ?d - count ?e - count)
-    :precondition (and 
-      (lift-at ?e ?c) 
-      (has-boarded ?p ?e) 
-      (passengers ?e ?d) 
-      (next ?d ?e)
-    )
-    :effect (and 
-      (passenger-at ?p ?c) 
-      (passengers ?e ?e) 
-      (not (has-boarded ?p ?e)) 
-      (not (passengers ?e ?d))
-    )
+  (:action leave
+    :parameters (?p - passenger ?e - elevator ?f - count ?d ?e_count - count)
+    :precondition (and
+                   (lift-at ?e ?f)
+                   (boarded ?p ?e)
+                   (passengers ?e ?d)
+                   (next ?e_count ?d)
+                 )
+    :effect (and
+              (not (boarded ?p ?e))
+              (not (passengers ?e ?d))
+              (passenger-at ?p ?f)
+              (passengers ?e ?e_count)
+            )
   )
 )

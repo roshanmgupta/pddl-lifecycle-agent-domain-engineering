@@ -140,7 +140,7 @@ def main():
         if task:
             print(f"  Task ID: {task.task_id}")
             print(f"  Requirements:\n{task.natural_language_requirements}")
-            print(f"  Historical regression problem count: {len(task.historical_regression_problems)}")
+            print(f"  Baseline benchmark problem count: {len(getattr(task, 'baseline_benchmark_problems', []))}")
     else:
         print(f"Available Flaws for '{args.domain}':")
         for f in flaws:

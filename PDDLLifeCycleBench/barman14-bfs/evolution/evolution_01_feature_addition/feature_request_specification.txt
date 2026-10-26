@@ -1,13 +1,35 @@
 ================================================================================
-CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (TASK 1: CAPABILITY EXTENSION)
-DOMAIN: BARMAN14-BFS
+CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (CAPABILITY EXTENSION)
+BASELINE DOMAIN: BARMAN14-BFS -> EVOLVED DOMAIN: BARMAN14-BFS (DIRECT SHOT POURING)
 ================================================================================
-REQUIREMENT SUMMARY:
-Extend the existing operational model of barman14-bfs with an incremental feature request.
-The domain must now support high-throughput express operations with specialized tooling prerequisites.
+REQUIREMENT SPECIFICATION (AUTOPLANBENCH / CLASSICAL PLANNING GROUNDING):
+Extend the existing operational model of the barman domain to support direct shot-to-shot pouring of beverages into clean shot glasses without requiring shaker intermediate stages.
 
-EVOLUTION RULES:
-1. Synthesize an extended action schema or specialized capability flag supporting advanced operations.
-2. CRITICAL PRESERVATION MANDATE: Backward compatibility across historical legacy problem instances
-   (instance-1 to instance-3) must be 100% strictly preserved.
-3. The Phase 4 Regression Gatekeeper will evaluate both the target problem and all historical test cases.
+The baseline domain enables:
+- grasping and leaving containers (shot, shaker) using robotic hands: (grasp ...), (leave ...)
+- filling and refilling shot glasses from dispensers: (fill-shot ...), (refill-shot ...)
+- emptying and cleaning shot glasses: (empty-shot ...), (clean-shot ...)
+- pouring shots into clean or used shakers: (pour-shot-to-clean-shaker ...), (pour-shot-to-used-shaker ...)
+- shaking cocktails in shakers: (shake ...)
+- pouring cocktails from shakers into shot glasses: (pour-shaker-to-shot ...)
+
+CAPABILITY EXTENSION REQUIREMENTS:
+1. New Action Schema:
+   - Name: pour_shot_to_clean_shot
+   - Parameters:
+     ?s1 - shot, ?s2 - shot, ?b - beverage, ?h - hand
+   - Preconditions:
+     Hand ?h must be holding source shot ?s1: (holding ?h ?s1).
+     Source shot ?s1 must contain beverage ?b: (contains ?s1 ?b).
+     Target shot ?s2 must be on the table: (ontable ?s2).
+     Target shot ?s2 must be clean: (clean ?s2).
+     Target shot ?s2 must be empty: (empty ?s2).
+   - Effects:
+     Target shot ?s2 now contains beverage ?b: (contains ?s2 ?b).
+     Target shot ?s2 is no longer empty: (not (empty ?s2)).
+     Target shot ?s2 is no longer clean: (not (clean ?s2)).
+     Source shot ?s1 is now empty: (empty ?s1).
+     Source shot ?s1 no longer contains beverage ?b: (not (contains ?s1 ?b)).
+
+SOLVABILITY PRESERVATION MANDATE:
+All baseline action schemas (grasp, leave, fill-shot, refill-shot, empty-shot, clean-shot, pour-shot-to-clean-shaker, pour-shot-to-used-shaker, empty-shaker, clean-shaker, shake, pour-shaker-to-shot) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.

@@ -1,28 +1,38 @@
-(define (problem instance-1)
-  (:domain scanalyzer08)
+(define (problem scanalyzer3d-14)
+  (:domain scanalyzer3d)
   (:objects
-    car-in-1 car-in-2 car-in-3 car-out-1 car-out-2 car-out-3 - car
-    seg-in-1 seg-in-2 seg-in-3 seg-out-1 seg-out-2 seg-out-3 - segment
+    car-in-1 - car
+    car-in-2 - car
+    car-in-3 - car
+    car-out-1 - car
+    car-out-2 - car
+    car-out-3 - car
+    seg-in-1 - segment
+    seg-in-2 - segment
+    seg-in-3 - segment
+    seg-out-1 - segment
+    seg-out-2 - segment
+    seg-out-3 - segment
   )
   (:init
-    (cycle2 seg-in-1 seg-out-1)
-    (cycle2 seg-in-1 seg-out-2)
-    (cycle2 seg-in-1 seg-out-3)
-    (cycle2 seg-in-2 seg-out-1)
-    (cycle2 seg-in-2 seg-out-2)
-    (cycle2 seg-in-2 seg-out-3)
-    (cycle2 seg-in-3 seg-out-1)
-    (cycle2 seg-in-3 seg-out-2)
-    (cycle2 seg-in-3 seg-out-3)
-    (cycle2_analysis seg-in-1 seg-out-1)
-    (cycle2_analysis seg-in-1 seg-out-2)
-    (cycle2_analysis seg-in-1 seg-out-3)
-    (cycle2_analysis seg-in-2 seg-out-1)
-    (cycle2_analysis seg-in-2 seg-out-2)
-    (cycle2_analysis seg-in-2 seg-out-3)
-    (cycle2_analysis seg-in-3 seg-out-1)
-    (cycle2_analysis seg-in-3 seg-out-2)
-    (cycle2_analysis seg-in-3 seg-out-3)
+    (CYCLE-2 seg-in-1 seg-out-1)
+    (CYCLE-2 seg-in-1 seg-out-2)
+    (CYCLE-2 seg-in-1 seg-out-3)
+    (CYCLE-2 seg-in-2 seg-out-1)
+    (CYCLE-2 seg-in-2 seg-out-2)
+    (CYCLE-2 seg-in-2 seg-out-3)
+    (CYCLE-2 seg-in-3 seg-out-1)
+    (CYCLE-2 seg-in-3 seg-out-2)
+    (CYCLE-2 seg-in-3 seg-out-3)
+    (CYCLE-2-WITH-ANALYSIS seg-in-1 seg-out-1)
+    (CYCLE-2-WITH-ANALYSIS seg-in-1 seg-out-2)
+    (CYCLE-2-WITH-ANALYSIS seg-in-1 seg-out-3)
+    (CYCLE-2-WITH-ANALYSIS seg-in-2 seg-out-1)
+    (CYCLE-2-WITH-ANALYSIS seg-in-2 seg-out-2)
+    (CYCLE-2-WITH-ANALYSIS seg-in-2 seg-out-3)
+    (CYCLE-2-WITH-ANALYSIS seg-in-3 seg-out-1)
+    (CYCLE-2-WITH-ANALYSIS seg-in-3 seg-out-2)
+    (CYCLE-2-WITH-ANALYSIS seg-in-3 seg-out-3)
     (on car-in-1 seg-in-1)
     (on car-in-2 seg-in-2)
     (on car-in-3 seg-in-3)
@@ -30,20 +40,19 @@
     (on car-out-2 seg-out-2)
     (on car-out-3 seg-out-3)
   )
-  (:goal
-    (and
-      (analyzed car-in-1)
-      (analyzed car-in-2)
-      (analyzed car-in-3)
-      (analyzed car-out-1)
-      (analyzed car-out-2)
-      (analyzed car-out-3)
-      (on car-in-1 seg-in-1)
-      (on car-in-2 seg-in-2)
-      (on car-in-3 seg-in-3)
-      (on car-out-1 seg-out-1)
-      (on car-out-2 seg-out-2)
-      (on car-out-3 seg-out-3)
-    )
-  )
+  (:goal (and
+    (analyzed car-in-1)
+    (analyzed car-in-2)
+    (analyzed car-in-3)
+    (analyzed car-out-1)
+    (analyzed car-out-2)
+    (analyzed car-out-3)
+    (on car-in-1 seg-in-1)
+    (on car-in-2 seg-in-2)
+    (on car-in-3 seg-in-3)
+    (on car-out-1 seg-out-1)
+    (on car-out-2 seg-out-2)
+    (on car-out-3 seg-out-3)
+  ))
+  
 )

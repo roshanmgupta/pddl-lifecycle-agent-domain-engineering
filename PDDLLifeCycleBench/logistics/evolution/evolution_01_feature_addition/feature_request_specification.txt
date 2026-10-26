@@ -1,13 +1,34 @@
 ================================================================================
-CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (TASK 1: CAPABILITY EXTENSION)
-DOMAIN: LOGISTICS
+CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (CAPABILITY EXTENSION)
+BASELINE DOMAIN: LOGISTICS -> EVOLVED DOMAIN: LOGISTICS (INTER-VEHICLE CROSS-DOCKING)
 ================================================================================
-REQUIREMENT SUMMARY:
-Extend the existing operational model of logistics with an incremental feature request.
-The domain must now support high-throughput express operations with specialized tooling prerequisites.
+REQUIREMENT SPECIFICATION (AUTOPLANBENCH / CLASSICAL PLANNING GROUNDING):
+Extend the existing operational model of the logistics domain to support direct inter-vehicle cargo cross-docking between co-located transport trucks.
 
-EVOLUTION RULES:
-1. Synthesize an extended action schema or specialized capability flag supporting advanced operations.
-2. CRITICAL PRESERVATION MANDATE: Backward compatibility across historical legacy problem instances
-   (instance-1 to instance-3) must be 100% strictly preserved.
-3. The Phase 4 Regression Gatekeeper will evaluate both the target problem and all historical test cases.
+The baseline domain enables:
+- loading an object into a truck at a location: (LOAD-TRUCK ?obj ?truck ?loc)
+- unloading an object from a truck at a location: (UNLOAD-TRUCK ?obj ?truck ?loc)
+- loading an object into an airplane at an airport: (LOAD-AIRPLANE ?obj ?airplane ?loc)
+- unloading an object from an airplane at an airport: (UNLOAD-AIRPLANE ?obj ?airplane ?loc)
+- driving a truck between locations within a city: (DRIVE-TRUCK ?truck ?loc-from ?loc-to ?city)
+- flying an airplane between airports: (FLY-AIRPLANE ?airplane ?loc-from ?loc-to)
+
+CAPABILITY EXTENSION REQUIREMENTS:
+1. New Action Schema:
+   - Name: CROSS-LOAD-TRUCK (or cross-load-truck)
+   - Parameters:
+     ?obj, ?from-truck, ?to-truck, ?loc
+   - Preconditions:
+     ?obj must be an object: (OBJ ?obj).
+     ?from-truck must be a truck: (TRUCK ?from-truck).
+     ?to-truck must be a truck: (TRUCK ?to-truck).
+     ?loc must be a location: (LOCATION ?loc).
+     Source truck ?from-truck must be at location ?loc: (at ?from-truck ?loc).
+     Destination truck ?to-truck must be at location ?loc: (at ?to-truck ?loc).
+     Object ?obj must be inside source truck ?from-truck: (in ?obj ?from-truck).
+   - Effects:
+     Object ?obj is no longer in source truck ?from-truck: (not (in ?obj ?from-truck)).
+     Object ?obj is now inside destination truck ?to-truck: (in ?obj ?to-truck).
+
+SOLVABILITY PRESERVATION MANDATE:
+All baseline action schemas (LOAD-TRUCK, UNLOAD-TRUCK, LOAD-AIRPLANE, UNLOAD-AIRPLANE, DRIVE-TRUCK, FLY-AIRPLANE) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.
