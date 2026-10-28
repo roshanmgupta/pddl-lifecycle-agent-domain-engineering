@@ -1,0 +1,6 @@
+domain,evolution_task,agent_type,e2e_success,is_syntax_valid,target_executability_valid,target_feasibility_valid,reference_interpretability_pct,reference_instances_passed,reference_instances_total,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,plan_length,plan_cost,iterations_used,behavioral_code,wall_clock_seconds,total_tokens,estimated_cost_usd,error_summary
+rovers,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,True,True,True,True,100.0,3,3,0.85,1.0,0.85,0.7,1.0,2,2,1,EVO.A1: First-Attempt Verified Evolution,112.27,5524,0.0,
+rovers,evolution_01_feature_addition,ZERO_SHOT,True,True,True,True,100.0,3,3,0.85,1.0,0.85,0.7,1.0,2,2,1,EVO.A1: First-Attempt Verified Evolution,60.13,5524,0.0,
+rovers,evolution_01_feature_addition,UNSTRUCTURED_RETRY,True,True,True,True,100.0,3,3,0.9889,1.0,0.9667,1.0,1.0,2,2,1,EVO.A1: First-Attempt Verified Evolution,42.13,3041,0.000708,
+rovers,evolution_01_feature_addition,ABLATION_NO_AST,True,True,True,True,100.0,3,3,0.9889,1.0,0.9667,1.0,1.0,2,2,1,EVO.A1: First-Attempt Verified Evolution,46.05,3005,0.000704,
+rovers,evolution_01_feature_addition,ABLATION_NO_TRIAGE,True,True,True,True,100.0,3,3,0.85,1.0,0.85,0.7,1.0,2,2,1,EVO.A1: First-Attempt Verified Evolution,61.51,5524,0.0,

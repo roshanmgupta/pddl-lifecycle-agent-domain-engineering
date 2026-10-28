@@ -1,8 +1,6 @@
 (define (domain floor-tile)
   (:requirements :strips :typing)
-  (:types
-    robot tile color - object
-  )
+  (:types robot tile color)
   (:predicates
     (robot-at ?r - robot ?t - tile)
     (robot-has ?r - robot ?c - color)
@@ -15,96 +13,38 @@
     (left ?t1 - tile ?t2 - tile)
   )
   (:action change-color
-    :parameters (?r - robot ?from - color ?to - color)
-    :precondition (and
-      (robot-has ?r ?from)
-      (available-color ?to)
-    )
-    :effect (and
-      (not (robot-has ?r ?from))
-      (robot-has ?r ?to)
-    )
+    :parameters (?r - robot ?c1 - color ?c2 - color)
+    :precondition (and (robot-has ?r ?c1) (available-color ?c2))
+    :effect (and (not (robot-has ?r ?c1)) (robot-has ?r ?c2))
   )
   (:action paint-up
-    :parameters (?r - robot ?t - tile ?c - tile ?col - color)
-    :precondition (and
-      (robot-has ?r ?col)
-      (robot-at ?r ?c)
-      (up ?t ?c)
-      (clear ?t)
-    )
-    :effect (and
-      (painted ?t ?col)
-      (not (clear ?t))
-    )
+    :parameters (?r - robot ?t1 - tile ?t2 - tile ?c - color)
+    :precondition (and (robot-has ?r ?c) (robot-at ?r ?t1) (up ?t2 ?t1) (clear ?t2))
+    :effect (and (painted ?t2 ?c) (not (clear ?t2)))
   )
   (:action paint-down
-    :parameters (?r - robot ?t - tile ?c - tile ?col - color)
-    :precondition (and
-      (robot-has ?r ?col)
-      (robot-at ?r ?c)
-      (down ?t ?c)
-      (clear ?t)
-    )
-    :effect (and
-      (painted ?t ?col)
-      (not (clear ?t))
-    )
+    :parameters (?r - robot ?t1 - tile ?t2 - tile ?c - color)
+    :precondition (and (robot-has ?r ?c) (robot-at ?r ?t1) (down ?t2 ?t1) (clear ?t2))
+    :effect (and (painted ?t2 ?c) (not (clear ?t2)))
   )
   (:action move-up
-    :parameters (?r - robot ?from - tile ?to - tile)
-    :precondition (and
-      (robot-at ?r ?from)
-      (up ?to ?from)
-      (clear ?to)
-    )
-    :effect (and
-      (robot-at ?r ?to)
-      (clear ?from)
-      (not (robot-at ?r ?from))
-      (not (clear ?to))
-    )
+    :parameters (?r - robot ?t1 - tile ?t2 - tile)
+    :precondition (and (robot-at ?r ?t1) (up ?t2 ?t1) (clear ?t2))
+    :effect (and (robot-at ?r ?t2) (clear ?t1) (not (robot-at ?r ?t1)) (not (clear ?t2)))
   )
   (:action move-down
-    :parameters (?r - robot ?from - tile ?to - tile)
-    :precondition (and
-      (robot-at ?r ?from)
-      (down ?to ?from)
-      (clear ?to)
-    )
-    :effect (and
-      (robot-at ?r ?to)
-      (clear ?from)
-      (not (robot-at ?r ?from))
-      (not (clear ?to))
-    )
+    :parameters (?r - robot ?t1 - tile ?t2 - tile)
+    :precondition (and (robot-at ?r ?t1) (down ?t2 ?t1) (clear ?t2))
+    :effect (and (robot-at ?r ?t2) (clear ?t1) (not (robot-at ?r ?t1)) (not (clear ?t2)))
   )
   (:action move-right
-    :parameters (?r - robot ?from - tile ?to - tile)
-    :precondition (and
-      (robot-at ?r ?from)
-      (right ?to ?from)
-      (clear ?to)
-    )
-    :effect (and
-      (robot-at ?r ?to)
-      (clear ?from)
-      (not (robot-at ?r ?from))
-      (not (clear ?to))
-    )
+    :parameters (?r - robot ?t1 - tile ?t2 - tile)
+    :precondition (and (robot-at ?r ?t1) (right ?t2 ?t1) (clear ?t2))
+    :effect (and (robot-at ?r ?t2) (clear ?t1) (not (robot-at ?r ?t1)) (not (clear ?t2)))
   )
   (:action move-left
-    :parameters (?r - robot ?from - tile ?to - tile)
-    :precondition (and
-      (robot-at ?r ?from)
-      (left ?to ?from)
-      (clear ?to)
-    )
-    :effect (and
-      (robot-at ?r ?to)
-      (clear ?from)
-      (not (robot-at ?r ?from))
-      (not (clear ?to))
-    )
+    :parameters (?r - robot ?t1 - tile ?t2 - tile)
+    :precondition (and (robot-at ?r ?t1) (left ?t2 ?t1) (clear ?t2))
+    :effect (and (robot-at ?r ?t2) (clear ?t1) (not (robot-at ?r ?t1)) (not (clear ?t2)))
   )
 )

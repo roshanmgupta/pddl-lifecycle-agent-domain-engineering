@@ -1,4 +1,5 @@
 import json
+import re
 import time
 from schemas.pddl_blueprint import DomainBlueprint
 from config.model_config import get_phase_model, invoke_structured_llm_with_telemetry
@@ -28,7 +29,7 @@ def run_elicitation_node(state: dict) -> dict:
     feedback_context = ""
     if formatted_feedback:
         feedback_context = f"\n{formatted_feedback}\nPlease resolve all listed diagnostic issues in your revised DomainBlueprint JSON.\n"
-        print("Feedback Context for LLM (Triage Format):\n", feedback_context)
+        print("Feedback Context for LLM (Fault Localization Format):\n", feedback_context)
     elif verification_errors:
         feedback_context = f"\nPrevious Diagnostic Feedback / Verification Errors to resolve:\n{verification_errors}\n"
         print("Feedback Context for LLM:\n", feedback_context)
@@ -41,7 +42,135 @@ def run_elicitation_node(state: dict) -> dict:
         print("[Elicitation Node]: Baseline domain blueprint provided for domain evolution.")
 
     target_dname = prob_meta.get("domain_name", "generated_domain")
-    prompt = f"""
+
+    # ==============================================================================
+    # H1 Formulation: Ground-Truth Types, Predicates, and Action Signatures Provided
+    # Constrains LLM generation strictly to :preconditions and :effects schemas
+    # (Directly addresses professor's mandate to make generated and GT domains comparable)
+    # ==============================================================================
+    ref_dom_pddl = state.get("reference_domain_pddl") or state.get("ground_truth_domain_pddl")
+    use_fixed_signatures = bool(ref_dom_pddl and ref_dom_pddl.strip())
+
+    if use_fixed_signatures:
+        from tools.blueprint_parser import parse_pddl_domain_to_blueprint
+        from schemas.pddl_blueprint import DomainActionSemantics, PddlActionSchema
+
+        ref_bp = parse_pddl_domain_to_blueprint(ref_dom_pddl)
+        target_dname = ref_bp.get("domain_name") or target_dname
+        fixed_types = ref_bp.get("types", {})
+        fixed_constants = ref_bp.get("constants", {})
+        fixed_predicates = ref_bp.get("predicates", [])
+        fixed_actions = ref_bp.get("actions", [])
+        fixed_reqs = ref_bp.get("requirements", [":strips", ":typing"])
+
+        action_sigs_str = json.dumps([
+            {"action_name": a["action_name"], "parameters": a["parameters"]}
+            for a in fixed_actions
+        ], indent=2)
+
+        prompt = f"""
+    You are an expert PDDL Knowledge Engineer.
+    Your task is to analyze the following natural language domain requirements and synthesize the :precondition and :effect schemas for the given action signatures.
+
+    THE DOMAIN VOCABULARY AND SIGNATURES ARE FIXED (DO NOT INVENT NEW TYPES, PREDICATES, OR PARAMETERS):
+    - Domain Name: {target_dname}
+    - Requirements: {fixed_reqs}
+    - Types Hierarchy: {json.dumps(fixed_types)}
+    - Constants: {json.dumps(fixed_constants)}
+    - Formal Predicates: {json.dumps(fixed_predicates, indent=2)}
+    - Action Signatures:
+{action_sigs_str}
+
+    Requirements Text:
+    {requirements_text}
+    {feedback_context}
+
+    CRITICAL UNIVERSAL FORMAL SEMANTIC MODELING INVARIANTS:
+    1. Exact Parameter Variable Scoping & Placeholder Mapping:
+       - For every action, you MUST ONLY use the EXACT variable names declared in that action's parameter signature!
+       - The requirements text often refers to entities using placeholder letters (e.g. 'rover A', 'lander B', 'waypoint C', 'waypoint D', 'waypoint E'). You MUST map these placeholders onto the declared parameters (e.g. ?r, ?l, ?p, ?x, ?y) according to their matching types and physical roles.
+       - NEVER invent or use variable names (e.g. ?a, ?b, ?c, ?d, ?e) that are not in that specific action's parameter list.
+       - Every parameter declared in an action's parameter list should be meaningfully utilized in the preconditions and/or effects.
+    2. Predicate Signature & Argument Type Alignment:
+       - Every atomic formula (pred ?v1 ?v2 ...) must strictly match a declared predicate symbol from Formal Predicates.
+       - Do NOT include inline types (e.g. write '(at ?x ?y)', NEVER '(at ?x - rover ?y - waypoint)').
+       - The type of each argument variable in the atomic formula MUST match or be a subtype of the declared predicate parameter type.
+    3. Preconditions vs Effects Causal Directionality:
+       - Preconditions specify what MUST be true BEFORE the action can execute (e.g. 'I can only ... if it is the case that ...' -> precondition).
+       - Effects specify what CHANGES AFTER the action executes:
+         * Positive additions: 'Once I ..., it is the case that ...' -> add effect '(pred ...)'.
+         * Negative deletions: 'Once I ..., it is not the case anymore that ...' -> delete effect '(not (pred ...))'.
+       - NEVER place the intended goal result of an action in its own preconditions.
+    4. Monotonicity & Well-Formedness:
+       - Do NOT use undeclared predicates, undeclared types, or unbound variables.
+
+    Produce ONLY a valid JSON object matching the DomainActionSemantics schema:
+    {{
+      "actions": [
+        {{
+          "action_name": "...",
+          "preconditions": ["(...)"],
+          "effects": ["(...)"]
+        }}
+      ]
+    }}
+    """
+        print(f"[Elicitation Node (H1 Fixed Signatures)]: Generating preconditions and effects for {len(fixed_actions)} action(s)...")
+        start_t = time.time()
+        action_semantics_obj, usage = invoke_structured_llm_with_telemetry(
+            DomainActionSemantics, prompt, target_model=get_phase_model(1)
+        )
+        elapsed = time.time() - start_t
+
+        # Merge generated preconditions and effects into the complete DomainBlueprint
+        from tools.blueprint_parser import clean_blueprint_expression, alpha_convert_action_variables
+        def _norm_token(s: str) -> str:
+            clean = re.sub(r"^(domain\.)?(actions?|predicates?|types?)\.", "", str(s).strip("'\"` "), flags=re.IGNORECASE)
+            return clean.lower().replace("-", "").replace("_", "")
+
+        gen_actions_map = {
+            _norm_token(a.action_name): a for a in action_semantics_obj.actions
+        }
+        completed_actions = []
+        for fa in fixed_actions:
+            aname = fa["action_name"]
+            gen_sem = gen_actions_map.get(_norm_token(aname))
+            raw_pre = [clean_blueprint_expression(p) for p in (gen_sem.preconditions if gen_sem else []) if clean_blueprint_expression(p)]
+            raw_eff = [clean_blueprint_expression(p) for p in (gen_sem.effects if gen_sem else []) if clean_blueprint_expression(p)]
+            # Universal Alpha-Conversion to align dummy variables to declared action parameters
+            conv_pre, conv_eff = alpha_convert_action_variables(
+                aname,
+                fa["parameters"],
+                raw_pre,
+                raw_eff,
+                fixed_predicates,
+                types_hierarchy=fixed_types
+            )
+            completed_actions.append(PddlActionSchema(
+                action_name=aname,
+                parameters=fa["parameters"],
+                preconditions=conv_pre,
+                effects=conv_eff
+            ))
+
+        domain_blueprint_obj = DomainBlueprint(
+            domain_name=target_dname,
+            requirements=fixed_reqs,
+            types=fixed_types,
+            constants=fixed_constants,
+            predicates=fixed_predicates,
+            actions=completed_actions
+        )
+        dom_dict = domain_blueprint_obj.model_dump()
+        state["pddl_domain_blueprint"] = dom_dict
+        state["fixed_signatures"] = True
+
+    else:
+        # ==============================================================================
+        # [PRESERVED OLD LOGIC]: Full Domain Elicitation from Scratch (Unconstrained)
+        # Retained for backward-compatibility when no reference domain is provided.
+        # ==============================================================================
+        prompt = f"""
     You are an expert PDDL Knowledge Engineer. Your task is to analyze the following requirements text and construct a single, valid JSON object that strictly conforms to the DomainBlueprint schema (D_gen).
     You only need to generate the PDDL Domain model ("domain_name", "requirements", "types", "constants", "predicates", "actions").
 
@@ -113,15 +242,15 @@ def run_elicitation_node(state: dict) -> dict:
     Produce ONLY the DomainBlueprint JSON object and nothing else.
     """
 
-    start_t = time.time()
-    domain_blueprint_obj, usage = invoke_structured_llm_with_telemetry(
-        DomainBlueprint, prompt, target_model=get_phase_model(1)
-    )
-    elapsed = time.time() - start_t
-    dom_dict = domain_blueprint_obj.model_dump()
-    if prob_meta.get("domain_name"):
-        dom_dict["domain_name"] = prob_meta["domain_name"]
-    state["pddl_domain_blueprint"] = dom_dict
+        start_t = time.time()
+        domain_blueprint_obj, usage = invoke_structured_llm_with_telemetry(
+            DomainBlueprint, prompt, target_model=get_phase_model(1)
+        )
+        elapsed = time.time() - start_t
+        dom_dict = domain_blueprint_obj.model_dump()
+        if prob_meta.get("domain_name"):
+            dom_dict["domain_name"] = prob_meta["domain_name"]
+        state["pddl_domain_blueprint"] = dom_dict
 
     # Update Telemetry Metrics
     state["total_prompt_tokens"] = state.get("total_prompt_tokens", 0) + usage.get("prompt_tokens", 0)

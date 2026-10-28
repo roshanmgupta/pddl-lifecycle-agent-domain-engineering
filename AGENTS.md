@@ -1,7 +1,7 @@
 # Agentic AI PDDL Lifecycle System - Core Architectural Principles
 
 ## 1. Domain-Agnostic Agent Mandate (Zero Hardcoding / Zero Overfitting)
-- **General-Purpose Goal**: This system is designed as an autonomous, general-purpose agent for PDDL domain lifecycle engineering (Elicitation $\rightarrow$ Compilation $\rightarrow$ Validation $\rightarrow$ Triage $\rightarrow$ Repair $\rightarrow$ Evolution $\rightarrow$ Maintenance).
+- **General-Purpose Goal**: This system is designed as an autonomous, general-purpose agent for PDDL domain lifecycle engineering (Elicitation -> Compilation -> Validation -> Layered Fault Localization -> Repair -> Evolution -> Maintenance).
 - **Universal Applicability**: Every component, rule, prompt, heuristic, and validator must be universally applicable to **ANY valid PDDL (STRIPS + Typing) domain**.
 - **Strictly Prohibited**:
   - NEVER write rules, heuristics, or prompt patches tailored to a single specific domain (e.g., Blocksworld, Gripper, Barman, Satellite, Rovers, Depot, etc.).
@@ -9,20 +9,20 @@
   - NEVER alter the agent's logic just to force one specific test case or benchmark instance to pass if that logic does not universally hold for all PDDL domains.
 
 ## 2. Universal Formal PDDL Semantics Only
-- All rules codified in `config/pddl_standards.py`, triage prompts, repair prompts, and compiler modules must strictly derive from:
+- All rules codified in `config/pddl_standards.py`, fault localization prompts, repair prompts, and compiler modules must strictly derive from:
   1. Classical PDDL 2.1 formal semantics (Fox & Long 2003; McDermott 1998; Haslum et al. 2019).
   2. First-Order Logic (FOL) well-formedness (variable scoping, quantifier semantics, relation invariance).
   3. Formal Planning AST invariants (acyclic type hierarchy under `object`, unique predicate symbols without signature overloading, well-typed grounding).
 - **Abstract Illustrative Examples Only**: If an example is needed in prompt instructions to clarify an abstract rule, it must use domain-independent, generic archetypes (e.g., `item`, `container`, `location`, `vehicle`, `agent`) and clearly illustrate a general principle, not a domain-specific workaround.
 
-## 3. Mandatory Audit Before Modifying `config/pddl_standards.py`
+## 3. Mandatory Pre-Flight Check Before Modifying `config/pddl_standards.py`
 - **Mandatory Pre-Flight Check**: Whenever an issue arises on a specific benchmark domain, the developer/agent MUST first consult this file (`AGENTS.md`).
 - **Generalizability Test**: Before adding or updating any rule in `config/pddl_standards.py`, answer:
   > *"Is this rule derived from formal PDDL syntax and semantics that apply identically to all possible PDDL domains, or is it a tailored patch for the currently failing domain?"*
   - If it is universal (e.g., "no duplicate predicate symbols in `(:predicates ...)`", "every parameter variable must start with `?`", "parameter types must match declared predicate signatures"), it is permitted.
   - If it relies on domain-specific semantics or assumptions, it is **strictly forbidden**.
 
-## 4. Code Nomenclature, Semantic Accuracy, and Zero Legacy Aliases
+## 4. Code Nomenclature, Semantic Accuracy, and Zero Stale Aliases
 - **No Stale Aliases**: Never retain or introduce backwards-compatibility alias names (such as `evaluate_bilevel_domain_equivalence = evaluate_action_reconstruction`) across the codebase. Always call and import the canonical, updated name directly.
 - **Continuous Logic-to-Code Alignment**: When the algorithmic logic, metric, or architectural component is updated or refactored, you MUST immediately update all function names, variable names, and file names across all calling modules to accurately reflect the true underlying semantics and literature foundation.
 
@@ -33,11 +33,18 @@
 * **Binary Path**: `C:\Users\Srushti\miniconda3\envs\agent_env\python.exe`
 * **Command Rule**: Always execute all Python scripts, tests, dependencies, and Streamlit servers strictly within `agent_env` (never base or global system Python).
 
-
-
 * **Never use latex format for math formulas** during feedback or response or explanation.
 
 * **While writing any report please use the ARMS template** as it would help to validate, verify and improve the work.
 
+## 6. Canonical Tri-Criteria Semantic Verification Mandate
+All domain synthesis, repair, and evolution benchmarks must rigorously evaluate and report the three literature-grounded non-circular semantic criteria:
+1. **Executability (Internal Consistency & Solvability)**: `VAL(D_gen, P_gen, pi_gen) == SUCCESS`. Proves internal solvability and causal consistency.
+2. **Feasibility (Forward Soundness)**: `VAL(D_gold, P_gold, pi_gen) == SUCCESS`. Proves physical soundness on ground-truth domain dynamics without magic transitions.
+3. **Interpretability (Inverse Completeness / Reference Solvability Preservation)**: `VAL(D_gen, P_gold, pi_gold) == SUCCESS` (and preservation of solvability on reference suite Pi_ref). Proves expressive completeness without over-constrained preconditions.
+
+**Strict End-to-End Success Gate (`e2e_success`)**:
+A synthesized, repaired, or evolved domain is marked as `e2e_success` ONLY if it passes syntax validity, planner solvability, AND all three semantic criteria (`executability and feasibility and interpretability`). No loose heuristic thresholds (such as F1 alone) may override plan validation failures.
+
 # Important
-* **Whatever code we have plan and are planning we need make sure that our important goal is evaluate our generated domain, problem and plan with standard domain, problem and plan for semantic soundness, task completeness and logical consistency.** Lets verify our entire logic again if it align with above rules and principles. It is fine if not every domain gets evaluated against the standard domain and problem but at least we should not use any hard corded logic just to generated and validate the generated plan. 
+* **Our central goal is to evaluate our generated domain, problem, and plan against standard reference models for semantic soundness, task completeness, and logical consistency using the tri-criteria framework.** We do not use hardcoded domain-specific logic to force plan generation or validation success. Empirical failure under formal oracles is scientifically valid and must be honestly recorded. 

@@ -1,0 +1,1 @@
+1: (cooperative_transfer robot1 robot2 ball1 rgripper1 rgripper2 room1)

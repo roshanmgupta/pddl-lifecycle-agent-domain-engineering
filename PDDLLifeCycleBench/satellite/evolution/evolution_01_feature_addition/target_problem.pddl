@@ -1,4 +1,4 @@
-(define (problem strips-sat-x-1)
+(define (problem strips-sat-x-1-discriminative)
 (:domain satellite)
 (:objects
 	satellite0 - satellite
@@ -19,10 +19,11 @@
 	(on_board instrument0 satellite0)
 	(power_avail satellite0)
 	(pointing satellite0 GroundStation1)
+	(ground_station GroundStation1)
+	(ground_station GroundStation0)
 )
 (:goal (and
 	(have_image Planet2 infrared2)
-	(have_image Phenomenon3 infrared2)
+	(data_transmitted Planet2 infrared2)
 ))
-
 )

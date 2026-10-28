@@ -1,0 +1,5 @@
+Task ID,Domain,Task Type,Architecture,Status,Behavioral Code,SVR,TPV,PTS,FLA Top-1,Macro F1,Pre F1,Add F1,Del F1,Cov_ref (%),Plan Length,Iterations (k),Latency (s),Cost ($),Error Summary
+barman14-bfs_instance-1,barman14-bfs,ELICITATION,CLOSED_LOOP_AST_AGENT,Unverified ⚠️,S.T,1.0,FAIL,FAIL,N/A,0.9511,0.9366,1.0,0.9167,N/A,0,5,509.99,$0.00866,"Planner Unsolvability: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translato"

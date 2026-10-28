@@ -1,0 +1,2 @@
+agent_type,total_runs,e2e_sr_pct,psr_solvability_pct,pts_transfer_soundness_pct,svr_init_pct,avg_iterations_total,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,rsr_repair_success_pct,avg_repair_iterations,rpr_regression_pass_rate_pct,total_candidate_rejections,mean_total_tokens,mean_latency_sec,total_cost_usd
+CLOSED_LOOP_AST_AGENT,30,56.7,56.7,88.2,23.3,3.87,0.8371,0.8303,0.8462,0.8348,50.0,4.3,100.0,0,85450,361.17,0.5119

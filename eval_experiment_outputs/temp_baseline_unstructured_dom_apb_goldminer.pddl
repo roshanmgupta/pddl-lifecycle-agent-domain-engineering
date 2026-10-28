@@ -1,7 +1,8 @@
 (define (domain gold-miner-typed)
   (:requirements :typing)
-  (:types loc - object)
-  
+  (:types 
+    loc - object
+  )
   (:predicates
     (arm-empty)
     (connected ?l1 ?l2 - loc)
@@ -17,49 +18,77 @@
     (holding-gold)
     (holds-gold)
   )
-  
+
   (:action move
     :parameters (?from ?to - loc)
-    :precondition (and (robot-at ?from) (connected ?from ?to) (clear ?to))
-    :effect (and (robot-at ?to) (not (robot-at ?from)))
+    :precondition (and (robot-at ?from)
+                       (connected ?from ?to)
+                       (clear ?to)
+                       (arm-empty))
+    :effect (and (robot-at ?to)
+                 (not (robot-at ?from)))
   )
-  
+
   (:action pick-laser
     :parameters (?l - loc)
-    :precondition (and (robot-at ?l) (laser-at ?l) (arm-empty))
-    :effect (and (holding-laser) (not (arm-empty)) (not (laser-at ?l)))
+    :precondition (and (robot-at ?l)
+                       (laser-at ?l)
+                       (arm-empty))
+    :effect (and (holding-laser)
+                 (not (arm-empty))
+                 (not (laser-at ?l)))
   )
-  
+
   (:action pick-bomb
     :parameters (?l - loc)
-    :precondition (and (robot-at ?l) (bomb-at ?l) (arm-empty))
-    :effect (and (holding-bomb) (not (arm-empty)) (not (bomb-at ?l)))
+    :precondition (and (robot-at ?l)
+                       (bomb-at ?l)
+                       (arm-empty))
+    :effect (and (holding-bomb)
+                 (not (arm-empty))
+                 (not (bomb-at ?l)))
   )
-  
+
   (:action put-laser
     :parameters (?l - loc)
-    :precondition (and (robot-at ?l) (holding-laser))
-    :effect (and (arm-empty) (laser-at ?l) (not (holding-laser)))
+    :precondition (and (robot-at ?l)
+                       (holding-laser))
+    :effect (and (arm-empty)
+                 (laser-at ?l)
+                 (not (holding-laser)))
   )
-  
+
   (:action detonate-bomb
     :parameters (?a ?b - loc)
-    :precondition (and (robot-at ?a) (holding-bomb) (connected ?a ?b) (soft-rock-at ?b))
-    :effect (and (arm-empty) (clear ?b) (not (holding-bomb)) (not (soft-rock-at ?b)))
+    :precondition (and (robot-at ?a)
+                       (holding-bomb)
+                       (connected ?a ?b)
+                       (soft-rock-at ?b))
+    :effect (and (arm-empty)
+                 (clear ?b)
+                 (not (holding-bomb))
+                 (not (soft-rock-at ?b)))
   )
-  
+
   (:action fire-laser
     :parameters (?a ?b - loc)
-    :precondition (and (robot-at ?a) (holding-laser) (connected ?a ?b))
-    :effect (and (clear ?b) 
-                 (not (soft-rock-at ?b)) 
-                 (not (gold-at ?b)) 
+    :precondition (and (robot-at ?a)
+                       (holding-laser)
+                       (connected ?a ?b))
+    :effect (and (clear ?b)
+                 (not (soft-rock-at ?b))
+                 (not (gold-at ?b))
                  (not (hard-rock-at ?b)))
   )
-  
+
   (:action pick-gold
     :parameters (?l - loc)
-    :precondition (and (robot-at ?l) (arm-empty) (gold-at ?l))
-    :effect (and (holding-gold) (holds-gold) (not (arm-empty)) (not (gold-at ?l)))
+    :precondition (and (robot-at ?l)
+                       (arm-empty)
+                       (gold-at ?l))
+    :effect (and (holding-gold)
+                 (holds-gold)
+                 (not (arm-empty))
+                 (not (gold-at ?l)))
   )
 )

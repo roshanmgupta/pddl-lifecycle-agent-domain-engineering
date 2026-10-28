@@ -11,9 +11,9 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from tools.causal_triage_analyzer import run_causal_triage_analysis
+from tools.causal_fault_analyzer import run_causal_fault_analysis
 from nodes.generation import compile_pddl_programmatically
-from nodes.triage import parse_fast_downward_log, RepairOperationType
+from nodes.fault_localization import parse_fast_downward_log, RepairOperationType
 
 
 def test_signature_projection_woodworking():
@@ -67,7 +67,7 @@ def test_signature_projection_woodworking():
         ]
     }
 
-    res = run_causal_triage_analysis(domain_bp, problem_bp, ["Search stopped without finding a solution."])
+    res = run_causal_fault_analysis(domain_bp, problem_bp, ["Search stopped without finding a solution."])
     ungroundable = res["ungroundable_preconditions"]
     
     print("\n[Ungroundable Preconditions Detected]:")
@@ -167,7 +167,7 @@ def test_bilateral_mutex_clearance_parking():
         "goal": ["(at-curb c1 curb2)"]
     }
 
-    res = run_causal_triage_analysis(domain_bp, problem_bp, ["Search stopped without finding a solution."])
+    res = run_causal_fault_analysis(domain_bp, problem_bp, ["Search stopped without finding a solution."])
     bm_faults = res.get("bilateral_mutex_faults", [])
     
     print("\n[Bilateral Mutex Faults Detected]:")

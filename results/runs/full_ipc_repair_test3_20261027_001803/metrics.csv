@@ -1,0 +1,12 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+transport11,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,23,23,0.006785,68.35,21229,2084,23313,0.004435,A.2: Refined Success via Feedback Loops,RECOVERED,
+elevators11,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,False,False,6,True,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,21,21,0.016407,538.61,108008,8093,116101,0.021057,A.2: Refined Success via Feedback Loops,RECOVERED,"Plan Transfer Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Type-checking move-up-slow ...action passes type checking. Type-checking move-down-slow ..."
+scanalyzer11,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,0.9166,0.75,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000677,28.86,5235,862,6097,0.001302,A.1: First-Attempt Direct Success,NONE,
+woodworking11,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.7908,0.823,0.8308,0.7187,1.0,1.0,0,0,0,0,0,0,5.6e-05,1091.03,171061,23028,194089,0.039476,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"

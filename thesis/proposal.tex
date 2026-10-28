@@ -1,0 +1,197 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Core Geometry and Encoding ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=0.75in]{geometry}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{newtxtext,newtxmath}
+
+% --- Math and Symbols ---
+\let\Bbbk\relax
+\usepackage{amsmath}
+
+% --- Tables & Lists ---
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{float}
+
+% --- Colors and Hyperlinks ---
+\usepackage[dvipsnames]{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=NavyBlue,
+    citecolor=NavyBlue,
+    urlcolor=NavyBlue
+}
+
+\title{\vspace{-1.5em}\Large\textbf{Master's Thesis Proposal: Towards an Autonomous Lifecycle Agent for PDDL Domain Modelling}\vspace{-0.5em}}
+\author{\textbf{Roshan Gupta}\\
+\quad Academic Supervisor: \textbf{Prof. Dr. Ilche Georgievski}\\
+Institute of Architecture of Application Systems (IAAS), University of Stuttgart\vspace{-1.0em}}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Research Questions and Hypotheses}
+\textbf{Main Research Question (MRQ):} \textit{How can an autonomous agentic framework integrate large language models (LLMs) with deterministic compilation and symbolic planning oracles to enable reliable PDDL domain model formulation, closed-loop repair, and continuous domain evolution without breaking existing domain solvability?}
+
+\subsection{Sub-Research Questions (RQs)}
+\begin{itemize}[nosep, leftmargin=1.5em]
+    \item \textbf{RQ1 (AST-Centric Domain Model Formulation):} What is the effect of decoupling relational semantic reasoning (via an Abstract Syntax Tree blueprint) from concrete PDDL syntax generation (via deterministic compilation) on syntax validity and target plan validity compared to direct text generation (\texttt{ZERO\_SHOT})?
+    \item \textbf{RQ2 (Layered Model-Based Fault Localization vs. Unstructured Retry):} To what extent does structured, layered fault localization (categorizing defects into syntax, typing, precondition, effect, and reachability) reduce repair iterations and improve repair convergence compared to unstructured iterative retry (\texttt{UNSTRUCTURED\_RETRY}) and unparsed feedback (\texttt{ABLATION\_NO\_TRIAGE})?
+    \item \textbf{RQ3 (Continuous Domain Evolution \& Solvability Preservation):} Can an autonomous agent evolve action capabilities in a classical PDDL domain to support novel target tasks while preserving reachability and solvability across a reference benchmark problem suite via formal regression verification?
+    \item \textbf{RQ4 (Operational Cost and Computational Efficiency across Lifecycle Architectures):} What are the computational costs (token consumption, inference latency, and convergence iterations) incurred by the proposed closed-loop AST agent to achieve semantically sound domain models, and how do these trade-offs compare against direct generation baselines (\texttt{ZERO\_SHOT}, \texttt{UNSTRUCTURED\_RETRY}) and ablation configurations (\texttt{ABLATION\_NO\_AST}, \texttt{ABLATION\_NO\_TRIAGE})?
+\end{itemize}
+
+\subsection{Hypotheses}
+\begin{enumerate}[label=\textbf{(H\arabic*)}, nosep, leftmargin=2.2em]
+    \item \textbf{AST Formulation Advantage:} Formulating domain models through a structured relational AST blueprint combined with deterministic compilation will eliminate token-level syntax errors (achieving 100\% Syntax Validity Rate) and achieve higher target plan validity than direct text generation (\texttt{ZERO\_SHOT}).
+    \item \textbf{Diagnostic Localization Efficiency:} Providing layered, causal fault localization will significantly reduce the number of repair iterations required to achieve a valid plan and achieve higher repair convergence rates compared to re-prompting with raw, unstructured planner error traces (\texttt{UNSTRUCTURED\_RETRY} and \texttt{ABLATION\_NO\_TRIAGE}).
+    \item \textbf{Reference Solvability Preservation:} Enforcing reachability and solvability preservation verification across baseline problem suites during domain capability extension will prevent semantic regressions, maintaining reference suite solvability while successfully synthesizing new action capabilities.
+    \item \textbf{Lifecycle Operational Efficiency:} Although the proposed closed-loop AST agent incurs higher prompt tokens per iteration due to structured schema and diagnostic payloads, it will achieve lower cumulative token consumption and lower total wall-clock latency to successful convergence compared to unstructured iterative retry by eliminating degenerative repair cycles and premature search deadlocks.
+\end{enumerate}
+
+\section{Large Language Model Selection and Decoding Configuration}
+\textbf{Model Selection:} We evaluate \textbf{DeepSeek-Chat} (\texttt{deepseek/deepseek-chat}), an open-weight 671B Mixture-of-Experts (MoE) reasoning model tuned for advanced code generation and formal symbolic reasoning, accessed via the OpenRouter API.\\
+\textbf{Temperature Configuration ($\text{temperature} = 0.0$):} Classical PDDL 2.1 is a formal declarative specification language governed by exact First-Order Logic semantics and deterministic state-transition dynamics. In automated planning, symbolic model parsers (VAL) and grounding oracles (Fast Downward) enforce strict syntactic and type-theoretic invariants that fail catastrophically under token-level generation errors. Setting LLM decoding to greedy argmax selection ($\text{temperature} = 0.0$) eliminates non-deterministic sampling variance, strictly enforces Pydantic AST schema constraints, guarantees experimental reproducibility across benchmark evaluations, and ensures that any observed model repair is causally attributable to diagnostic feedback rather than stochastic generation drift.
+
+\section{Benchmark Selection}
+To evaluate the framework across diverse structural topologies, all selected domains strictly adhere to classical PDDL 2.1 (\texttt{:strips} and \texttt{:typing}) from IPC (1998--2014) tracks and the AutoPlanBench suite~\cite{stein2023autoplanbench, potassco_pddl_instances}:
+\begin{itemize}[nosep, leftmargin=1.5em]
+    \item \textbf{Closed-Loop Domain Formulation Benchmark (20 Domains):} \textit{Logistics, Driverlog, Elevators, Zenotravel, Gripper, Floortile, Grid, Goldminer, Rovers, Blocksworld, Parking, Pegsol, Mystery, Barman, Pipesworld, Movie, Depot, Ferry, Satellite, and Scanalyzer.}
+    \item \textbf{Continuous Domain Evolution Benchmark (10 Domains):} \textit{Satellite, Depot, Gripper, Rovers, Barman, Floortile, Logistics, Pipesworld-Tankage, Driverlog, Ferry.} Unlike unverified domain expansion setups~\cite{huang2025plan2evolve}, our benchmark evaluates whether action capability extensions preserve solvability across reference instance suites.
+\end{itemize}
+All benchmark domains are drawn directly from the canonical pure unit-cost STRIPS tracks of the International Planning Competitions (such as the IPC unit-cost tracks~\cite{potassco_pddl_instances}) and AutoPlanBench~\cite{stein2023autoplanbench}. These domains natively specify pure relational transition dynamics under \texttt{:strips} and \texttt{:typing} without numeric fluents or \texttt{:action-costs}, ensuring that plan validity, solvability, and fault repair depend strictly on discrete First-Order Logic relational state transitions rather than numeric metric optimization.
+
+\section{Experimental Baselines and Ablation Studies}
+\subsection{Baselines and Ablation Matrix}
+To empirically assess the individual and combined contributions of the AST blueprint representation and layered fault localization, we evaluate five distinct agent architectures arranged in a $2 \times 2$ factorial design alongside a standard single-pass baseline:
+
+\begin{table}[H]
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\textwidth}{l p{3.2cm} p{3.8cm} X}
+\toprule
+\textbf{Agent Configuration} & \textbf{Model Representation} & \textbf{Feedback / Repair Mechanism} & \textbf{Evaluated Role \& Hypotheses} \\
+\midrule
+\texttt{ZERO\_SHOT} & Direct PDDL Text & None (Single-pass generation) & Baseline 1: Standard unguided LLM generation (\textbf{RQ1}, \textbf{H1}) \\
+\texttt{UNSTRUCTURED\_RETRY} & Direct PDDL Text & Raw unparsed planner error logs & Baseline 2: Unstructured iterative prompt retry (\textbf{RQ2}, \textbf{RQ4}, \textbf{H2}, \textbf{H4}) \\
+\texttt{ABLATION\_NO\_AST} & Direct PDDL Text & Layered causal fault localization & Ablation 1: Isolates the contribution of the AST blueprint (\textbf{RQ1}, \textbf{RQ4}, \textbf{H1}, \textbf{H4}) \\
+\texttt{ABLATION\_NO\_TRIAGE} & Relational AST Blueprint & Raw unparsed planner error logs & Ablation 2: Isolates the contribution of structured fault localization (\textbf{RQ2}, \textbf{RQ4}, \textbf{H2}, \textbf{H4}) \\
+\texttt{CLOSED\_LOOP\_AST\_AGENT} & Relational AST Blueprint & Layered causal fault localization & Full proposed lifecycle system (\textbf{RQ1}--\textbf{RQ4}, \textbf{H1}--\textbf{H4}) \\
+\bottomrule
+\end{tabularx}
+\caption{The $2 \times 2$ factorial ablation matrix and baseline configurations evaluating representation decoupling and diagnostic feedback structure across the PDDL lifecycle.}
+\label{tab:factorial_agent_matrix}
+\end{table}
+
+\noindent \textbf{Baselines:} (1) \textbf{\texttt{ZERO\_SHOT} (Direct Text Generation):} The LLM generates complete PDDL domain and problem files in a single pass without intermediate blueprints or iterative feedback loops, representing the unconstrained domain generation baselines evaluated by Oswald et al.~\cite{oswald} and Smirnov et al.~\cite{smirnov2024generatingconsistentpddldomains}. (2) \textbf{\texttt{UNSTRUCTURED\_RETRY} (Direct Text + Raw Logs):} The LLM generates complete PDDL text and is iteratively re-prompted using raw, unparsed planner and validator stdout/stderr error logs, reflecting common prompt-based domain repair approaches in the literature (e.g., Bavandpour and Bercher~\cite{bavandpour}, Chen et al.~\cite{chen2026more}).\\
+\textbf{Ablation Studies:} (1) \textbf{\texttt{ABLATION\_NO\_AST} (Direct Text + Layered Feedback):} Receives structured, localized fault diagnostics but directly edits raw PDDL text, isolating the contribution of the relational AST blueprint and deterministic compilation. (2) \textbf{\texttt{ABLATION\_NO\_TRIAGE} (AST Blueprint + Raw Feedback):} Utilizes the relational AST schema and deterministic compiler but is re-prompted only with raw, unparsed error logs, isolating the causal diagnostic localization module. (3) \textbf{\texttt{CLOSED\_LOOP\_AST\_AGENT} (Full Proposed System):} Synthesizes the relational AST blueprint, deterministic compiler, layered model-based fault localization, and regression-based solvability preservation across the full domain modeling lifecycle.
+
+\subsection{Layered Model-Based Fault Localization and Causal Taxonomy}
+Grounded in automated program repair and grounded fault localization principles~\cite{ozayturk2025autostructor, rosa2026grounded}, the framework introduces a Five-Layer Causal Fault Taxonomy that replaces unparsed planner error dumps with structured diagnostic feedback:
+\begin{enumerate}[label=(\arabic*), nosep, leftmargin=2em]
+    \item \textbf{Syntax \& Grammar Validation (Layer 1):} Isolates token-level lexical errors, unmatched parentheses, and malformed PDDL keywords via the VAL parser.
+    \item \textbf{Typing \& Signature Alignment (Layer 2):} Detects predicate arity violations, parameter type mismatches, and cyclic type hierarchies during translation.
+    \item \textbf{Precondition Bottlenecks (Layer 3):} Pinpoints over-constrained or contradictory preconditions that block action execution along state trajectories.
+    \item \textbf{Action Effect Deficiencies (Layer 4):} Identifies missing add/delete effects, unretracted facts, and simultaneous assertions that invalidate state transitions.
+    \item \textbf{Goal Reachability \& Solvability Regressions (Layer 5):} Analyzes search-space deadlocks where goal conditions are causally disconnected, or detects reachability regressions across reference benchmark problem suites during domain evolution.
+\end{enumerate}
+In the fault repair benchmark, each task instance contains a single isolated defect injected at a specific action schema. Ground-truth defect locations are labeled at the individual action-schema level (e.g., \texttt{domain.actions.pick-up}) to compute Top-1 Fault Localization Accuracy (FLA) and Mean Reciprocal Rank (MRR). Converting raw oracle errors into localized AST repair directives enables the fault localization module to precisely modify faulty action schemas while preserving verified operators.
+
+\section{Evaluation Metrics and Symbolic Oracles}
+All metrics are evaluated fully automatically using symbolic oracles: the official \textbf{VAL} plan validator~\cite{howey2004val} and the \textbf{Fast Downward} planning system~\cite{Helmert_2006}. Fast Downward executes lazy greedy best-first search with the FF heuristic (\texttt{lazy\_greedy([ff()])}) under a search cutoff of \textbf{30 seconds} and 4~GB RAM, while VAL plan validation is enforced under a \textbf{15-second} timeout~\cite{howey2004val}. Syntax Validity Rate (SVR) is determined deterministically by the official VAL \texttt{Parser} binary. Statistical significance for H1 and H2 is verified using the paired Wilcoxon signed-rank test and McNemar's test.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.05}
+\begin{tabularx}{\textwidth}{
+  >{\raggedright\arraybackslash}p{2.6cm}
+  >{\raggedright\arraybackslash}X
+  >{\raggedright\arraybackslash}X
+  >{\centering\arraybackslash}p{2.0cm}
+}
+\toprule
+\textbf{Metric Name} & \textbf{Formal Definition / Formula} & \textbf{Operational Purpose} & \textbf{Mapped RQ \& H} \\
+\midrule
+\textbf{Syntax Validity Rate (SVR)} & 
+$\text{SVR} = \frac{N_{\text{valid}}}{N_{\text{total}}} \times 100\%$ verified via VAL \texttt{Parser}. & 
+Verifies that the AST compiler eliminates token-level syntax crashes (e.g., missing parentheses, colons). & 
+RQ1 \par (H1) \\
+
+\textbf{Target Plan Validity (TPV)} & 
+$\text{TPV} = \text{True} \iff \text{FD}(P) = 0 \land \text{VAL}(\pi_{\text{gen}}) = \text{Valid}$; else $\text{False}$. & 
+Measures whether the candidate model is operationally solvable and self-consistent under Fast Downward and VAL. & 
+RQ1, RQ3, RQ4 \par (H1, H3, H4) \\
+
+\textbf{Plan Transfer Solvability (PTS)} & 
+$\text{PTS} = \text{True} \iff \text{VAL}(D_{\text{gt}}, P, \pi_{\text{gen}}) = \text{Valid}$; else $\text{False}$. & 
+Non-circular semantic soundness certificate; validates whether plan $\pi_{\text{gen}}$ executes validly on ground-truth domain $D_{\text{gt}}$. & 
+RQ1, RQ4 \par (H1, H4) \\
+
+\textbf{Reference Suite Coverage ($\text{Cov}_{\text{ref}}$)} & 
+$\text{Cov}_{\text{ref}} = \frac{N_{\text{solved}}}{N_{\text{total}}} \times 100\%$ on reference problem suite $\Pi_{\text{ref}}$. & 
+Measures reachability preservation; detects solvability regressions where action modifications satisfy the capability extension but break solvability on reference problem instances $\Pi_{\text{ref}}$. & 
+RQ3 \par (H3) \\
+
+\textbf{Fault Localization Accuracy (FLA)} & 
+$\text{FLA} = \mathbb{I}(\text{Top-1}(\hat{a}) = a_{\text{gold}})$; \par $\text{MRR} = \frac{1}{\text{rank}(a_{\text{gold}})}$. & 
+Measures the accuracy of the diagnostic fault localization module in localizing the exact faulty action schema prior to repair. & 
+RQ2 \par (H2) \\
+
+\textbf{Macro Structural F1} & 
+$\text{Macro\_F1} = \frac{\sum \text{Structural\_F1}(op_i, op_j)}{N_{\text{ground\_truth}}}$ via Kuhn-Munkres matching. & 
+Measures structural operator fidelity against gold-standard models without penalizing synonymous action naming. & 
+RQ1, RQ4 \par (H1, H4) \\
+
+\textbf{STRIPS Component F1 ($\text{Pre}, \text{Add}, \text{Del}$)} & 
+$\text{F1} = \frac{2 \cdot P \cdot R}{P + R}$ evaluated independently on action preconditions, add effects, and delete effects. & 
+Isolates exact causal failure locations (missing preconditions vs. contradictory effects) to guide repair. & 
+RQ1, RQ2 \par (H1, H2) \\
+
+\textbf{Plan Length / Cost ($|\text{Plan}|$)} & 
+Number of sequential action steps in the validated plan: $|\text{Plan}| = n$. & 
+Measures plan efficiency and confirms that solutions avoid redundant action loops across models. & 
+RQ4 \par (H4) \\
+
+\textbf{Feedback Iterations ($k$)} & 
+Integer number of repair cycles required to reach validity: $k \in \{1, 2, \dots, N_{\max}\}$ ($k = 1$ is Zero-Shot). & 
+Measures closed-loop repair efficiency and the convergence speed of the diagnostic fault localization module. & 
+RQ2, RQ4 \par (H2, H4) \\
+
+\textbf{Execution Latency \& Cost} & 
+$\text{Time} = t_{\text{end}} - t_{\text{start}}$ (seconds); $\text{Cost} = \sum (\text{Tokens} \times \text{Price})$ (USD). & 
+Measures computational overhead, API latency, and practical deployment feasibility across agent architectures. & 
+RQ4 \par (H4) \\
+\bottomrule
+\end{tabularx}
+\caption{Comprehensive experimental evaluation metrics, formal definitions, operational purposes, and mapping to research questions and hypotheses.}
+\label{tab:evaluation_metrics_mapping}
+\end{table}
+
+\section{Relation to Thesis Objectives}
+This proposal is structured to map directly into the planned chapters of the Master's thesis:
+\begin{enumerate}[label=(\arabic*), nosep, leftmargin=2.2em]
+    \item \textbf{Chapter 1 (Introduction):} Outlines real-world motivations, LLM-based planning limitations~\cite{kambhampati2024llmscantplanhelp}, MRQ, sub-questions (RQ1--RQ4), and hypotheses (H1--H4).
+    \item \textbf{Chapter 2 (Theoretical Background):} Formally defines state-transition systems, PDDL 2.1 syntax, Fast Downward search~\cite{Helmert_2006}, VAL validation~\cite{howey2004val}, and greedy decoding.
+    \item \textbf{Chapter 3 (Related Work):} Surveys classical action model learning~\cite{aineto2019learningstripsactionmodels}, LLM-modulo systems~\cite{kambhampati2024llmscantplanhelp}, and agentic software lifecycle frameworks~\cite{georgievski2026from, Applis}.
+    \item \textbf{Chapter 4 (System Architecture):} Details the agent core, Pydantic AST blueprints, deterministic compiler, layered fault localization architecture, and solvability preservation verification.
+    \item \textbf{Chapter 5 (Technical Implementation):} Documents LangGraph state machines, Pydantic schemas, oracle subprocess wrappers, and OpenRouter integration.
+    \item \textbf{Chapter 6 (Experimental Evaluation):} Evaluates 20 domain formulation benchmarks and 10 evolution benchmarks against baselines and ablations using Table~\ref{tab:evaluation_metrics_mapping}.
+    \item \textbf{Chapter 7 (Conclusion and Future Work):} Synthesizes findings, confirms support for hypotheses H1--H4, and discusses future research.
+\end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

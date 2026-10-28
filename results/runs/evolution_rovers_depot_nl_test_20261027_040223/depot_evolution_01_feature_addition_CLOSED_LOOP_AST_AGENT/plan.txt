@@ -1,0 +1,1 @@
+1: (cross_load hoist0 crate0 truck0 truck1 depot0)

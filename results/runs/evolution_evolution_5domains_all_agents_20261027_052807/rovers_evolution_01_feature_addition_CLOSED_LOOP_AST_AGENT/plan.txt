@@ -1,0 +1,2 @@
+1: (sample_rock rover0 rover0store waypoint1)
+2: (communicate_rock_data rover0 waypoint1 waypoint1)

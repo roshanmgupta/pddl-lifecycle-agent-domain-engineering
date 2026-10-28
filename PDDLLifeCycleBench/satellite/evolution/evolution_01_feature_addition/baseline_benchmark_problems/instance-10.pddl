@@ -8,7 +8,7 @@
 	infrared2 - mode
 	GroundStation1 - direction
 	GroundStation0 - direction
-	Planet2 - direction
+	Planet1 - direction
 	Phenomenon3 - direction
 )
 (:init

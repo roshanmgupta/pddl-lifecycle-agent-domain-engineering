@@ -1,112 +1,109 @@
-(define (domain barman)
+(define (domain cocktail_making)
   (:requirements :strips :typing)
   (:types
-    object - supertype
-    hand level beverage dispenser container - object
-    ingredient cocktail - beverage
-    shot shaker - container
+    object
+    hand - object
+    level - object
+    beverage - object
+    dispenser - object
+    container - object
+    ingredient - beverage
+    cocktail - beverage
+    shot - container
+    shaker - container
   )
-  
+
   (:predicates
-    (ontable ?x - container)
     (holding ?h - hand ?c - container)
-    (handempty ?h - hand)
-    (clean ?c - container)
-    (empty ?c - container)
-    (contains ?c - container ?b - beverage)
-    (used ?c - container ?b - beverage)
+    (on_table ?c - container)
+    (hand_empty ?h - hand)
     (dispenses ?d - dispenser ?i - ingredient)
-    (shaker-empty-level ?s - shaker ?l - level)
-    (shaker-level ?s - shaker ?l - level)
-    (next ?l1 - level ?l2 - level)
+    (contains ?c - container ?b - beverage)
+    (empty ?c - container)
+    (clean ?c - container)
+    (used_by ?c - container ?b - beverage)
     (unshaken ?s - shaker)
     (shaken ?s - shaker)
-    (cocktail-part1 ?c - cocktail ?i - ingredient)
-    (cocktail-part2 ?c - cocktail ?i - ingredient)
+    (at_level ?s - shaker ?l - level)
+    (next ?l1 - level ?l2 - level)
+    (part_of ?i - ingredient ?c - cocktail)
   )
-  
+
   (:action grasp
-    :parameters (?h - hand ?c - container)
-    :precondition (and (ontable ?c) (handempty ?h))
-    :effect (and (holding ?h ?c) (not (ontable ?c)) (not (handempty ?h)))
+    :parameters (?b - container ?a - hand)
+    :precondition (and (on_table ?b) (hand_empty ?a))
+    :effect (and (holding ?a ?b) (not (on_table ?b)) (not (hand_empty ?a)))
   )
-  
+
   (:action leave
-    :parameters (?h - hand ?c - container)
-    :precondition (holding ?h ?c)
-    :effect (and (handempty ?h) (ontable ?c) (not (holding ?h ?c)))
+    :parameters (?b - container ?a - hand)
+    :precondition (holding ?a ?b)
+    :effect (and (hand_empty ?a) (on_table ?b) (not (holding ?a ?b)))
   )
-  
+
   (:action fill
-    :parameters (?s - shot ?i - ingredient ?d - dispenser ?h1 - hand ?h2 - hand)
-    :precondition (and (holding ?h1 ?s) (handempty ?h2) (dispenses ?d ?i) 
-                      (empty ?s) (clean ?s))
-    :effect (and (contains ?s ?i) (used ?s ?i) (not (empty ?s)) (not (clean ?s)))
+    :parameters (?a - shot ?b - ingredient ?e - dispenser ?c - hand ?d - hand)
+    :precondition (and (holding ?c ?a) (hand_empty ?d) (dispenses ?e ?b) (empty ?a) (clean ?a))
+    :effect (and (contains ?a ?b) (used_by ?a ?b) (not (empty ?a)) (not (clean ?a)))
   )
-  
+
   (:action refill
-    :parameters (?s - shot ?i - ingredient ?d - dispenser ?h1 - hand ?h2 - hand)
-    :precondition (and (holding ?h1 ?s) (handempty ?h2) (dispenses ?d ?i) 
-                      (empty ?s) (used ?s ?i))
-    :effect (and (contains ?s ?i) (not (empty ?s)))
+    :parameters (?a - shot ?b - ingredient ?e - dispenser ?c - hand ?d - hand)
+    :precondition (and (holding ?c ?a) (hand_empty ?d) (dispenses ?e ?b) (empty ?a) (used_by ?a ?b))
+    :effect (and (contains ?a ?b) (not (empty ?a)))
   )
-  
-  (:action empty-shot
-    :parameters (?h - hand ?s - shot ?b - beverage)
-    :precondition (and (holding ?h ?s) (contains ?s ?b))
-    :effect (and (empty ?s) (not (contains ?s ?b)))
+
+  (:action empty_shot
+    :parameters (?b - shot ?c - beverage ?a - hand)
+    :precondition (and (holding ?a ?b) (contains ?b ?c))
+    :effect (and (empty ?b) (not (contains ?b ?c)))
   )
-  
-  (:action clean-shot
-    :parameters (?s - shot ?b - beverage ?h1 - hand ?h2 - hand)
-    :precondition (and (holding ?h1 ?s) (handempty ?h2) (empty ?s) (used ?s ?b))
-    :effect (and (clean ?s) (not (used ?s ?b)))
+
+  (:action clean_shot
+    :parameters (?a - shot ?b - beverage ?c - hand ?d - hand)
+    :precondition (and (holding ?c ?a) (hand_empty ?d) (empty ?a) (used_by ?a ?b))
+    :effect (and (clean ?a) (not (used_by ?a ?b)))
   )
-  
-  (:action pour-clean-shaker
-    :parameters (?s - shot ?i - ingredient ?sh - shaker ?h - hand ?l1 - level ?l2 - level)
-    :precondition (and (holding ?h ?s) (contains ?s ?i) (empty ?sh) (clean ?sh)
-                      (shaker-level ?sh ?l1) (next ?l1 ?l2))
-    :effect (and (empty ?s) (contains ?sh ?i) (unshaken ?sh) (shaker-level ?sh ?l2)
-                (not (contains ?s ?i)) (not (empty ?sh)) (not (clean ?sh)) 
-                (not (shaker-level ?sh ?l1)))
+
+  (:action pour_into_clean_shaker
+    :parameters (?a - shot ?b - ingredient ?c - shaker ?d - hand ?e - level ?f - level)
+    :precondition (and (holding ?d ?a) (contains ?a ?b) (empty ?c) (clean ?c) (at_level ?c ?e) (next ?e ?f))
+    :effect (and (empty ?a) (contains ?c ?b) (unshaken ?c) (at_level ?c ?f) 
+                 (not (contains ?a ?b)) (not (empty ?c)) (not (clean ?c)) (not (at_level ?c ?e)))
   )
-  
-  (:action pour-used-shaker
-    :parameters (?s - shot ?i - ingredient ?sh - shaker ?h - hand ?l1 - level ?l2 - level)
-    :precondition (and (holding ?h ?s) (contains ?s ?i) (unshaken ?sh)
-                      (shaker-level ?sh ?l1) (next ?l1 ?l2))
-    :effect (and (contains ?sh ?i) (empty ?s) (shaker-level ?sh ?l2)
-                (not (contains ?s ?i)) (not (shaker-level ?sh ?l1)))
+
+  (:action pour_into_used_shaker
+    :parameters (?a - shot ?b - ingredient ?c - shaker ?d - hand ?e - level ?f - level)
+    :precondition (and (holding ?d ?a) (contains ?a ?b) (unshaken ?c) (at_level ?c ?e) (next ?e ?f))
+    :effect (and (contains ?c ?b) (empty ?a) (at_level ?c ?f) 
+                 (not (contains ?a ?b)) (not (at_level ?c ?e)))
   )
-  
-  (:action empty-shaker
-    :parameters (?h - hand ?sh - shaker ?c - cocktail ?l1 - level ?l2 - level)
-    :precondition (and (holding ?h ?sh) (contains ?sh ?c) (shaken ?sh)
-                      (shaker-level ?sh ?l1) (shaker-empty-level ?sh ?l2))
-    :effect (and (shaker-level ?sh ?l2) (empty ?sh)
-                (not (shaken ?sh)) (not (shaker-level ?sh ?l1)) (not (contains ?sh ?c)))
+
+  (:action empty_shaker
+    :parameters (?b - shaker ?c - cocktail ?a - hand ?d - level ?e - level)
+    :precondition (and (holding ?a ?b) (contains ?b ?c) (shaken ?b) (at_level ?b ?d) (next ?d ?e))
+    :effect (and (at_level ?b ?e) (empty ?b) 
+                 (not (shaken ?b)) (not (at_level ?b ?d)) (not (contains ?b ?c)))
   )
-  
-  (:action clean-shaker
-    :parameters (?sh - shaker ?h1 - hand ?h2 - hand)
-    :precondition (and (holding ?h1 ?sh) (handempty ?h2) (empty ?sh))
-    :effect (clean ?sh)
+
+  (:action clean_shaker
+    :parameters (?c - shaker ?a - hand ?b - hand)
+    :precondition (and (holding ?a ?c) (hand_empty ?b) (empty ?c))
+    :effect (and (clean ?c))
   )
-  
+
   (:action shake
-    :parameters (?c - cocktail ?sh - shaker ?h1 - hand ?h2 - hand ?i1 - ingredient ?i2 - ingredient)
-    :precondition (and (holding ?h1 ?sh) (handempty ?h2) (contains ?sh ?i1) (contains ?sh ?i2)
-                      (cocktail-part1 ?c ?i1) (cocktail-part2 ?c ?i2) (unshaken ?sh))
-    :effect (and (shaken ?sh) (contains ?sh ?c) 
-                (not (unshaken ?sh)) (not (contains ?sh ?i1)) (not (contains ?sh ?i2)))
+    :parameters (?a - cocktail ?d - shaker ?e - hand ?f - hand ?b - ingredient ?c - ingredient)
+    :precondition (and (holding ?e ?d) (hand_empty ?f) (contains ?d ?b) (contains ?d ?c) 
+                       (part_of ?b ?a) (part_of ?c ?a) (unshaken ?d))
+    :effect (and (shaken ?d) (contains ?d ?a) 
+                 (not (unshaken ?d)) (not (contains ?d ?b)) (not (contains ?d ?c)))
   )
-  
-  (:action pour-shaker-to-shot
-    :parameters (?b - beverage ?sh - shaker ?h - hand ?s - shot ?l1 - level ?l2 - level)
-    :precondition (and (holding ?h ?sh) (shaken ?sh) (empty ?s) (clean ?s)
-                      (contains ?sh ?b) (shaker-level ?sh ?l1) (next ?l1 ?l2))
-    :effect (and (contains ?s ?b) (shaker-level ?sh ?l2)
-                (not (clean ?s)) (not (empty ?s)) (not (shaker-level ?sh ?l1)))
+
+  (:action pour_from_shaker
+    :parameters (?a - beverage ?d - shaker ?c - hand ?b - shot ?e - level ?f - level)
+    :precondition (and (holding ?c ?d) (shaken ?d) (empty ?b) (clean ?b) (contains ?d ?a) (at_level ?d ?e) (next ?e ?f))
+    :effect (and (contains ?b ?a) (at_level ?d ?f) 
+                 (not (clean ?b)) (not (empty ?b)) (not (at_level ?d ?e)))
   )
 )

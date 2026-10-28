@@ -29,5 +29,4 @@
     :parameters (?ob ?underob)
     :precondition (and (on ?ob ?underob) (clear ?ob) (handempty))
     :effect (and (holding ?ob) (clear ?underob)
-                 (not (on ?ob ?underob)) (not (clear ?ob)) (not (handempty))))
-)
+                 (not (on ?ob ?underob)) (not (clear ?ob)) (not (handempty)))))

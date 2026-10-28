@@ -472,6 +472,7 @@ def evaluate_action_reconstruction(gt_pddl: str, generated_pddl: str) -> Dict[st
     mean_pre_f1 = round(sum(pre_scores) / gt_count, 4) if gt_count > 0 else 0.0
     mean_add_f1 = round(sum(add_scores) / gt_count, 4) if gt_count > 0 else 0.0
     mean_del_f1 = round(sum(del_scores) / gt_count, 4) if gt_count > 0 else 0.0
+    mean_arity_match = round(sum(1.0 if r.get("arity_match") else 0.0 for r in detailed_reports) / max(1, matched_count), 4) if matched_count > 0 else 0.0
 
     is_equiv = bool(macro_structural_f1 >= 0.99 and action_f1 >= 0.99)
     verdict = "Equivalent (Isomorphic)" if is_equiv else ("Subsumed / Partial" if macro_structural_f1 >= 0.5 else "Non-Equivalent")
@@ -484,6 +485,7 @@ def evaluate_action_reconstruction(gt_pddl: str, generated_pddl: str) -> Dict[st
         "mean_precondition_f1": mean_pre_f1,
         "mean_add_effect_f1": mean_add_f1,
         "mean_delete_effect_f1": mean_del_f1,
+        "mean_arity_match": mean_arity_match,
         "action_precision": precision,
         "action_recall": recall,
         "action_f1": action_f1,
@@ -682,10 +684,16 @@ def translate_plan_to_ground_truth(
     gen_bodies = extract_action_bodies(generated_domain_pddl)
     gt_bodies = extract_action_bodies(gt_domain_pddl)
 
+    lower_map = {str(k).lower(): v for k, v in action_map.items()}
+    lower_gen_bodies = {str(k).lower(): v for k, v in gen_bodies.items()}
+    lower_gt_bodies = {str(k).lower(): v for k, v in gt_bodies.items()}
+
     perms = {}
     for gen_name, gt_name in action_map.items():
-        if gen_name in gen_bodies and gt_name in gt_bodies:
-            perms[gen_name] = compute_typed_param_permutation(gen_bodies[gen_name], gt_bodies[gt_name])
+        if gen_name.lower() in lower_gen_bodies and gt_name.lower() in lower_gt_bodies:
+            perms[gen_name.lower()] = compute_typed_param_permutation(
+                lower_gen_bodies[gen_name.lower()], lower_gt_bodies[gt_name.lower()]
+            )
 
     translated_steps = []
     for step in plan_steps:
@@ -694,10 +702,11 @@ def translate_plan_to_ground_truth(
             act_name = m.group(1)
             raw_args = m.group(2).strip()
             args = raw_args.split() if raw_args else []
+            act_lower = act_name.lower()
 
-            if act_name in action_map:
-                mapped_act = action_map[act_name]
-                perm = perms.get(act_name, list(range(len(args))))
+            if act_lower in lower_map:
+                mapped_act = lower_map[act_lower]
+                perm = perms.get(act_lower, list(range(len(args))))
                 mapped_args = [args[p] for p in perm if p < len(args)]
                 args_str = " ".join(mapped_args)
                 translated_steps.append(f"({mapped_act} {args_str})")

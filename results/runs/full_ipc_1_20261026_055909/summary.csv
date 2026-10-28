@@ -1,0 +1,5 @@
+agent_type,total_runs,e2e_sr_pct,psr_solvability_pct,pts_transfer_soundness_pct,svr_init_pct,avg_iterations_total,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,rsr_repair_success_pct,avg_repair_iterations,rpr_regression_pass_rate_pct,total_candidate_rejections,mean_total_tokens,mean_latency_sec,total_cost_usd
+ABLATION_NO_AST,16,68.8,68.8,90.9,68.8,1.25,0.746,0.7487,0.7453,0.744,0.0,4.0,100.0,0,4376,39.53,0.0185
+ABLATION_NO_TRIAGE,16,56.2,56.2,88.9,37.5,2.38,0.6732,0.6786,0.6897,0.6514,50.0,3.67,100.0,0,19070,93.57,0.062
+CLOSED_LOOP_AST_AGENT,16,56.2,56.2,100.0,18.8,3.25,0.7893,0.8,0.7923,0.7757,60.0,3.6,100.0,0,55196,1295.39,0.1745
+ZERO_SHOT,16,62.5,62.5,90.0,68.8,1.0,0.7474,0.75,0.747,0.7452,100.0,0.0,100.0,0,2140,17.8,0.0091

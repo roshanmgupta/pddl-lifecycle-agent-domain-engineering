@@ -644,7 +644,7 @@ def is_domain_typed(year: str, domain_name: str) -> bool:
 def list_ipc_domains(year: str = "ipc-2002") -> List[str]:
     """
     Returns strictly PDDL 2.1 typed domain subdirectories within a given IPC year.
-    Filters out legacy untyped domains (e.g. *-untyped or domains without :typing).
+    Filters out classical untyped domains (e.g. *-untyped or domains without :typing).
     """
     domains_dir = os.path.join(BENCHMARK_ROOT, year, "domains")
     if not os.path.exists(domains_dir):
@@ -840,8 +840,6 @@ def get_lifecycle_flaw_pddl(domain_name: str, flaw_name: str) -> Dict[str, Any]:
         with open(prob_file, "r", encoding="utf-8", errors="ignore") as f:
             res["problem"] = f.read()
     spec_file = os.path.join(PDDL_LIFECYCLE_BENCH_ROOT, domain_name, "domain_encoding.txt")
-    if not os.path.exists(spec_file):
-        spec_file = os.path.join(flaw_path, "complete_specification.txt")
     if os.path.exists(spec_file):
         with open(spec_file, "r", encoding="utf-8", errors="ignore") as f:
             res["specification"] = re.sub(r"\[NOTE:[^\]]+\]\s*", "", f.read()).strip()

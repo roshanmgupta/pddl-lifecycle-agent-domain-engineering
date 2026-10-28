@@ -2,27 +2,18 @@
 CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (CAPABILITY EXTENSION)
 BASELINE DOMAIN: DEPOT -> EVOLVED DOMAIN: DEPOT (DIRECT CROSS-DOCKING)
 ================================================================================
-REQUIREMENT SPECIFICATION (AUTOPLANBENCH / CLASSICAL PLANNING GROUNDING):
+REQUIREMENT SPECIFICATION (AUTOPLANBENCH NATURAL LANGUAGE ENCODING):
 Extend the existing operational model of the depot domain to support direct vehicle-to-vehicle cross-docking operations.
 
-The baseline domain enables:
-- driving a truck from one place to another place
-- a hoist lifting a crate from a surface (pallet or crate) at a place
-- a hoist dropping a crate onto a clear surface at a place
-- a hoist loading a held crate into a truck at a place
-- a hoist unloading a crate from a truck at a place
+I can carry out the following new action:
+cross load a crate B with a hoist A from a truck C into a truck D at a place E
 
-CAPABILITY EXTENSION REQUIREMENTS:
-1. New Action Schema:
-   - Name: cross_load (or cross-load)
-   - Parameters:
-     ?h - hoist, ?c - crate, ?from_truck - truck, ?to_truck - truck, ?p - place
-   - Preconditions:
-     The hoist ?h must be at place ?p and available. The source truck ?from_truck must be at place ?p. The destination truck ?to_truck must be at place ?p. The crate ?c must currently be in the source truck: (in ?c ?from_truck).
-   - Effects:
-     The crate ?c is loaded directly into the destination truck: (in ?c ?to_truck).
-     The crate ?c is no longer in the source truck: (not (in ?c ?from_truck)).
-     The hoist ?h remains available: (available ?h).
+I have the following restrictions on my actions:
+I can only cross load a crate B with a hoist A from a truck C into a truck D at a place E if it is the case that A is at E and A is available and C is at E and D is at E and B is in C
+
+The actions have the following effects on the state:
+Once I cross load a crate B with a hoist A from a truck C into a truck D at a place E, it is the case that B is in D and A is available
+Once I cross load a crate B with a hoist A from a truck C into a truck D at a place E, it is not the case anymore that B is in C
 
 SOLVABILITY PRESERVATION MANDATE:
-All baseline action schemas (Drive, Lift, Drop, Load, Unload) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.
+All baseline actions (driving a truck, lifting a crate, dropping a crate, loading a crate, and unloading a crate) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.

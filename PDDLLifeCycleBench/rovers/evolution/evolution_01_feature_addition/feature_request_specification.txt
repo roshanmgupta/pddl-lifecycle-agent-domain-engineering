@@ -2,30 +2,17 @@
 CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (CAPABILITY EXTENSION)
 BASELINE DOMAIN: ROVERS -> EVOLVED DOMAIN: ROVERS (ORBITAL TELEMETRY RELAY)
 ================================================================================
-REQUIREMENT SPECIFICATION (AUTOPLANBENCH / CLASSICAL PLANNING GROUNDING):
+REQUIREMENT SPECIFICATION (AUTOPLANBENCH NATURAL LANGUAGE ENCODING):
 Extend the existing operational model of the rovers domain to incorporate direct orbital telemetry relay for scientific rock data.
 
-The baseline domain enables:
-- navigating a rover between waypoints: (navigate ?x - rover ?y - waypoint ?z - waypoint)
-- sampling soil and rock samples into stores: (sample_soil ...), (sample_rock ...)
-- dropping sample store contents: (drop ?x - rover ?y - store)
-- calibrating cameras and taking multi-mode images: (calibrate ...), (take_image ...)
-- communicating scientific data through a line-of-sight lander with a free communication channel:
-  (communicate_soil_data ?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
-  (communicate_rock_data ?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
-  (communicate_image_data ?r - rover ?l - lander ?o - objective ?m - mode ?x - waypoint ?y - waypoint)
+I can carry out the following new action:
+communicate rock data orbitally from a rover A at a waypoint C with data from a waypoint B
 
-CAPABILITY EXTENSION REQUIREMENTS:
-1. New Action Schema:
-   - Name: communicate_rock_data_orbital
-   - Parameters:
-     ?r - rover, ?p - waypoint, ?x - waypoint
-   - Preconditions:
-     The rover ?r must be at waypoint ?x: (at ?r ?x).
-     The rover ?r must have analyzed the rock sample from waypoint ?p: (have_rock_analysis ?r ?p).
-     The rover ?r must be available: (available ?r).
-   - Effects:
-     Asserts that rock data for waypoint ?p has been communicated: (communicated_rock_data ?p).
+I have the following restrictions on my actions:
+I can only communicate rock data orbitally from a rover A at a waypoint C with data from a waypoint B if it is the case that A is at C and A has rock analysis B and A is available
+
+The actions have the following effects on the state:
+Once I communicate rock data orbitally from a rover A at a waypoint C with data from a waypoint B, it is the case that B communicated rock data and A is available
 
 SOLVABILITY PRESERVATION MANDATE:
-All baseline action schemas (navigate, sample_soil, sample_rock, drop, calibrate, take_image, communicate_soil_data, communicate_rock_data, communicate_image_data) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.
+All baseline actions (navigating a rover, sampling soil and rock, dropping store contents, calibrating cameras, taking images, and communicating through landers) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.

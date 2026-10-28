@@ -27,7 +27,7 @@ class BenchmarkTask(BaseModel):
     )
     initial_domain_pddl: Optional[str] = Field(
         default=None,
-        description="Starting domain PDDL text containing a fault (for REPAIR) or legacy spec (for EVOLUTION)"
+        description="Starting domain PDDL text containing a fault (for REPAIR) or baseline specification (for EVOLUTION)"
     )
     initial_problem_pddl: Optional[str] = Field(
         default=None,
@@ -51,7 +51,7 @@ class BenchmarkTask(BaseModel):
     )
     baseline_benchmark_problems: List[str] = Field(
         default_factory=list,
-        description="List of baseline benchmark problem PDDL strings that must remain solvable after domain evolution to certify solvability preservation (domain subsumption)"
+        description="List of baseline benchmark problem PDDL strings that must remain solvable after domain evolution to certify solvability preservation across reference instances"
     )
     evolution_target_problem_pddl: Optional[str] = Field(
         default=None,

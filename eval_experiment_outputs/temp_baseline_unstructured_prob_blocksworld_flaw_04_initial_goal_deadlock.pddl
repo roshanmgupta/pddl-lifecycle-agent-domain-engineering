@@ -4,18 +4,19 @@
 (:domain blocksworld-4ops)
 (:objects a b c d )
 (:init
-    (state_deadlock_mutex_lock)
 (handempty)
-(ontable a)
-(on b c)
+(on a b)
+(ontable b)
 (ontable c)
-(ontable d)
+(on d c)
 (clear a)
-(clear b)
 (clear d)
 )
-(:goal (and (not (state_deadlock_mutex_lock))
+(:goal
 (and
-(on c b))
+(on c a))
 )
-))
+)
+
+
+

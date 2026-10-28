@@ -1,0 +1,129 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,executability_valid,feasibility_valid,interpretability_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+gripper,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,4,True,3,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000103,62.28,54774,3819,58593,0.010508,A.2: Refined Success via Feedback Loops,RECOVERED,
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,True,False,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.005666,17.57,4722,814,5536,0.001197,E.2: Standard Plan Interpretability Rejection on Generated Domain (Completeness Failure),PRECONDITION_OVERCONSTRAINED,
+satellite,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,5,True,4,0.9778,1.0,0.9333,1.0,1.0,1.0,0,0,0,0,5,5,0.000229,74.75,69174,5412,74586,0.013623,A.2: Refined Success via Feedback Loops,RECOVERED,
+rovers,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.9214,0.9123,0.8519,1.0,1.0,1.0,0,0,0,0,0,0,0.008894,181.36,136661,13395,150056,0.028536,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+barman14-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,False,False,6,False,5,0.7546,0.8556,0.825,0.5833,1.0,1.0,0,0,0,0,14,14,0.0037,232.96,151342,18538,169880,0.033824,E.1: Plan Feasibility Rejection on Standard Domain (Soundness Failure),PRECONDITION_MISALIGNMENT,"Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Type-checking grasp ...action passes type checking. Type-checking leave ...action passes"
+elevators08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,4,True,3,0.9859,0.9577,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.006277,112.43,70956,8997,79953,0.016042,A.2: Refined Success via Feedback Loops,RECOVERED,
+floortile,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.8987,0.8867,0.8571,0.9524,1.0,1.0,0,0,0,0,0,0,3.3e-05,128.95,114711,11035,125746,0.023828,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+parking11,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.7198,0.8428,0.5167,0.8,1.0,1.0,0,0,0,0,0,0,1.6e-05,115.29,118887,8552,127439,0.022964,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+goldminer,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,True,False,False,2,False,1,0.75,0.8452,0.6667,0.7381,1.0,1.0,0,0,0,0,5,5,0.000254,37.68,32272,3536,35808,0.006962,E.2: Standard Plan Interpretability Rejection on Generated Domain (Completeness Failure),PRECONDITION_OVERCONSTRAINED,
+transport08-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.00012,70.76,95020,5249,100269,0.017402,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+scanalyzer08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,2,True,1,0.9166,0.75,1.0,1.0,1.0,1.0,0,0,0,0,6,6,0.000452,28.37,25876,2281,28157,0.00525,A.2: Refined Success via Feedback Loops,RECOVERED,
+visitall,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,3,3,0.000179,12.04,18475,631,19106,0.00315,A.2: Refined Success via Feedback Loops,RECOVERED,
+pipesworld-notankage04-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,False,False,6,False,5,0.9603,0.9142,1.0,0.9667,1.0,1.0,0,0,0,0,5,5,0.000277,183.57,124262,14909,139171,0.027585,E.1: Plan Feasibility Rejection on Standard Domain (Soundness Failure),PRECONDITION_MISALIGNMENT,"Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Type-checking push-start ...action passes type checking. Type-checking push-end ...actio"
+woodworking08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.7409,0.8896,0.4895,0.8436,1.0,1.0,0,0,0,0,0,0,1.9e-05,374.57,180773,27598,208371,0.043675,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+tpp06-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,True,False,False,3,False,2,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,6.3e-05,59.98,41316,3689,45005,0.008411,E.2: Standard Plan Interpretability Rejection on Generated Domain (Completeness Failure),PRECONDITION_OVERCONSTRAINED,
+pegsol08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.8667,1.0,0.6667,0.9333,1.0,1.0,0,0,0,0,0,0,1.9e-05,92.05,125124,5548,130672,0.022097,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+nomystery11-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,False,False,6,False,5,0.9153,0.8571,1.0,0.8889,1.0,1.0,0,0,0,0,11,11,0.033552,147.09,144782,4061,148843,0.024154,E.1: Plan Feasibility Rejection on Standard Domain (Soundness Failure),PRECONDITION_MISALIGNMENT,"Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Plan Transfer Arity Mismatch: Operator 'drive' in translated plan has 5 argument(s), but"
+transport11,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.9841,0.9524,1.0,1.0,1.0,1.0,0,0,0,0,0,0,1.8e-05,109.4,98689,5881,104570,0.018332,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+transport14,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,3,True,2,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,13,13,0.000605,39.98,36812,2166,38978,0.006821,A.2: Refined Success via Feedback Loops,RECOVERED,
+elevators11,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.4966,0.212,0.8333,0.4445,1.0,1.0,0,0,0,0,0,0,2.2e-05,187.81,110702,12946,123648,0.024373,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+scanalyzer11,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,False,False,6,False,5,0.9083,0.725,1.0,1.0,1.0,1.0,0,0,0,0,7,7,0.000228,120.77,100155,7554,107709,0.019556,E.1: Plan Feasibility Rejection on Standard Domain (Soundness Failure),PRECONDITION_MISALIGNMENT,"Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Plan Transfer Arity Mismatch: Operator 'analyze-4' in translated plan has 6 argument(s),"
+barman11-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.7482,0.8169,0.8111,0.6167,1.0,1.0,0,0,0,0,0,0,0.000357,317.97,161245,25499,186744,0.039486,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+floortile11,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,2.1e-05,140.41,120367,10540,130907,0.024379,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+floortile14,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,2e-05,130.78,122911,10630,133541,0.024815,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+pegsol11,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.6286,0.619,0.6667,0.6,1.0,1.0,0,0,0,0,0,0,2.5e-05,84.83,126312,4982,131294,0.021936,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+rovers06-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,False,False,6,False,5,0.7762,0.9471,0.7889,0.5926,1.0,1.0,0,0,0,0,9,9,0.00025,287.75,123396,15725,139121,0.027944,E.1: Plan Feasibility Rejection on Standard Domain (Soundness Failure),PRECONDITION_MISALIGNMENT,"Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Type-checking navigate ...action passes type checking. Type-checking sample_soil ...acti"
+pipesworld-tankage04-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.6951,0.6833,0.6889,0.713,1.0,1.0,0,0,0,0,0,0,2.1e-05,240.27,169072,18911,187983,0.036707,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+woodworking11,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.7205,0.8538,0.5385,0.7692,1.0,1.0,0,0,0,0,0,0,2.1e-05,367.96,210778,34243,245021,0.052163,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+visitall11-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,3,3,5.9e-05,12.43,18463,636,19099,0.003151,A.2: Refined Success via Feedback Loops,RECOVERED,
+visitall14-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,52,52,0.001155,11.2,21127,628,21755,0.003546,A.2: Refined Success via Feedback Loops,RECOVERED,

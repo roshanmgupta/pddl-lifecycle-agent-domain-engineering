@@ -408,7 +408,7 @@ BENCHMARK_TASKS: List[BenchmarkTask] = [
         title="Satellite Evolution: Dual Imaging Modes",
         natural_language_requirements="""
         Extend existing Satellite domain to support dual imaging modes (spectrograph and infrared).
-        Ensure backward compatibility with legacy single-mode problems.
+        Ensure reachability preservation across reference single-mode problems.
         """,
         initial_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/satellite-strips-automatic/domain.pddl"),
         initial_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/satellite-strips-automatic/instances/instance-2.pddl"),

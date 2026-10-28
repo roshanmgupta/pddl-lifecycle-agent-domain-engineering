@@ -5,9 +5,9 @@ Autonomous Empirical Benchmark Runner for the 10 Selected Benchmark Domains.
 Evaluates the 5 formal experimental conditions:
 1. ZERO_SHOT (Baseline 1): Direct one-shot PDDL text generation from prompt.
 2. UNSTRUCTURED_RETRY (Baseline 2): Closed-loop raw PDDL text re-prompting with terminal compiler/solver logs.
-3. ABLATION_NO_AST (Ablation 1 - Tests H1): Closed-loop direct PDDL text repair with structured Diagnostic Triage reports.
-4. ABLATION_NO_TRIAGE (Ablation 2 - Tests H2): Closed-loop AST Blueprint repair with raw terminal logs (skips triage).
-5. CLOSED_LOOP_AST_AGENT (Full Proposed UPDEAgent): Closed-loop AST Blueprint + Layered Diagnostic Triage + Deterministic Compiler.
+3. ABLATION_NO_AST (Ablation 1 - Tests H1): Closed-loop direct PDDL text repair with Layered Model-Based Fault Localization.
+4. ABLATION_NO_TRIAGE (Ablation 2 - Tests H2): Closed-loop AST Blueprint repair with raw terminal logs (skips fault localization).
+5. CLOSED_LOOP_AST_AGENT (Full Proposed UPDEAgent): Closed-loop AST Blueprint + Layered Model-Based Fault Localization + Deterministic Compiler.
 
 Outputs:
 - Dedicated isolated directory: results/runs/synthesis_benchmark_<timestamp>/

@@ -1,0 +1,18 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+woodworking08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.9722,1.0,0.9846,0.9319,1.0,1.0,0,0,0,0,0,0,0.000123,614.87,156923,22070,178993,0.03678,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+woodworking11,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.9605,0.9737,0.9077,1.0,1.0,1.0,0,0,0,0,0,0,0.000105,598.32,166776,21327,188103,0.037813,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+pipesworld-tankage04-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,0.9193,0.9092,0.9333,0.9153,1.0,1.0,0,0,0,0,5,5,0.001582,189.84,59394,7993,67387,0.013705,A.2: Refined Success via Feedback Loops,RECOVERED,

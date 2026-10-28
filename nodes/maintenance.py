@@ -16,7 +16,7 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
     Phase 4: Domain Model Evolution & Solvability Preservation Node.
     
     In Classical Automated Planning (Fox & Long 2003; Haslum et al. 2019; McCluskey et al. 2017),
-    this node verifies Domain Subsumption: checking that an evolved domain Sigma' preserves plan reachability
+    this node verifies Solvability Preservation: checking that an evolved domain Sigma' preserves plan reachability
     (solvability) across the distribution of canonical benchmark problem instances Pi_ref = {P_1, ..., P_k}.
     """
     import time
@@ -62,7 +62,7 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
         for case_idx, case_data in enumerate(baseline_suite):
             if isinstance(case_data, dict):
                 case_id = case_data.get("case_id", f"benchmark_instance_{case_idx+1}")
-                hist_prob_pddl = case_data.get("problem_pddl") or case_data.get("raw_pddl") or ""
+                hist_prob_pddl = case_data.get("problem_pddl", "")
             elif isinstance(case_data, str):
                 # Raw PDDL problem string
                 # Extract problem name if available
@@ -97,18 +97,53 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
             if not val_ok:
                 err_text = f"[SOLVABILITY_PRESERVATION_BREAKAGE]: Benchmark instance '{case_id}' failed VAL syntax/type validation under evolved domain.\nLog: {val_log}"
                 print(f"  [FAIL] {err_text}")
-                missing_pred_m = re.search(r"Predicate\s+(\w+)\s+not found", val_log)
+                missing_pred_m = (
+                    re.search(r"Predicate\s+([a-zA-Z0-9_\-]+)\s+not found", val_log)
+                    or re.search(r"Problem with proposition\s*\(([a-zA-Z0-9_\-]+).*?\)\s*-\s*predicate not found", val_log)
+                )
+                m_arity = re.search(r"Problem with proposition\s*\(([a-zA-Z0-9_\-]+).*?\)\s*-\s*too\s+(few|many)\s+parameters", val_log)
+                m_unk_type = re.search(r"Object with unknown type:\s*([a-zA-Z0-9_\-]+)", val_log)
+
+                # Check if any predicate from the baseline domain was omitted in the evolved domain
+                base_dom_pddl = state.get("initial_domain_pddl", "")
+                if not missing_pred_m and base_dom_pddl and domain_blueprint:
+                    base_preds = set(re.findall(r"\(\s*([a-zA-Z0-9_\-]+)(?:\s+\?[a-zA-Z0-9_\-]+(?:\s*-\s*[a-zA-Z0-9_\-]+)?)*\s*\)", base_dom_pddl))
+                    curr_preds = set()
+                    for p in domain_blueprint.get("predicates", []):
+                        if isinstance(p, str):
+                            c = p.strip("() ").split()
+                            if c:
+                                curr_preds.add(c[0])
+                        elif isinstance(p, dict) and p.get("name"):
+                            curr_preds.add(p["name"])
+                        elif hasattr(p, "name"):
+                            curr_preds.add(getattr(p, "name"))
+                    omitted = base_preds - curr_preds
+                    if omitted:
+                        pname = sorted(list(omitted))[0]
+                        missing_pred_m = type("Match", (), {"group": lambda self, idx: pname})()
+
+                faulty_elem = "predicates"
                 hint = f"Benchmark instance '{case_id}' failed validation with evolved domain. Check for broken predicate definitions or arities."
                 if missing_pred_m:
                     pname = missing_pred_m.group(1)
-                    hint = f"Benchmark instance '{case_id}' failed because predicate '{pname}' is missing in the evolved domain. Declare '({pname} ...)' in domain 'predicates' with matching argument types to preserve backward solvability."
+                    faulty_elem = pname
+                    hint = f"Benchmark instance '{case_id}' failed because baseline predicate '{pname}' is missing in the evolved domain. Declare '({pname} ...)' in domain 'predicates' with matching argument types to preserve backward solvability."
+                elif m_arity:
+                    pname = m_arity.group(1)
+                    faulty_elem = pname
+                    hint = f"Benchmark instance '{case_id}' failed because predicate '{pname}' has an arity mismatch with pre-existing problem facts. Align '({pname} ...)' in domain 'predicates' and actions with its historical problem usage."
+                elif m_unk_type:
+                    tname = m_unk_type.group(1)
+                    faulty_elem = tname
+                    hint = f"Benchmark instance '{case_id}' failed because type '{tname}' is missing in the evolved domain. Declare '{tname}' in domain 'types' to preserve backward compatibility."
 
                 verification_errors.append(err_text)
                 diagnostic_reports.append(
                     DiagnosticReport(
                         error_category=ErrorCategory.HISTORICAL_REGRESSION,
                         repair_operation_type=RepairOperationType.REGRESSION_BACKWARD_COMPATIBILITY,
-                        faulty_element=case_id,
+                        faulty_element=faulty_elem,
                         raw_log=val_log,
                         suggested_repair_hint=hint
                     )
@@ -126,11 +161,22 @@ def run_maintenance_node(state: Dict[str, Any]) -> Dict[str, Any]:
                 err_text = f"[SOLVABILITY_PRESERVATION_BREAKAGE]: Benchmark instance '{case_id}' became unsolvable under evolved domain (Causal Reachability Deadlock).\nLog: {fd_log}"
                 print(f"  [FAIL] {err_text}")
                 verification_errors.append(err_text)
+
+                # Identify which action(s) in the evolved domain blueprint were modified or added relative to base domain
+                initial_dom_pddl = state.get("initial_domain_pddl", "")
+                faulty_elem = "actions"
+                if initial_dom_pddl and domain_blueprint:
+                    base_actions = set(re.findall(r"\(\s*:action\s+([a-zA-Z0-9_\-]+)", initial_dom_pddl, re.IGNORECASE))
+                    curr_actions = [a.get("action_name", "") for a in domain_blueprint.get("actions", []) if isinstance(a, dict)]
+                    added_or_mod = [a for a in curr_actions if a not in base_actions]
+                    if added_or_mod:
+                        faulty_elem = added_or_mod[0]
+
                 diagnostic_reports.append(
                     DiagnosticReport(
                         error_category=ErrorCategory.HISTORICAL_REGRESSION,
                         repair_operation_type=RepairOperationType.REGRESSION_BACKWARD_COMPATIBILITY,
-                        faulty_element=case_id,
+                        faulty_element=faulty_elem,
                         raw_log=fd_log,
                         suggested_repair_hint=f"Benchmark instance '{case_id}' became unsolvable with evolved domain. Ensure newly added action preconditions do not over-constrain baseline state transitions (separate new capability into a dedicated specialized action schema)."
                     )

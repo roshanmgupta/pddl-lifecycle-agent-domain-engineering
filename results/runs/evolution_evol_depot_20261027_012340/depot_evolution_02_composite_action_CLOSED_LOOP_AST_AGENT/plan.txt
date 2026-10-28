@@ -1,0 +1,5 @@
+1: (lift hoist3 crate2 pallet3 distributor0)
+2: (load hoist3 crate2 truck0 distributor0)
+3: (drive truck0 distributor0 depot0)
+4: (unload hoist0 crate2 truck0 depot0)
+5: (drop hoist0 crate2 pallet0 depot0)

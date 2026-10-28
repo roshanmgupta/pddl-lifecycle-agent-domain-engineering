@@ -238,6 +238,15 @@ def synchronize_ast_predicate_symbols(blueprint_data: dict, problem_pddl: Option
     if not prob_pred_map:
         return blueprint_data
 
+    # Collect all declared predicate symbols in blueprint
+    declared_symbols = set()
+    for p in blueprint_data.get("predicates", []):
+        clean = normalize_pddl_expression(p).strip("() ")
+        if clean:
+            toks_p = clean.split()
+            if toks_p:
+                declared_symbols.add(toks_p[0].lower().replace("-", "_"))
+
     def _replace_sym(atom_str: str) -> str:
         s = str(atom_str).strip()
         is_neg = False
@@ -258,19 +267,20 @@ def synchronize_ast_predicate_symbols(blueprint_data: dict, problem_pddl: Option
         if norm_key in prob_pred_map:
             target_sym = prob_pred_map[norm_key]
         else:
-            # 1. Common prefixes: is_, has_, can_
+            # 1. Common prefixes: is_, has_, can_ (only if target problem predicate is not already declared separately)
             for prefix in ["is_", "has_", "can_"]:
-                if norm_key.startswith(prefix) and norm_key[len(prefix):] in prob_pred_map:
-                    target_sym = prob_pred_map[norm_key[len(prefix):]]
+                cand_k = norm_key[len(prefix):]
+                if norm_key.startswith(prefix) and cand_k in prob_pred_map and cand_k not in declared_symbols:
+                    target_sym = prob_pred_map[cand_k]
                     break
-            # 2. Compound affix alignment: object_at -> at, free_from -> free
+            # 2. Compound affix alignment: object_at -> at, free_from -> free (only for unclaimed problem predicates)
             if not target_sym:
                 sub_toks = [t for t in norm_key.split("_") if t]
                 if len(sub_toks) > 1:
                     atom_arity = len(parse_pddl_typed_params(toks[1:])) if "-" in toks else (len(toks) - 1)
                     matching_cands = [
                         prob_pred_map[t] for t in sub_toks
-                        if t in prob_pred_map and atom_arity in prob_pred_arities.get(t, set())
+                        if t in prob_pred_map and t not in declared_symbols and atom_arity in prob_pred_arities.get(t, set())
                     ]
                     if len(matching_cands) == 1:
                         target_sym = matching_cands[0]
@@ -280,7 +290,7 @@ def synchronize_ast_predicate_symbols(blueprint_data: dict, problem_pddl: Option
                 atom_arity = len(parse_pddl_typed_params(toks[1:])) if "-" in toks else (len(toks) - 1)
                 sub_toks = [t for t in norm_key.split("_") if t]
                 for p_cand, arities in prob_pred_arities.items():
-                    if atom_arity in arities:
+                    if p_cand not in declared_symbols and atom_arity in arities:
                         c_toks = [t for t in p_cand.split("_") if t]
                         if len(sub_toks) == len(c_toks) and len(sub_toks) > 0:
                             if all(t1 == t2 or t1.startswith(t2) or t2.startswith(t1) for t1, t2 in zip(sub_toks, c_toks)):
@@ -292,12 +302,12 @@ def synchronize_ast_predicate_symbols(blueprint_data: dict, problem_pddl: Option
                 atom_arity = len(parse_pddl_typed_params(toks[1:])) if "-" in toks else (len(toks) - 1)
                 norm_no_sep = norm_key.replace("_", "")
                 for p_cand, arities in prob_pred_arities.items():
-                    if atom_arity in arities and norm_no_sep == p_cand.replace("_", ""):
+                    if p_cand not in declared_symbols and atom_arity in arities and norm_no_sep == p_cand.replace("_", ""):
                         target_sym = prob_pred_map[p_cand]
                         break
 
             # 5. Core root token affix alignment under identical arity: visible -> visible_from
-            if not target_sym:
+            if not target_sym and len(norm_key) > 3:
                 atom_arity = len(parse_pddl_typed_params(toks[1:])) if "-" in toks else (len(toks) - 1)
                 affix_cands = []
                 for p_cand, arities in prob_pred_arities.items():
@@ -307,10 +317,15 @@ def synchronize_ast_predicate_symbols(blueprint_data: dict, problem_pddl: Option
                             affix_cands.append(prob_pred_map[p_cand])
                 if len(affix_cands) == 1:
                     target_sym = affix_cands[0]
-        if target_sym and target_sym != psym:
-            toks[0] = target_sym
-            res = f"({' '.join(toks)})"
-            return f"(not {res})" if is_neg else res
+
+        if target_sym:
+            target_norm = target_sym.lower().replace("-", "_")
+            if target_norm != norm_key and target_norm in declared_symbols:
+                return atom_str
+            if target_sym != psym:
+                toks[0] = target_sym
+                res = f"({' '.join(toks)})"
+                return f"(not {res})" if is_neg else res
         return atom_str
 
     # Sync domain.predicates
@@ -835,16 +850,41 @@ def compile_pddl_programmatically(blueprint_data: dict, problem_pddl: Optional[s
             sanitized_preconds.append(prec)
         flat_preconds = sanitized_preconds
         sanitized_effects = []
+        norm_act_params = {k if k.startswith("?") else "?" + k: str(v).lower() for k, v in act_obj.parameters.items() if v}
         for eff in flat_effects:
             clean_eff = eff.strip('() ')
-            if clean_eff.lower().startswith("not"):
+            is_neg_eff = clean_eff.lower().startswith("not")
+            if is_neg_eff:
                 clean_eff = clean_eff[3:].strip('() ')
             eparts = clean_eff.split()
             if eparts:
                 epname = eparts[0]
                 matching_k = next((k for k in pred_map.keys() if k.lower() == epname.lower()), None)
                 if matching_k and len(eparts[1:]) != len(pred_map[matching_k]):
-                    continue
+                    target_params = pred_map[matching_k]
+                    if len(eparts[1:]) < len(target_params):
+                        rebuilt_args = []
+                        used_e_args = set()
+                        for _, req_t in target_params:
+                            req_tl = str(req_t).lower()
+                            matched_arg = next(
+                                (a for a in eparts[1:] if a not in used_e_args and norm_act_params.get(a, "") == req_tl),
+                                None
+                            )
+                            if not matched_arg:
+                                cands = [k for k, vt in norm_act_params.items() if k not in used_e_args and vt == req_tl]
+                                if len(cands) == 1:
+                                    matched_arg = cands[0]
+                            if matched_arg:
+                                rebuilt_args.append(matched_arg)
+                                used_e_args.add(matched_arg)
+                        if len(rebuilt_args) == len(target_params):
+                            new_core = f"({epname} {' '.join(rebuilt_args)})"
+                            eff = f"(not {new_core})" if is_neg_eff else new_core
+                        else:
+                            continue
+                    else:
+                        continue
             sanitized_effects.append(eff)
         flat_effects = sanitized_effects
 

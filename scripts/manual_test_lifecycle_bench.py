@@ -52,7 +52,7 @@ def run_manual_flaw_test(domain_name: str, flaw_name: str, max_iterations: int =
         "verification_errors": [f"Initial Oracle Signal: Fault category {task.fault_category} detected."],
         "iteration_count": 0,
         "max_iterations": max_iterations,
-        "skip_triage": False
+        "skip_fault_localization": False
     }
 
     start_time = time.time()
@@ -66,7 +66,7 @@ def run_manual_flaw_test(domain_name: str, flaw_name: str, max_iterations: int =
     diag_reports = final_state.get("diagnostic_reports", []) or final_state.get("historical_diagnostic_reports", [])
 
     print("\n" + "=" * 80)
-    print("DIAGNOSTIC TRIAGE SUMMARY (Fault Localization)")
+    print("LAYERED MODEL-BASED FAULT LOCALIZATION SUMMARY")
     print("=" * 80)
     if diag_reports:
         for idx, r in enumerate(diag_reports, 1):

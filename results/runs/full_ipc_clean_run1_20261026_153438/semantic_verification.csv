@@ -1,0 +1,5 @@
+domain,agent_type,gold_operator_count,generated_operator_count,matched_operator_count,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,val_internal_valid,val_standard_transfer_valid,semantic_verdict,action_bijection_mapping
+gripper,CLOSED_LOOP_AST_AGENT,3,3,3,1.0,1.0,1.0,1.0,1.0,True,True,SOUND_AND_CONVERSANT,"{""move_robot"": ""move"", ""pick_object"": ""pick"", ""drop_object"": ""drop""}"
+gripper,ABLATION_NO_TRIAGE,3,3,3,1.0,1.0,1.0,1.0,1.0,True,True,SOUND_AND_CONVERSANT,"{""move_robot"": ""move"", ""pick_object"": ""pick"", ""drop_object"": ""drop""}"
+gripper,ABLATION_NO_AST,3,3,3,0.6111,0.5,0.8333,0.5,1.0,False,False,PARTIAL_OR_DIVERGENT,"{""move"": ""move"", ""pick"": ""pick"", ""drop"": ""drop""}"
+gripper,ZERO_SHOT,3,3,3,0.6111,0.5,0.8333,0.5,1.0,False,False,PARTIAL_OR_DIVERGENT,"{""move"": ""move"", ""pick"": ""pick"", ""drop"": ""drop""}"

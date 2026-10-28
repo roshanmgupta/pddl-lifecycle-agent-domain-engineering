@@ -23,6 +23,7 @@ from config.paths import get_autoplanbench_dir #, get_nl2pddl_dir
 # ==============================================================================
 
 AUTOPLANBENCH_PURE_STRIPS_DOMAINS = [
+    # Classic IPC Core Pure Domains (16)
     "gripper",
     "depot",
     "satellite",
@@ -38,7 +39,22 @@ AUTOPLANBENCH_PURE_STRIPS_DOMAINS = [
     "pipesworld-notankage04-bfs",
     "woodworking08",
     "tpp06-bfs",
-    "pegsol08"
+    "pegsol08",
+    # Expanded Pure STRIPS + Typing Domains (14)
+    "nomystery11-bfs",
+    "transport11",
+    "transport14",
+    "elevators11",
+    "scanalyzer11",
+    "barman11-bfs",
+    "floortile11",
+    "floortile14",
+    "pegsol11",
+    "rovers06-bfs",
+    "pipesworld-tankage04-bfs",
+    "woodworking11",
+    "visitall11-bfs",
+    "visitall14-bfs"
 ]
 
 # ==============================================================================

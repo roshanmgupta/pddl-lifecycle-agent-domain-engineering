@@ -1,0 +1,25 @@
+domain,evolution_task,agent_type,instance_idx,is_solvable,val_valid,error
+gripper,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,1,False,False,"VAL Syntax Error: Type-checking move
+...action passes type checking.
+Type-checking pick
+...action passes type checking.
+Type-checking drop
+...action passes type checking.
+Type-checking cooperative_transfer
+...action pa"
+gripper,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,2,False,False,"VAL Syntax Error: Type-checking move
+...action passes type checking.
+Type-checking pick
+...action passes type checking.
+Type-checking drop
+...action passes type checking.
+Type-checking cooperative_transfer
+...action pa"
+gripper,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,3,False,False,"VAL Syntax Error: Type-checking move
+...action passes type checking.
+Type-checking pick
+...action passes type checking.
+Type-checking drop
+...action passes type checking.
+Type-checking cooperative_transfer
+...action pa"

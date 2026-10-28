@@ -1,0 +1,16 @@
+domain,evolution_task,agent_type,e2e_success,is_syntax_valid,target_executability_valid,target_feasibility_valid,reference_interpretability_pct,reference_instances_passed,reference_instances_total,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,plan_length,plan_cost,iterations_used,behavioral_code,wall_clock_seconds,total_tokens,estimated_cost_usd,error_summary
+logistics,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,True,True,True,True,100.0,3,3,1.0,1.0,1.0,1.0,1.0,4,4,1,EVO.A1: First-Attempt Verified Evolution,38.94,3925,0.0,
+logistics,evolution_01_feature_addition,ZERO_SHOT,True,True,True,True,100.0,3,3,1.0,1.0,1.0,1.0,1.0,4,4,1,EVO.A1: First-Attempt Verified Evolution,36.41,3925,0.0,
+logistics,evolution_01_feature_addition,ABLATION_NO_MAINTENANCE,True,True,True,True,100.0,3,3,1.0,1.0,1.0,1.0,1.0,4,4,1,EVO.A1: First-Attempt Verified Evolution,34.84,3925,0.0,
+logistics,evolution_01_feature_addition,ABLATION_NO_TRIAGE,True,True,True,True,100.0,3,3,1.0,1.0,1.0,1.0,1.0,4,4,1,EVO.A1: First-Attempt Verified Evolution,74.52,3925,0.0,
+gripper,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,False,True,True,True,0.0,0,3,0.9,0.95,0.875,0.875,1.0,1,1,6,EVO.E: Reference Interpretability Regression,192.8,84419,0.009638,
+gripper,evolution_01_feature_addition,ZERO_SHOT,False,True,True,True,0.0,0,3,0.9,0.95,0.875,0.875,1.0,1,1,2,EVO.E: Reference Interpretability Regression,82.95,25554,0.002692,
+gripper,evolution_01_feature_addition,ABLATION_NO_MAINTENANCE,False,True,True,True,0.0,0,3,0.9,0.95,0.875,0.875,1.0,1,1,1,EVO.E: Reference Interpretability Regression,23.78,3060,0.0,
+gripper,evolution_01_feature_addition,ABLATION_NO_TRIAGE,False,True,True,True,0.0,0,3,0.9,0.95,0.875,0.875,1.0,1,1,6,EVO.E: Reference Interpretability Regression,137.69,38790,0.004535,
+satellite,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,True,True,True,True,100.0,3,3,1.0,1.0,1.0,1.0,1.0,7,7,1,EVO.A1: First-Attempt Verified Evolution,29.65,3412,0.0,
+satellite,evolution_01_feature_addition,ZERO_SHOT,True,True,True,True,100.0,3,3,1.0,1.0,1.0,1.0,1.0,7,7,1,EVO.A1: First-Attempt Verified Evolution,32.41,3412,0.0,
+satellite,evolution_01_feature_addition,ABLATION_NO_MAINTENANCE,False,False,False,False,0.0,0,3,0.0,0.0,0.0,0.0,0.0,0,0,1,EVO.B: Syntax Parse Failure,27.83,0,0.0,Target Syntax Error: Problem in domain definition!
+satellite,evolution_01_feature_addition,ABLATION_NO_TRIAGE,False,False,False,False,0.0,0,3,0.0,0.0,0.0,0.0,0.0,0,0,1,EVO.B: Syntax Parse Failure,29.87,0,0.0,Target Syntax Error: Problem in domain definition!
+rovers,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,False,True,True,False,0.0,0,3,0.3933,0.4667,0.3467,0.3667,0.6667,2,2,6,EVO.D: Target Feasibility Divergence,558.3,147127,0.018533,
+rovers,evolution_01_feature_addition,ZERO_SHOT,False,False,False,False,0.0,0,3,0.0,0.0,0.0,0.0,0.0,0,0,1,EVO.B: Syntax Parse Failure,230.35,0,0.0,Target Syntax Error: Problem in domain definition!
+rovers,evolution_01_feature_addition,ABLATION_NO_MAINTENANCE,False,True,True,True,0.0,0,3,0.8287,0.9361,0.85,0.7,1.0,2,2,1,EVO.E: Reference Interpretability Regression,50.24,5448,0.0,

@@ -1,0 +1,28 @@
+domain,evolution_task,agent_type,instance_idx,is_solvable,val_valid,error
+rovers,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,1,False,False,"VAL Syntax Error: Type-checking navigate
+...action passes type checking.
+Type-checking sample_soil
+...action passes type checking.
+Type-checking sample_rock
+...action passes type checking.
+Type-checking drop
+...action "
+rovers,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,2,False,False,"VAL Syntax Error: Type-checking navigate
+...action passes type checking.
+Type-checking sample_soil
+...action passes type checking.
+Type-checking sample_rock
+...action passes type checking.
+Type-checking drop
+...action "
+rovers,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,3,False,False,"VAL Syntax Error: Type-checking navigate
+...action passes type checking.
+Type-checking sample_soil
+...action passes type checking.
+Type-checking sample_rock
+...action passes type checking.
+Type-checking drop
+...action "
+depot,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,1,True,True,
+depot,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,2,True,True,
+depot,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,3,True,True,

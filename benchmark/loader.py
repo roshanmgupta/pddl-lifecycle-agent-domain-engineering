@@ -39,9 +39,20 @@ def find_causally_activating_problem(domain_name: str, flaw_name: str) -> Option
     Defaults to problem_flawed.pddl or instance-1.pddl.
     """
     flaw_dir = BENCHMARK_ROOT / domain_name / "flaws" / flaw_name
+    gt_dom = BENCHMARK_ROOT / domain_name / "domain.pddl"
+
+    # Lazy import to prevent circular dependencies
+    from tools.symbolic_oracles import run_val_validator, run_fast_downward
+
     prob_flawed = flaw_dir / "problem_flawed.pddl"
     if prob_flawed.exists():
-        return prob_flawed
+        # A valid benchmark test instance MUST be solvable by the reference gold domain!
+        if gt_dom.exists():
+            gt_ok, _ = run_fast_downward(str(gt_dom), str(prob_flawed))
+            if gt_ok:
+                return prob_flawed
+        else:
+            return prob_flawed
 
     dom_flawed = flaw_dir / "domain_flawed.pddl"
     orig_dir = BENCHMARK_ROOT / domain_name / "orig_problems"
@@ -91,18 +102,14 @@ def load_flaw_task(domain_name: str, flaw_name: str, problem_instance: Optional[
     if not flaw_dir.exists():
         return None
 
-    dom_flawed = (flaw_dir / "domain_flawed.pddl").read_text(encoding="utf-8")
-    meta = json.loads((flaw_dir / "flaw_metadata.json").read_text(encoding="utf-8"))
+    dom_flawed = (flaw_dir / "domain_flawed.pddl").read_text(encoding="utf-8-sig")
+    meta = json.loads((flaw_dir / "flaw_metadata.json").read_text(encoding="utf-8-sig"))
     
-    # Priority: Pure domain requirements from domain_encoding.txt (avoids bundled problem statements or notes)
+    # Pure domain requirements from domain_encoding.txt (avoids bundled problem statements or notes)
     domain_enc_file = BENCHMARK_ROOT / domain_name / "domain_encoding.txt"
-    if domain_enc_file.exists():
-        spec = domain_enc_file.read_text(encoding="utf-8")
-    else:
-        spec_file = flaw_dir / "complete_specification.txt"
-        spec = spec_file.read_text(encoding="utf-8") if spec_file.exists() else ""
+    spec = domain_enc_file.read_text(encoding="utf-8-sig") if domain_enc_file.exists() else ""
     spec = re.sub(r"\[NOTE:[^\]]+\]\s*", "", spec).strip()
-    gt_dom = (BENCHMARK_ROOT / domain_name / "domain.pddl").read_text(encoding="utf-8")
+    gt_dom = (BENCHMARK_ROOT / domain_name / "domain.pddl").read_text(encoding="utf-8-sig")
 
     # Select problem instance: explicit argument, problem_flawed.pddl, or causally activating problem
     if problem_instance:
@@ -114,7 +121,7 @@ def load_flaw_task(domain_name: str, flaw_name: str, problem_instance: Optional[
         if not prob_file or not prob_file.exists():
             prob_file = BENCHMARK_ROOT / domain_name / "orig_problems" / "instance-1.pddl"
 
-    prob_pddl = prob_file.read_text(encoding="utf-8") if (prob_file and prob_file.exists()) else ""
+    prob_pddl = prob_file.read_text(encoding="utf-8-sig") if (prob_file and prob_file.exists()) else ""
     active_prob_name = prob_file.name if prob_file else "instance-1.pddl"
 
     fcat = meta.get("flaw_category", "UNKNOWN")
@@ -153,20 +160,18 @@ def load_evolution_task(domain_name: str, evo_name: str) -> Optional[BenchmarkTa
     if not evo_dir.exists():
         return None
 
-    meta = json.loads((evo_dir / "evolution_metadata.json").read_text(encoding="utf-8"))
-    spec = (evo_dir / "feature_request_specification.txt").read_text(encoding="utf-8")
-    base_dom = (BENCHMARK_ROOT / domain_name / "domain.pddl").read_text(encoding="utf-8")
+    meta = json.loads((evo_dir / "evolution_metadata.json").read_text(encoding="utf-8-sig"))
+    spec = (evo_dir / "feature_request_specification.txt").read_text(encoding="utf-8-sig")
+    base_dom = (BENCHMARK_ROOT / domain_name / "domain.pddl").read_text(encoding="utf-8-sig")
     gt_evolved_file = evo_dir / "ground_truth_evolved_domain.pddl"
-    gt_dom = gt_evolved_file.read_text(encoding="utf-8") if gt_evolved_file.exists() else base_dom
-    target_prob = (evo_dir / "target_problem.pddl").read_text(encoding="utf-8")
+    gt_dom = gt_evolved_file.read_text(encoding="utf-8-sig") if gt_evolved_file.exists() else None
+    target_prob = (evo_dir / "target_problem.pddl").read_text(encoding="utf-8-sig")
 
     base_probs = []
     base_probs_dir = evo_dir / "baseline_benchmark_problems"
-    if not base_probs_dir.exists():
-        base_probs_dir = evo_dir / "historical_regression_problems"
     if base_probs_dir.exists():
         for rf in sorted(base_probs_dir.glob("*.pddl")):
-            base_probs.append(rf.read_text(encoding="utf-8"))
+            base_probs.append(rf.read_text(encoding="utf-8-sig"))
 
     cat = meta.get("evolution_category", "DOMAIN_EVOLUTION")
     return BenchmarkTask(
@@ -201,17 +206,12 @@ SELECTED_BENCHMARK_DOMAINS = [
     "floortile"
 ]
 
-# Alias for backwards compatibility
-CANONICAL_10_DOMAINS = SELECTED_BENCHMARK_DOMAINS
-
 def load_elicitation_task(domain_name: str) -> Optional[BenchmarkTask]:
     """Loads a single Category A Elicitation task for a standard benchmark domain."""
     dom_dir = BENCHMARK_ROOT / domain_name
     if not dom_dir.exists():
         return None
     spec_file = dom_dir / "domain_encoding.txt"
-    if not spec_file.exists():
-        spec_file = dom_dir / "complete_specification.txt"
     dom_file = dom_dir / "domain.pddl"
     prob_files = sorted(list((dom_dir / "orig_problems").glob("instance-*.pddl")))
     if not spec_file.exists() or not dom_file.exists() or not prob_files:
@@ -285,7 +285,7 @@ def load_all_lifecycle_bench_tasks() -> List[BenchmarkTask]:
     return tasks
 
 # ==============================================================================
-# Legacy Compatible Functions
+# Reference Suite Compatible Functions
 # ==============================================================================
 
 def load_benchmark_tasks(
@@ -293,7 +293,7 @@ def load_benchmark_tasks(
     task_type: Optional[LifecycleTaskType] = None
 ) -> List[BenchmarkTask]:
     """
-    Loads benchmark evaluation tasks from both legacy BENCHMARK_TASKS
+    Loads benchmark evaluation tasks from both baseline BENCHMARK_TASKS
     and PDDLLifeCycleBench. Supports filtering by domain_family or task_type.
     """
     tasks = list(BENCHMARK_TASKS)

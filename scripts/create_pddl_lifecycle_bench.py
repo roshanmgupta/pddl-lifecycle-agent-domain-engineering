@@ -271,7 +271,8 @@ def create_curated_flaws_for_domain(domain_name, clean_domain_text, clean_domain
         prob_path, 
         pred_mappings
     )
-    (flaw1_dir / "complete_specification.txt").write_text(flawed_desc_1, encoding="utf-8")
+    # (complete_specification.txt deprecated to prevent prompt leakage)
+    # (flaw1_dir / "complete_specification.txt").write_text(...)
 
     # -------------------------------------------------------------------------
     # 2. Precondition Misalignment Flaw
@@ -306,7 +307,7 @@ def create_curated_flaws_for_domain(domain_name, clean_domain_text, clean_domain
         prob_path, 
         pred_mappings
     )
-    (flaw2_dir / "complete_specification.txt").write_text(flawed_desc_2, encoding="utf-8")
+    # (flaw2_dir / "complete_specification.txt").write_text(...)
 
     # -------------------------------------------------------------------------
     # 3. Action Effect Deletion Flaw (Replicating Gragera & Muise 2024)
@@ -355,7 +356,7 @@ def create_curated_flaws_for_domain(domain_name, clean_domain_text, clean_domain
         prob_path, 
         pred_mappings
     )
-    (flaw3_dir / "complete_specification.txt").write_text(flawed_desc_3, encoding="utf-8")
+    # (flaw3_dir / "complete_specification.txt").write_text(...)
 
     # -------------------------------------------------------------------------
     # 4. Initial / Goal Deadlocks Flaw
@@ -408,7 +409,7 @@ def create_curated_flaws_for_domain(domain_name, clean_domain_text, clean_domain
         prob_path, 
         pred_mappings
     )
-    (flaw4_dir / "complete_specification.txt").write_text(flawed_desc_4, encoding="utf-8")
+    # (flaw4_dir / "complete_specification.txt").write_text(...)
 
 def create_category_c_evolutions_for_domain(domain_name, clean_domain_dir, encoding_text, dest_prob_dir):
     """
@@ -420,9 +421,9 @@ def create_category_c_evolutions_for_domain(domain_name, clean_domain_dir, encod
     c_dir = clean_domain_dir / "evolution"
     c_dir.mkdir(parents=True, exist_ok=True)
     
-    # Identify legacy problem instances (instances 1 through 3)
+    # Identify reference problem instances (instances 1 through 3)
     all_instances = sorted(list(dest_prob_dir.glob("*.pddl")))
-    legacy_instances = all_instances[:3] if len(all_instances) >= 3 else all_instances
+    reference_instances = all_instances[:3] if len(all_instances) >= 3 else all_instances
     target_inst = all_instances[1] if len(all_instances) > 1 else all_instances[0]
     
     # -------------------------------------------------------------------------
@@ -441,25 +442,25 @@ The domain must now support high-throughput express operations with specialized 
 
 EVOLUTION RULES:
 1. Synthesize an extended action schema or specialized capability flag supporting advanced operations.
-2. CRITICAL PRESERVATION MANDATE: Backward compatibility across historical legacy problem instances
+2. CRITICAL PRESERVATION MANDATE: Solvability preservation across baseline reference problem instances
    (instance-1 to instance-3) must be 100% strictly preserved.
-3. The Phase 4 Regression Gatekeeper will evaluate both the target problem and all historical test cases.
+3. The Phase 4 Solvability Preservation Verifier will evaluate both the target problem and all reference test cases.
 """
     (evo1_dir / "feature_request_specification.txt").write_text(evo1_req, encoding="utf-8")
     
-    # Save target problem and legacy regression problems
+    # Save target problem and reference suite problems
     shutil.copyfile(target_inst, evo1_dir / "target_problem.pddl")
-    legacy_dir_1 = evo1_dir / "historical_regression_problems"
-    legacy_dir_1.mkdir(parents=True, exist_ok=True)
-    for inst in legacy_instances:
-        shutil.copyfile(inst, legacy_dir_1 / inst.name)
+    ref_dir_1 = evo1_dir / "historical_regression_problems"
+    ref_dir_1.mkdir(parents=True, exist_ok=True)
+    for inst in reference_instances:
+        shutil.copyfile(inst, ref_dir_1 / inst.name)
         
     meta_evo1 = {
         "evolution_category": "INCREMENTAL_CAPABILITY_EXTENSION",
         "domain": domain_name,
-        "historical_regression_instances": [inst.name for inst in legacy_instances],
+        "historical_regression_instances": [inst.name for inst in reference_instances],
         "target_problem": target_inst.name,
-        "gatekeeper_requirement": "All historical problem instances must remain solvable without regression."
+        "preservation_requirement": "All reference problem instances must remain solvable without regression."
     }
     (evo1_dir / "evolution_metadata.json").write_text(json.dumps(meta_evo1, indent=2), encoding="utf-8")
 
@@ -480,23 +481,23 @@ action sequence and state maintenance invariant.
 
 EVOLUTION RULES:
 1. Formalize intermediate validation prerequisites before core state transitions can execute.
-2. Ensure that existing action schemas retain default operational pathways for standard legacy problems.
-3. The Phase 4 Regression Gatekeeper will halt deployment if legacy plan solvability degrades.
+2. Ensure that existing action schemas retain default operational pathways for standard reference problems.
+3. The Phase 4 Solvability Preservation Verifier will halt deployment if reference plan solvability degrades.
 """
     (evo2_dir / "feature_request_specification.txt").write_text(evo2_req, encoding="utf-8")
     
     shutil.copyfile(target_inst_2, evo2_dir / "target_problem.pddl")
-    legacy_dir_2 = evo2_dir / "historical_regression_problems"
-    legacy_dir_2.mkdir(parents=True, exist_ok=True)
-    for inst in legacy_instances:
-        shutil.copyfile(inst, legacy_dir_2 / inst.name)
+    ref_dir_2 = evo2_dir / "historical_regression_problems"
+    ref_dir_2.mkdir(parents=True, exist_ok=True)
+    for inst in reference_instances:
+        shutil.copyfile(inst, ref_dir_2 / inst.name)
         
     meta_evo2 = {
         "evolution_category": "COMPOSITE_ACTION_PIPELINE",
         "domain": domain_name,
-        "historical_regression_instances": [inst.name for inst in legacy_instances],
+        "historical_regression_instances": [inst.name for inst in reference_instances],
         "target_problem": target_inst_2.name,
-        "gatekeeper_requirement": "Zero regression on legacy problems; Phase 4 verification mandatory."
+        "preservation_requirement": "Zero reachability loss on reference problems; Phase 4 verification mandatory."
     }
     (evo2_dir / "evolution_metadata.json").write_text(json.dumps(meta_evo2, indent=2), encoding="utf-8")
 
@@ -551,7 +552,8 @@ def process_all_domains():
             
         if first_prob:
             complete_nl = generate_task_nl_description(domain_name, encoding_text, first_prob, pred_mappings)
-            (dest_dir / "complete_specification.txt").write_text(complete_nl, encoding="utf-8")
+            # Pure domain formulation uses domain_encoding.txt directly (no prompt leakage)
+            pass
             
             # 6. Create Category B Curated Flaws (all 5 error classes from Section 2.3)
             create_curated_flaws_for_domain(
@@ -589,7 +591,7 @@ def process_all_domains():
         "taxonomy": {
             "elicitation": "Initial Elicitation (24 tasks)",
             "flaws": "Synthetic Fault Repair across 5 error classes (120 tasks)",
-            "evolution": "Continuous Domain Evolution with Phase 4 Regression Gatekeeper (48 tasks)"
+            "evolution": "Continuous Domain Evolution with Phase 4 Solvability Preservation Verification (48 tasks)"
         },
         "total_domains": len(summary),
         "total_tasks": len(summary) * 8, # 1 Elicitation + 5 Flaws + 2 Evolution = 8 tasks per domain = 192 tasks

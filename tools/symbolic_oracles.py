@@ -333,10 +333,12 @@ def run_fast_downward_with_plan(
     plan_steps = []
     plan_cost = 0
     search_time = 0.0
-    val_valid = False
-    val_log = ""
-    semantic_soundness_valid = False
-    semantic_soundness_log = ""
+    executability_valid = False
+    val_valid, val_log = False, ""
+    feasibility_valid = False
+    feasibility_log = ""
+    interpretability_valid = False
+    interpretability_log = ""
     raw_sas_plan_text = ""
 
     if is_ok:
@@ -369,12 +371,12 @@ def run_fast_downward_with_plan(
             pass
 
     if is_ok and os.path.exists(plan_file):
-        # 1. Internal Consistency Check (Circularity baseline: D_gen satisfies itself)
-        val_valid, val_log = validate_plan_with_val(domain_path, problem_path, plan_file)
+        # 1. Executability: VAL(D_gen, P_gen, pi_gen)
+        executability_valid, val_log = validate_plan_with_val(domain_path, problem_path, plan_file)
         
-        # 2. Non-Circular Semantic Soundness Check: D_gt evaluates pi_gen
+        # 2. Feasibility: VAL(D_gold, P_gold, pi_gen)
         if ground_truth_domain_path and os.path.exists(ground_truth_domain_path):
-            semantic_soundness_valid, semantic_soundness_log = validate_plan_semantic_soundness(
+            feasibility_valid, feasibility_log = validate_plan_semantic_soundness(
                 ground_truth_domain_path, problem_path, plan_file, generated_domain_path=domain_path
             )
 
@@ -394,9 +396,10 @@ def run_fast_downward_with_plan(
         "plan_length": len(plan_steps),
         "plan_cost": plan_cost if plan_cost > 0 else len(plan_steps),
         "search_time": search_time,
-        "val_plan_valid": val_valid,
-        "val_log": val_log,
-        "semantic_soundness_valid": semantic_soundness_valid,
-        "semantic_soundness_log": semantic_soundness_log,
+        "executability_valid": executability_valid,
+        "feasibility_valid": feasibility_valid,
+        "feasibility_log": feasibility_log,
+        "interpretability_valid": interpretability_valid,
+        "interpretability_log": interpretability_log,
         "raw_fd_log": raw_log
     }

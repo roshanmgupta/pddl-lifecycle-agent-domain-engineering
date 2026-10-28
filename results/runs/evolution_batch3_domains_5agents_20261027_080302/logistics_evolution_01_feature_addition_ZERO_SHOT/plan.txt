@@ -1,0 +1,4 @@
+1: (cross-load-truck p0 t0 t1 l0-0)
+2: (load-truck p1 t1 l0-0)
+3: (drive-truck t1 l0-0 l0-1 c0)
+4: (unload-truck p1 t1 l0-1)

@@ -66,13 +66,13 @@ def run_evolution_node(state: Dict[str, Any]) -> Dict[str, Any]:
     # Step 2: Format Diagnostic Feedback context (if re-entering during closed-loop refinement)
     feedback_context = ""
     if formatted_feedback:
-        feedback_context = f"\nDiagnostic Feedback from Oracles (Triage Findings to Resolve):\n{formatted_feedback}\n"
+        feedback_context = f"\nDiagnostic Feedback from Oracles (Fault Localization Findings to Resolve):\n{formatted_feedback}\n"
     elif verification_errors:
         feedback_context = f"\nVerification Errors from Symbolic Oracles to Resolve:\n{verification_errors}\n"
 
     objects_str = json.dumps(target_meta.get("objects", {}))
-    init_str = json.dumps(target_meta.get("initial_state", target_meta.get("init", [])))
-    goal_str = json.dumps(target_meta.get("goal_state", target_meta.get("goal", [])))
+    init_str = json.dumps(target_meta.get("initial_state", []))
+    goal_str = json.dumps(target_meta.get("goal_state", []))
 
     # Step 3: Construct Classical Planning Action Model Evolution Prompt
     prompt = f"""You are an expert AI Planning Knowledge Engineer specialized in Classical PDDL 2.1 Action Model Evolution and Refinement (Fox & Long 2003, Haslum et al. 2019, McCluskey et al. 2017, Silva et al. 2020).
@@ -95,14 +95,15 @@ Target Problem Goal State: {goal_str}
 {feedback_context}
 
 === FORMAL CLASSICAL PLANNING EVOLUTION PRINCIPLES (MANDATORY) ===
-1. ADDITIVE SCHEMA EXTENSION:
+1. ADDITIVE SCHEMA & PREDICATE EXTENSION (CONSERVATIVE EXTENSION):
    - Output action count MUST equal or exceed the baseline input action count ({len(existing_domain_bp.get('actions', [])) if isinstance(existing_domain_bp, dict) else 0}).
    - You MUST retain all valid baseline action schemas from D_base. NEVER drop, delete, or rename baseline actions.
+   - You MUST retain all baseline predicate declarations from D_base with their exact parameter signatures and types. NEVER drop, delete, rename, or merge existing baseline predicates. (For example, if the baseline domain defines separate predicates for different object roles, such as agent locations vs item locations, both distinct predicates MUST remain present).
    - Synthesize the new action schemas required to enable the new capability described in the requirements.
    - Add all new relational predicate signatures required by the new capability to domain 'predicates' with strongly typed parameters.
    - If new categories are introduced, declare their supertype inheritance under domain 'types' (rooted under 'object' or an existing domain supertype).
 
-2. SOLVABILITY PRESERVATION & DOMAIN SUBSUMPTION:
+2. SOLVABILITY PRESERVATION ACROSS REFERENCE PROBLEM SUITE:
    - In Classical Planning, adding preconditions strictly shrinks the reachable state space.
    - NEVER add new restrictive preconditions to existing baseline actions if those conditions are absent from baseline problem instances (doing so causes reachability deadlock on all benchmark problems).
    - If the new requirement specifies that certain conditions apply only to a new capability (e.g., specialized tools, express vehicles, or heavy items):
@@ -127,7 +128,7 @@ Return a single, valid JSON object conforming strictly to the DomainBlueprint sc
         target_model=model_name
     )
 
-    # Step 4: Guard - Baseline Action Preservation Check
+    # Step 4: Guard - Baseline Action & Predicate Preservation Check
     base_actions = (
         existing_domain_bp.get("actions", [])
         if isinstance(existing_domain_bp, dict)
@@ -155,6 +156,37 @@ Return a single, valid JSON object conforming strictly to the DomainBlueprint sc
                 evolved_bp.actions.append(PddlActionSchema(**ma))
             else:
                 evolved_bp.actions.append(ma)
+
+    # Guard - Baseline Predicate Preservation Check (Conservative Extension)
+    base_predicates = (
+        existing_domain_bp.get("predicates", [])
+        if isinstance(existing_domain_bp, dict)
+        else getattr(existing_domain_bp, "predicates", [])
+    )
+    evolved_predicates = evolved_bp.predicates or []
+
+    def _extract_pred_symbol(p_item):
+        if isinstance(p_item, str):
+            clean = p_item.strip("() ").split()
+            return clean[0].lower() if clean else ""
+        if hasattr(p_item, "name"):
+            return getattr(p_item, "name", "").lower()
+        if isinstance(p_item, dict):
+            return p_item.get("name", "").lower()
+        return ""
+
+    evolved_pred_symbols = {_extract_pred_symbol(p) for p in evolved_predicates if _extract_pred_symbol(p)}
+    missing_predicates = []
+    for bp in base_predicates:
+        sym = _extract_pred_symbol(bp)
+        if sym and sym not in evolved_pred_symbols:
+            missing_predicates.append(bp)
+
+    if missing_predicates:
+        missing_names = [_extract_pred_symbol(p) for p in missing_predicates]
+        print(f"[Evolution Node Warning]: LLM omitted {len(missing_predicates)} baseline predicate(s): {missing_names}. Restoring them to enforce predicate preservation invariant.")
+        for mp in missing_predicates:
+            evolved_bp.predicates.append(mp)
 
     elapsed = time.time() - start_t
     latencies = state.get("node_latencies", {})

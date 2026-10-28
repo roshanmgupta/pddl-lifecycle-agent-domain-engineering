@@ -47,7 +47,7 @@ def extract_plan_length(fd_log: str) -> Optional[int]:
     return None
 
 def check_fault_localization_top1(task: BenchmarkTask, final_state: Dict[str, Any]) -> Optional[bool]:
-    """Verifies whether the Triage node ranked the explicit ground-truth faulty AST node at Rank 1."""
+    """Verifies whether the FaultLocalizationNode ranked the explicit ground-truth faulty AST node at Rank 1."""
     if task.task_type != LifecycleTaskType.SYNTHETIC_FAULT_REPAIR:
         return None
     if not task.gold_fault_element:
@@ -103,7 +103,7 @@ def evaluate_single_task(
         # Strict Leakage Prevention: Fail immediately if generation was incomplete
         is_syntax_valid = False
         is_plan_valid = False
-        plan_execution_valid = False
+        executability_valid = False
         val_log = "Generation Failure: Missing domain or problem PDDL."
         fd_log = "Planner Skipped due to generation failure."
     else:
@@ -123,14 +123,14 @@ def evaluate_single_task(
         is_plan_valid = False
         fd_log = ""
         plan_len = None
-        plan_execution_valid = False
+        executability_valid = False
         
         if is_syntax_valid:
             plan_res = run_fast_downward_with_plan(str(dom_file), str(prob_file))
             is_plan_valid = plan_res.get("is_solvable", False)
             fd_log = plan_res.get("raw_fd_log", "")
             plan_len = plan_res.get("plan_length") or extract_plan_length(fd_log)
-            plan_execution_valid = plan_res.get("val_plan_valid", False)
+            executability_valid = plan_res.get("val_plan_valid", False)
         else:
             fd_log = "Skipped Fast Downward due to syntax validation failure."
             
@@ -148,12 +148,12 @@ def evaluate_single_task(
         
     top1_fl = check_fault_localization_top1(task, final_state)
     
-    # Phase 4 Regression pass rate
+    # Phase 4 Reference solvability preservation rate
     regression_rate = None
     if task.task_type == LifecycleTaskType.DOMAIN_EVOLUTION:
-        # Check against initial/legacy problem
-        legacy_valid, _ = run_val_validator(str(dom_file), str(prob_file))
-        regression_rate = 100.0 if legacy_valid else 0.0
+        # Check against initial/reference problem
+        ref_valid, _ = run_val_validator(str(dom_file), str(prob_file))
+        regression_rate = 100.0 if ref_valid else 0.0
 
     tot_tokens = final_state.get("total_tokens", 0)
     prompt_tokens = final_state.get("total_prompt_tokens", 0)
@@ -192,7 +192,7 @@ def evaluate_single_task(
         "is_repaired": is_repaired,
         "iterations_used": iterations_used,
         "plan_length": plan_len,
-        "plan_execution_valid": plan_execution_valid,
+        "executability_valid": executability_valid,
         "fault_localization_top1": top1_fl,
         "regression_pass_rate": regression_rate,
         "execution_time_seconds": elapsed_time,
@@ -270,7 +270,7 @@ def run_ipc_evaluation_suite(
                 "is_repaired": False,
                 "iterations_used": 1,
                 "plan_length": None,
-                "plan_execution_valid": False,
+                "executability_valid": False,
                 "fault_localization_top1": False,
                 "regression_pass_rate": 0.0,
                 "execution_time_seconds": 0.0,

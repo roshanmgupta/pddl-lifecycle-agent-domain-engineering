@@ -1,0 +1,49 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+gripper,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000282,49.03,21485,1373,22858,0.004047,A.2: Refined Success via Feedback Loops,RECOVERED,
+gripper,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,False,6,True,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000282,109.3,40933,2892,43825,0.007875,A.2: Refined Success via Feedback Loops,RECOVERED,
+gripper,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.7,0.4333,1.0,0.6667,1.0,1.0,0,0,0,0,0,0,0.0,75.4,4947,1970,6917,0.001924,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+gripper,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.7,0.4333,1.0,0.6667,1.0,1.0,0,0,0,0,0,0,0.0,10.3,490,330,820,0.000271,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.017633,31.65,4867,812,5679,0.001217,A.1: First-Attempt Direct Success,NONE,
+depot,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.021419,27.13,4867,769,5636,0.001191,A.1: First-Attempt Direct Success,NONE,
+depot,ABLATION_NO_AST,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.017621,39.08,2651,1280,3931,0.001166,A.1: First-Attempt Direct Success,NONE,
+depot,ZERO_SHOT,ELICITATION,False,True,False,False,False,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,23.1,854,580,1434,0.000476,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,
+satellite,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,0.9778,1.0,0.9333,1.0,1.0,1.0,0,0,0,0,5,5,0.000233,69.08,36654,2357,39011,0.006912,A.2: Refined Success via Feedback Loops,RECOVERED,
+satellite,ABLATION_NO_TRIAGE,ELICITATION,True,True,True,True,True,False,3,True,2,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000224,79.17,19875,2016,21891,0.004191,A.2: Refined Success via Feedback Loops,RECOVERED,
+satellite,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,124.26,6788,3385,10173,0.003049,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+satellite,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,12.22,616,560,1176,0.000428,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+rovers,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,0.8333,1.0,0.8333,0.6667,1.0,1.0,0,0,0,0,11,11,0.000666,36.65,5601,1777,7378,0.001906,A.1: First-Attempt Direct Success,NONE,
+rovers,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.9899,0.9697,1.0,1.0,1.0,1.0,0,0,0,0,0,0,6.3e-05,391.33,54970,10355,65325,0.014458,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+rovers,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.9899,0.9697,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,226.61,17011,8202,25213,0.007473,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+rovers,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.9864,0.9593,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,52.45,1585,1301,2886,0.001018,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+barman14-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,6,False,5,0.7843,0.7624,0.7917,0.7986,1.0,1.0,0,0,0,0,0,0,8.8e-05,1589.44,177262,39481,216743,0.050278,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+barman14-bfs,ABLATION_NO_TRIAGE,ELICITATION,False,True,False,False,False,False,6,False,5,0.775,0.7624,0.7917,0.7708,1.0,1.0,0,0,0,0,0,0,6.3e-05,493.61,60085,12122,72207,0.016286,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+barman14-bfs,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,0.9919,0.9758,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,311.95,21114,8647,29761,0.008355,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+barman14-bfs,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,0.7706,0.8186,0.7083,0.7847,1.0,1.0,0,0,0,0,0,0,0.0,36.5,2157,1484,3641,0.001214,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+elevators08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,False,False,6,True,5,0.9445,0.8333,1.0,1.0,1.0,1.0,0,0,0,0,23,23,0.001906,443.49,96128,9886,106014,0.020351,A.2: Refined Success via Feedback Loops,RECOVERED,"Triage Diagnostic LLM Exception: [ALERT] OpenRouter LLM API Error for Model 'deepseek/deepseek-chat': {'message': 'Provider timed out after 13604ms', 'code': 504, 'metadata': {'error_type': 'timeout'}}"
+elevators08,ABLATION_NO_TRIAGE,ELICITATION,False,False,False,False,False,False,1,False,0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,0,0.0,3.17,0,0,0,0.0,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,"Agent Execution Crash: [ALERT] RATE / QUOTA LIMIT REACHED for model 'deepseek/deepseek-chat' on OpenRouter! Execution aborted.
+
+Details: Error code: 429 - {'error': {'message': 'Provider returned error', 'code': 429, 'metadata': {'raw': 'deepseek/deepseek-chat is temporarily rate-limited upstream. P"
+elevators08,ABLATION_NO_AST,ELICITATION,False,False,False,False,False,False,5,False,4,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,204.76,10468,5030,15498,0.004588,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+elevators08,ZERO_SHOT,ELICITATION,False,False,False,False,False,False,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,19.1,952,780,1732,0.000611,B: Unparseable PDDL Syntax Failure,SYNTAX_PARSE_ERROR,
+floortile,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,False,False,6,True,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,8,8,0.005694,353.5,101996,9242,111238,0.020845,A.2: Refined Success via Feedback Loops,RECOVERED,"Plan Transfer Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Type-checking change-color ...action passes type checking. Type-checking paint-up ...action"

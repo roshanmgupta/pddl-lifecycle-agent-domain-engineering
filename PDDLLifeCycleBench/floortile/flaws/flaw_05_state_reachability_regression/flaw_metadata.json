@@ -1,4 +1,4 @@
-﻿{
+{
     "flaw_category":  "STATE_REACHABILITY_COLLAPSE",
     "target_action":  "paint-down",
     "injected_restriction":  "(specialized_mode_enabled)",

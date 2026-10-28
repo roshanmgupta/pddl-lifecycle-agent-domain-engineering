@@ -1,0 +1,7 @@
+1: (pick robot2 ball4 room3 lgripper2)
+2: (move robot2 room3 room2)
+3: (drop robot2 ball4 room2 lgripper2)
+4: (move robot2 room2 room1)
+5: (pick robot2 ball1 room1 lgripper2)
+6: (move robot2 room1 room3)
+7: (drop robot2 ball1 room3 lgripper2)

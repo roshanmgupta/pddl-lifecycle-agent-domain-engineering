@@ -1,0 +1,52 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,val_plan_valid,semantic_soundness_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.019355,28.51,4870,840,5710,0.001234,A.1: First-Attempt Direct Success,NONE,
+satellite,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,0.9778,1.0,0.9333,1.0,1.0,1.0,0,0,0,0,5,5,0.00026,54.03,20651,1642,22293,0.004083,A.2: Refined Success via Feedback Loops,RECOVERED,
+rovers,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,4,True,3,0.7444,1.0,0.6407,0.5926,1.0,1.0,0,0,0,0,11,11,0.000607,248.84,75635,9768,85403,0.017206,A.2: Refined Success via Feedback Loops,RECOVERED,
+barman14-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,4,False,3,0.8827,0.8216,0.9583,0.8681,1.0,1.0,0,0,0,0,0,0,7e-05,888.32,100820,23651,124471,0.029314,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Fault Localization Diagnostic LLM Exception: [ALERT] OpenRouter LLM API Error for Model 'deepseek/deepseek-chat': Failed to parse LLM output into schema DiagnosticAnalysis.
+Received: '{\n  ""reports"": [\n    {\n      ""error_category"": ""TYPE_SIGNATURE"",\n      ""repair_operation_type"": ""TYPE_ARITY_ALIG"
+elevators08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,4,False,3,0.9938,0.9815,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.485895,182.68,76279,6741,83020,0.015486,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+floortile,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,8,8,0.001014,112.84,43243,3923,47166,0.00884,A.2: Refined Success via Feedback Loops,RECOVERED,
+parking11,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,3,True,2,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,50,50,2.389834,130.31,47848,5405,53253,0.01042,A.2: Refined Success via Feedback Loops,RECOVERED,
+goldminer,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,4,False,3,0.498,0.4939,0.5238,0.4762,1.0,1.0,0,0,0,0,0,0,6.2e-05,353.22,86048,7850,93898,0.017617,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+transport08-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,4,False,3,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.000167,153.3,62269,3116,65385,0.01121,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+scanalyzer08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,0.9166,0.75,1.0,1.0,1.0,1.0,0,0,0,0,6,6,0.001374,45.47,5235,862,6097,0.001302,A.1: First-Attempt Direct Success,NONE,
+visitall,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,3,3,0.000171,34.1,19212,888,20100,0.003415,A.2: Refined Success via Feedback Loops,RECOVERED,
+woodworking08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,4,False,3,0.7813,0.7412,0.7692,0.8333,1.0,1.0,0,0,0,0,0,0,6.4e-05,538.77,128163,15278,143441,0.028391,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"
+tpp06-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000219,60.68,5048,905,5953,0.0013,A.1: First-Attempt Direct Success,NONE,
+pegsol08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,9,9,0.000727,50.74,4573,501,5074,0.000987,A.1: First-Attempt Direct Success,NONE,
+pipesworld-notankage04-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,4,False,3,0.939,0.8725,1.0,0.9444,1.0,1.0,0,0,0,0,0,0,0.006651,379.21,90201,9855,100056,0.019443,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Translator Syntax Error: INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Srushti\minicond"

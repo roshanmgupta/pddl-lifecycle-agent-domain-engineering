@@ -1,0 +1,101 @@
+domain,flaw,agent,flaw_category,gold_target_action,fla_correct,iterations_used,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,e2e_success,behavioral_code
+blocksworld,flaw_01_type_signature_arity,CLOSED_LOOP_AST_AGENT,TYPE_SIGNATURE_ARITY_INVERSION,pick-up,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_01_type_signature_arity,ZERO_SHOT,TYPE_SIGNATURE_ARITY_INVERSION,pick-up,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_01_type_signature_arity,UNSTRUCTURED_RETRY,TYPE_SIGNATURE_ARITY_INVERSION,pick-up,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_01_type_signature_arity,ABLATION_NO_AST,TYPE_SIGNATURE_ARITY_INVERSION,pick-up,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_01_type_signature_arity,ABLATION_NO_TRIAGE,TYPE_SIGNATURE_ARITY_INVERSION,pick-up,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_02_precondition_misalignment,CLOSED_LOOP_AST_AGENT,PRECONDITION_MISALIGNMENT,pick-up,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_02_precondition_misalignment,ZERO_SHOT,PRECONDITION_MISALIGNMENT,pick-up,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_02_precondition_misalignment,UNSTRUCTURED_RETRY,PRECONDITION_MISALIGNMENT,pick-up,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_02_precondition_misalignment,ABLATION_NO_AST,PRECONDITION_MISALIGNMENT,pick-up,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_02_precondition_misalignment,ABLATION_NO_TRIAGE,PRECONDITION_MISALIGNMENT,pick-up,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_03_action_effect_deletion,CLOSED_LOOP_AST_AGENT,ACTION_EFFECT_DELETION,pick-up,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_03_action_effect_deletion,ZERO_SHOT,ACTION_EFFECT_DELETION,pick-up,False,1,1.0,1.0,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+blocksworld,flaw_03_action_effect_deletion,UNSTRUCTURED_RETRY,ACTION_EFFECT_DELETION,pick-up,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_03_action_effect_deletion,ABLATION_NO_AST,ACTION_EFFECT_DELETION,pick-up,False,1,0.9833,0.95,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_03_action_effect_deletion,ABLATION_NO_TRIAGE,ACTION_EFFECT_DELETION,pick-up,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_04_initial_goal_deadlock,CLOSED_LOOP_AST_AGENT,INITIAL_GOAL_DEADLOCK,put-down,False,5,1.0,1.0,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+blocksworld,flaw_04_initial_goal_deadlock,ZERO_SHOT,INITIAL_GOAL_DEADLOCK,put-down,False,1,1.0,1.0,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+blocksworld,flaw_04_initial_goal_deadlock,UNSTRUCTURED_RETRY,INITIAL_GOAL_DEADLOCK,put-down,False,5,1.0,1.0,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+blocksworld,flaw_04_initial_goal_deadlock,ABLATION_NO_AST,INITIAL_GOAL_DEADLOCK,put-down,False,5,1.0,1.0,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+blocksworld,flaw_04_initial_goal_deadlock,ABLATION_NO_TRIAGE,INITIAL_GOAL_DEADLOCK,put-down,False,5,1.0,1.0,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+blocksworld,flaw_05_state_reachability_regression,CLOSED_LOOP_AST_AGENT,STATE_REACHABILITY_COLLAPSE,stack,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_05_state_reachability_regression,ZERO_SHOT,STATE_REACHABILITY_COLLAPSE,stack,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_05_state_reachability_regression,UNSTRUCTURED_RETRY,STATE_REACHABILITY_COLLAPSE,stack,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_05_state_reachability_regression,ABLATION_NO_AST,STATE_REACHABILITY_COLLAPSE,stack,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+blocksworld,flaw_05_state_reachability_regression,ABLATION_NO_TRIAGE,STATE_REACHABILITY_COLLAPSE,stack,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_01_type_signature_arity,CLOSED_LOOP_AST_AGENT,TYPE_SIGNATURE_ARITY_INVERSION,move,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_01_type_signature_arity,ZERO_SHOT,TYPE_SIGNATURE_ARITY_INVERSION,move,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_01_type_signature_arity,UNSTRUCTURED_RETRY,TYPE_SIGNATURE_ARITY_INVERSION,move,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_01_type_signature_arity,ABLATION_NO_AST,TYPE_SIGNATURE_ARITY_INVERSION,move,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_01_type_signature_arity,ABLATION_NO_TRIAGE,TYPE_SIGNATURE_ARITY_INVERSION,move,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_02_precondition_misalignment,CLOSED_LOOP_AST_AGENT,PRECONDITION_MISALIGNMENT,move,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_02_precondition_misalignment,ZERO_SHOT,PRECONDITION_MISALIGNMENT,move,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_02_precondition_misalignment,UNSTRUCTURED_RETRY,PRECONDITION_MISALIGNMENT,move,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_02_precondition_misalignment,ABLATION_NO_AST,PRECONDITION_MISALIGNMENT,move,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_02_precondition_misalignment,ABLATION_NO_TRIAGE,PRECONDITION_MISALIGNMENT,move,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_03_action_effect_deletion,CLOSED_LOOP_AST_AGENT,ACTION_EFFECT_DELETION,move,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_03_action_effect_deletion,ZERO_SHOT,ACTION_EFFECT_DELETION,move,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_03_action_effect_deletion,UNSTRUCTURED_RETRY,ACTION_EFFECT_DELETION,move,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_03_action_effect_deletion,ABLATION_NO_AST,ACTION_EFFECT_DELETION,move,True,1,0.8889,0.6667,1.0,1.0,False,E.1: Plan Feasibility Rejection on Standard Domain (Soundness Failure)
+gripper,flaw_03_action_effect_deletion,ABLATION_NO_TRIAGE,ACTION_EFFECT_DELETION,move,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_04_initial_goal_deadlock,CLOSED_LOOP_AST_AGENT,INITIAL_GOAL_DEADLOCK,pick,True,5,0.9841,0.9524,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+gripper,flaw_04_initial_goal_deadlock,ZERO_SHOT,INITIAL_GOAL_DEADLOCK,pick,False,1,1.0,1.0,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+gripper,flaw_04_initial_goal_deadlock,UNSTRUCTURED_RETRY,INITIAL_GOAL_DEADLOCK,pick,False,5,1.0,1.0,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+gripper,flaw_04_initial_goal_deadlock,ABLATION_NO_AST,INITIAL_GOAL_DEADLOCK,pick,False,5,0.8889,1.0,0.6667,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+gripper,flaw_04_initial_goal_deadlock,ABLATION_NO_TRIAGE,INITIAL_GOAL_DEADLOCK,pick,False,5,0.9841,0.9524,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+gripper,flaw_05_state_reachability_regression,CLOSED_LOOP_AST_AGENT,STATE_REACHABILITY_COLLAPSE,drop,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_05_state_reachability_regression,ZERO_SHOT,STATE_REACHABILITY_COLLAPSE,drop,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_05_state_reachability_regression,UNSTRUCTURED_RETRY,STATE_REACHABILITY_COLLAPSE,drop,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_05_state_reachability_regression,ABLATION_NO_AST,STATE_REACHABILITY_COLLAPSE,drop,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+gripper,flaw_05_state_reachability_regression,ABLATION_NO_TRIAGE,STATE_REACHABILITY_COLLAPSE,drop,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_01_type_signature_arity,CLOSED_LOOP_AST_AGENT,TYPE_SIGNATURE_ARITY_INVERSION,Drive,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_01_type_signature_arity,ZERO_SHOT,TYPE_SIGNATURE_ARITY_INVERSION,Drive,False,1,1.0,1.0,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+depot,flaw_01_type_signature_arity,UNSTRUCTURED_RETRY,TYPE_SIGNATURE_ARITY_INVERSION,Drive,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_01_type_signature_arity,ABLATION_NO_AST,TYPE_SIGNATURE_ARITY_INVERSION,Drive,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_01_type_signature_arity,ABLATION_NO_TRIAGE,TYPE_SIGNATURE_ARITY_INVERSION,Drive,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_02_precondition_misalignment,CLOSED_LOOP_AST_AGENT,PRECONDITION_MISALIGNMENT,Drive,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_02_precondition_misalignment,ZERO_SHOT,PRECONDITION_MISALIGNMENT,Drive,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_02_precondition_misalignment,UNSTRUCTURED_RETRY,PRECONDITION_MISALIGNMENT,Drive,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_02_precondition_misalignment,ABLATION_NO_AST,PRECONDITION_MISALIGNMENT,Drive,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_02_precondition_misalignment,ABLATION_NO_TRIAGE,PRECONDITION_MISALIGNMENT,Drive,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_03_action_effect_deletion,CLOSED_LOOP_AST_AGENT,ACTION_EFFECT_DELETION,Drive,True,5,1.0,1.0,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+depot,flaw_03_action_effect_deletion,ZERO_SHOT,ACTION_EFFECT_DELETION,Drive,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_03_action_effect_deletion,UNSTRUCTURED_RETRY,ACTION_EFFECT_DELETION,Drive,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_03_action_effect_deletion,ABLATION_NO_AST,ACTION_EFFECT_DELETION,Drive,True,1,0.8248,0.6648,0.9048,0.9048,False,E.1: Plan Feasibility Rejection on Standard Domain (Soundness Failure)
+depot,flaw_03_action_effect_deletion,ABLATION_NO_TRIAGE,ACTION_EFFECT_DELETION,Drive,False,5,0.9438,0.96,0.9714,0.9,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+depot,flaw_04_initial_goal_deadlock,CLOSED_LOOP_AST_AGENT,INITIAL_GOAL_DEADLOCK,Lift,True,5,0.9926,0.9778,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+depot,flaw_04_initial_goal_deadlock,ZERO_SHOT,INITIAL_GOAL_DEADLOCK,Lift,False,1,1.0,1.0,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+depot,flaw_04_initial_goal_deadlock,UNSTRUCTURED_RETRY,INITIAL_GOAL_DEADLOCK,Lift,False,5,1.0,1.0,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+depot,flaw_04_initial_goal_deadlock,ABLATION_NO_AST,INITIAL_GOAL_DEADLOCK,Lift,True,5,0.0,0.0,0.0,0.0,False,B: Unparseable PDDL Syntax Failure
+depot,flaw_04_initial_goal_deadlock,ABLATION_NO_TRIAGE,INITIAL_GOAL_DEADLOCK,Lift,False,5,0.9926,0.9778,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+depot,flaw_05_state_reachability_regression,CLOSED_LOOP_AST_AGENT,STATE_REACHABILITY_COLLAPSE,Drop,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_05_state_reachability_regression,ZERO_SHOT,STATE_REACHABILITY_COLLAPSE,Drop,False,1,1.0,1.0,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+depot,flaw_05_state_reachability_regression,UNSTRUCTURED_RETRY,STATE_REACHABILITY_COLLAPSE,Drop,False,5,1.0,1.0,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+depot,flaw_05_state_reachability_regression,ABLATION_NO_AST,STATE_REACHABILITY_COLLAPSE,Drop,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+depot,flaw_05_state_reachability_regression,ABLATION_NO_TRIAGE,STATE_REACHABILITY_COLLAPSE,Drop,False,2,1.0,1.0,1.0,1.0,True,A.2: Refined Success via Feedback Loops
+logistics,flaw_01_type_signature_arity,CLOSED_LOOP_AST_AGENT,TYPE_SIGNATURE_ARITY_INVERSION,LOAD-TRUCK,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_01_type_signature_arity,ZERO_SHOT,TYPE_SIGNATURE_ARITY_INVERSION,LOAD-TRUCK,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_01_type_signature_arity,UNSTRUCTURED_RETRY,TYPE_SIGNATURE_ARITY_INVERSION,LOAD-TRUCK,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_01_type_signature_arity,ABLATION_NO_AST,TYPE_SIGNATURE_ARITY_INVERSION,LOAD-TRUCK,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_01_type_signature_arity,ABLATION_NO_TRIAGE,TYPE_SIGNATURE_ARITY_INVERSION,LOAD-TRUCK,False,5,1.0,1.0,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+logistics,flaw_02_precondition_misalignment,CLOSED_LOOP_AST_AGENT,PRECONDITION_MISALIGNMENT,LOAD-TRUCK,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_02_precondition_misalignment,ZERO_SHOT,PRECONDITION_MISALIGNMENT,LOAD-TRUCK,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_02_precondition_misalignment,UNSTRUCTURED_RETRY,PRECONDITION_MISALIGNMENT,LOAD-TRUCK,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_02_precondition_misalignment,ABLATION_NO_AST,PRECONDITION_MISALIGNMENT,LOAD-TRUCK,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_02_precondition_misalignment,ABLATION_NO_TRIAGE,PRECONDITION_MISALIGNMENT,LOAD-TRUCK,False,5,1.0,1.0,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+logistics,flaw_03_action_effect_deletion,CLOSED_LOOP_AST_AGENT,ACTION_EFFECT_DELETION,LOAD-TRUCK,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_03_action_effect_deletion,ZERO_SHOT,ACTION_EFFECT_DELETION,LOAD-TRUCK,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_03_action_effect_deletion,UNSTRUCTURED_RETRY,ACTION_EFFECT_DELETION,LOAD-TRUCK,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_03_action_effect_deletion,ABLATION_NO_AST,ACTION_EFFECT_DELETION,LOAD-TRUCK,True,1,0.9877,0.963,1.0,1.0,False,E.1: Plan Feasibility Rejection on Standard Domain (Soundness Failure)
+logistics,flaw_03_action_effect_deletion,ABLATION_NO_TRIAGE,ACTION_EFFECT_DELETION,LOAD-TRUCK,False,5,1.0,1.0,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+logistics,flaw_04_initial_goal_deadlock,CLOSED_LOOP_AST_AGENT,INITIAL_GOAL_DEADLOCK,LOAD-AIRPLANE,True,5,0.9938,0.9815,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+logistics,flaw_04_initial_goal_deadlock,ZERO_SHOT,INITIAL_GOAL_DEADLOCK,LOAD-AIRPLANE,False,1,1.0,1.0,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+logistics,flaw_04_initial_goal_deadlock,UNSTRUCTURED_RETRY,INITIAL_GOAL_DEADLOCK,LOAD-AIRPLANE,False,5,1.0,1.0,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+logistics,flaw_04_initial_goal_deadlock,ABLATION_NO_AST,INITIAL_GOAL_DEADLOCK,LOAD-AIRPLANE,True,5,0.9815,0.9445,1.0,1.0,False,C: Syntactically Valid but Planner Deadlock (Unsolvable)
+logistics,flaw_04_initial_goal_deadlock,ABLATION_NO_TRIAGE,INITIAL_GOAL_DEADLOCK,LOAD-AIRPLANE,False,5,0.9938,0.9815,1.0,1.0,False,B: Unparseable PDDL Syntax Failure
+logistics,flaw_05_state_reachability_regression,CLOSED_LOOP_AST_AGENT,STATE_REACHABILITY_COLLAPSE,UNLOAD-TRUCK,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_05_state_reachability_regression,ZERO_SHOT,STATE_REACHABILITY_COLLAPSE,UNLOAD-TRUCK,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_05_state_reachability_regression,UNSTRUCTURED_RETRY,STATE_REACHABILITY_COLLAPSE,UNLOAD-TRUCK,False,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_05_state_reachability_regression,ABLATION_NO_AST,STATE_REACHABILITY_COLLAPSE,UNLOAD-TRUCK,True,1,1.0,1.0,1.0,1.0,True,A.1: First-Attempt Direct Success
+logistics,flaw_05_state_reachability_regression,ABLATION_NO_TRIAGE,STATE_REACHABILITY_COLLAPSE,UNLOAD-TRUCK,False,5,1.0,1.0,1.0,1.0,False,B: Unparseable PDDL Syntax Failure

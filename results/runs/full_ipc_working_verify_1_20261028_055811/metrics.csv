@@ -1,0 +1,16 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_plan_valid,executability_valid,feasibility_valid,interpretability_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,rpr_regression_pass_rate,historical_problems_passed,historical_problems_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+gripper,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,5,5,0.000144,39.09,22084,1786,23870,0.004384,A.2: Refined Success via Feedback Loops,RECOVERED,
+satellite,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,True,True,False,True,False,6,False,5,0.8405,0.8548,0.7333,0.9333,1.0,1.0,0,0,0,0,1,1,4.7e-05,113.75,92134,5910,98044,0.017366,E.1: Plan Feasibility Rejection on Standard Domain (Soundness Failure),PRECONDITION_MISALIGNMENT,"Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: Checking plan: E:\Rosh\Thesis\pddl_lifecycle_agent\results\temp\sas_plan.mapped.val Plan"
+elevators08,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,6,True,5,0.9637,0.891,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.008158,124.43,94553,7522,102075,0.018696,A.2: Refined Success via Feedback Loops,RECOVERED,
+scanalyzer08,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,0.9166,0.75,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.0,267.93,101519,6516,108035,0.019137,C.T: Syntactically Valid but Planner Search Timeout (Unsolvability Not Proven),PLANNER_SEARCH_TIMEOUT,Planner Error: Planner Timeout: Fast Downward search did not terminate within 30 seconds (unsolvability NOT proven; the search budget was exhausted).
+visitall,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,3,True,2,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,3,3,0.000182,49.78,36227,1448,37675,0.006303,A.2: Refined Success via Feedback Loops,RECOVERED,
+transport08-bfs,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,6,False,5,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,0,0,0.000189,157.79,86770,4803,91573,0.015897,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+depot,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,True,1,False,0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,16,16,0.035944,22.41,4722,814,5536,0.001197,A.1: First-Attempt Direct Success,NONE,
+floortile11,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,False,2,True,1,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0,0,30,30,0.293336,76.49,29093,3814,32907,0.006652,A.2: Refined Success via Feedback Loops,RECOVERED,

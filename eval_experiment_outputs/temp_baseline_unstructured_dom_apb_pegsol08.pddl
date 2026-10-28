@@ -53,7 +53,9 @@
     
     (:action end-move
         :parameters (?A - location)
-        :precondition (last-visited ?A)
+        :precondition (and 
+            (last-visited ?A)
+        )
         :effect (and 
             (move-ended)
             (not (last-visited ?A))

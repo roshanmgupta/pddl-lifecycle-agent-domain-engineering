@@ -1,25 +1,30 @@
-(define (domain gripper-strips)
-  (:requirements :strips)
-  (:types robot gripper room object)
+(define (domain robot-domain)
+  (:requirements :strips :typing)
+  (:types
+    object
+    robot - object
+    room - object
+    gripper - object
+  )
   (:predicates
-    (at-robby ?r - robot ?room - room)
+    (at ?r - robot ?l - room)
     (free ?r - robot ?g - gripper)
-    (at ?o - object ?room - room)
-    (carry ?r - robot ?o - object ?g - gripper)
+    (carrying ?r - robot ?o - object ?g - gripper)
+    (object-at ?o - object ?l - room)
   )
   (:action move
     :parameters (?r - robot ?from - room ?to - room)
-    :precondition (and (at-robby ?r ?from))
-    :effect (and (not (at-robby ?r ?from)) (at-robby ?r ?to))
+    :precondition (and (at ?r ?from))
+    :effect (and (not (at ?r ?from)) (at ?r ?to))
   )
   (:action pick
-    :parameters (?r - robot ?o - object ?g - gripper ?room - room)
-    :precondition (and (at ?o ?room) (at-robby ?r ?room) (free ?r ?g))
-    :effect (and (not (at ?o ?room)) (not (free ?r ?g)) (carry ?r ?o ?g))
+    :parameters (?r - robot ?o - object ?g - gripper ?l - room)
+    :precondition (and (object-at ?o ?l) (at ?r ?l) (free ?r ?g))
+    :effect (and (not (object-at ?o ?l)) (not (free ?r ?g)) (carrying ?r ?o ?g))
   )
   (:action drop
-    :parameters (?r - robot ?o - object ?g - gripper ?room - room)
-    :precondition (and (carry ?r ?o ?g) (at-robby ?r ?room))
-    :effect (and (not (carry ?r ?o ?g)) (at ?o ?room) (free ?r ?g))
+    :parameters (?r - robot ?o - object ?g - gripper ?l - room)
+    :precondition (and (carrying ?r ?o ?g) (at ?r ?l))
+    :effect (and (not (carrying ?r ?o ?g)) (object-at ?o ?l) (free ?r ?g))
   )
 )

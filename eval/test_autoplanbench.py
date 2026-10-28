@@ -2,7 +2,7 @@
 Automated Test Runner for AutoPlanBench with PDDL Lifecycle Agent
 -----------------------------------------------------------------
 Validates the closed-loop agent on pure typed STRIPS domains from AutoPlanBench:
-1. Closed-Loop Fault Repair (Triage -> Repair -> Validation Oracles)
+1. Closed-Loop Fault Repair (Fault Localization -> Repair -> Validation Oracles)
 2. Elicitation from Natural Language Specification (NL -> Blueprint -> AST Compilation -> VAL/FD)
 """
 
@@ -22,7 +22,7 @@ AUTOPLANBENCH_DIR = PROJECT_ROOT / "pddl_benchmark_instances" / "autoplanbench"
 
 def test_closed_loop_repair(domain_name: str = "gripper", instance_id: str = "instance-1"):
     print(f"\n================================================================================")
-    print(f"TEST 1: CLOSED-LOOP TRIAGE & REPAIR ON '{domain_name.upper()}' ({instance_id})")
+    print(f"TEST 1: CLOSED-LOOP FAULT LOCALIZATION & REPAIR ON '{domain_name.upper()}' ({instance_id})")
     print(f"================================================================================")
     
     dom_path = AUTOPLANBENCH_DIR / domain_name / "domain.pddl"
@@ -57,7 +57,7 @@ def test_closed_loop_repair(domain_name: str = "gripper", instance_id: str = "in
     print(f"[*] Faulty Domain Status: VAL={f_val_ok}")
 
     # 3. Invoke Closed-Loop PDDL Lifecycle Agent
-    print(f"\n[*] Launching Closed-Loop LangGraph Pipeline (Triage -> Repair -> Validation)...")
+    print(f"\n[*] Launching Closed-Loop LangGraph Pipeline (Fault Localization -> Repair -> Validation)...")
     initial_state = {
         "requirements": f"Domain: {domain_name}. Repair the faulty PDDL specification so that actions conserve physical state constraints.",
         "pddl_domain_blueprint": {},
@@ -103,7 +103,7 @@ def test_closed_loop_repair(domain_name: str = "gripper", instance_id: str = "in
 
 def test_closed_loop_repair_pipesworld(instance_id: str = "instance-1"):
     print(f"\n================================================================================")
-    print(f"TEST 2: CLOSED-LOOP TRIAGE & REPAIR ON 'PIPESWORLD' ({instance_id})")
+    print(f"TEST 2: CLOSED-LOOP FAULT LOCALIZATION & REPAIR ON 'PIPESWORLD' ({instance_id})")
     print(f"================================================================================")
     
     dom_path = AUTOPLANBENCH_DIR / "pipesworld" / "domain.pddl"

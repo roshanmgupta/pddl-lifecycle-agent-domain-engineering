@@ -2,28 +2,17 @@
 CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (CAPABILITY EXTENSION)
 BASELINE DOMAIN: SATELLITE -> EVOLVED DOMAIN: SATELLITE (TELEMETRY DOWNLINK)
 ================================================================================
-REQUIREMENT SPECIFICATION (AUTOPLANBENCH / CLASSICAL PLANNING GROUNDING):
+REQUIREMENT SPECIFICATION (AUTOPLANBENCH NATURAL LANGUAGE ENCODING):
 Extend the existing operational model of the satellite domain to incorporate downlink telemetry data transmission to ground stations.
 
-The baseline domain enables:
-- turning a satellite from one direction to another
-- switching instruments on and off on a satellite
-- calibrating an onboard instrument pointing at a calibration target direction
-- taking an image of a direction using an onboard calibrated instrument in a mode
+I can carry out the following new action:
+transmit image data of a direction B in a mode D using an instrument C on a satellite A pointing at a ground station E
 
-CAPABILITY EXTENSION REQUIREMENTS:
-1. New Predicate:
-   - (ground_station ?d - direction): declares that a direction corresponds to a ground downlink receiver station.
-   - (data_transmitted ?d - direction ?m - mode): tracks whether the acquired image data for direction ?d in mode ?m has been successfully downlinked.
+I have the following restrictions on my actions:
+I can only transmit image data of a direction B in a mode D using an instrument C on a satellite A pointing at a ground station E if it is the case that C is on board A and power is on for C and C is calibrated and C supports D and A is pointing at E and E is a ground station and B has an image of D
 
-2. New Action Schema:
-   - Name: transmit_image_data
-   - Parameters:
-     ?s - satellite, ?i - instrument, ?d - direction, ?g - direction, ?m - mode
-   - Preconditions:
-     The instrument ?i must be on board satellite ?s, power must be on for ?i, ?i must be calibrated, ?i must support mode ?m, the satellite ?s must be pointing at ground station direction ?g, direction ?g must be a ground station (ground_station ?g), and the satellite must have captured the image of direction ?d in mode ?m (have_image ?d ?m).
-   - Effects:
-     Asserts that image data for direction ?d in mode ?m has been transmitted: (data_transmitted ?d ?m).
+The actions have the following effects on the state:
+Once I transmit image data of a direction B in a mode D using an instrument C on a satellite A pointing at a ground station E, it is the case that data is transmitted for the direction B in the mode D
 
 SOLVABILITY PRESERVATION MANDATE:
-All baseline action schemas (turn, switch_on, switch_off, calibrate, take_image) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.
+All baseline actions (turning a satellite, switching instruments on and off, calibrating an instrument, and taking an image) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.

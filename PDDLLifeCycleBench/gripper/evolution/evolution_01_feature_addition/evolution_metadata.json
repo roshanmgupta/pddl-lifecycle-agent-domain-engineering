@@ -4,7 +4,8 @@
   "baseline_benchmark_instances": [
     "instance-1.pddl",
     "instance-11.pddl",
-    "instance-13.pddl"
+    "instance-13.pddl",
+    "instance-impossible.pddl"
   ],
   "target_problem": "instance-11.pddl",
   "solvability_preservation_requirement": "All baseline benchmark problem instances must remain solvable without reachability regressions under the evolved domain."

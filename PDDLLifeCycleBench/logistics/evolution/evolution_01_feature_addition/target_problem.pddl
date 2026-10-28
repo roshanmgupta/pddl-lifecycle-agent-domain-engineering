@@ -1,7 +1,4 @@
-
-
-
-(define (problem logistics-c2-s2-p2-a1)
+(define (problem logistics-crossdock-discriminative)
 (:domain logistics-strips)
 (:objects a0 
           c0 c1 
@@ -28,17 +25,15 @@
     (OBJ p0)
     (OBJ p1)
     (at t0 l0-0)
-    (at t1 l1-1)
-    (at p0 l0-0)
+    (at t1 l0-0)
+    (in p0 t0)
     (at p1 l0-0)
     (at a0 l0-0)
 )
 (:goal
     (and
-        (at p0 l0-1)
+        (in p0 t1)
         (at p1 l0-1)
     )
 )
 )
-
-

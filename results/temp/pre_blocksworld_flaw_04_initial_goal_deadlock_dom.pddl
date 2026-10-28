@@ -10,12 +10,12 @@
 (:action pick-up
   :parameters (?ob)
   :precondition (and (clear ?ob) (ontable ?ob) (handempty))
-  :effect (and (and (state_deadlock_mutex_lock) holding ?ob) (not (clear ?ob)) (not (ontable ?ob))
+  :effect (and (holding ?ob) (not (clear ?ob)) (not (ontable ?ob))
                (not (handempty))))
 
 (:action put-down
   :parameters  (?ob)
-  :precondition (holding ?ob)
+  :precondition (and (state_deadlock_mutex_lock) (holding ?ob))
   :effect (and (clear ?ob) (handempty) (ontable ?ob)
                (not (holding ?ob))))
 

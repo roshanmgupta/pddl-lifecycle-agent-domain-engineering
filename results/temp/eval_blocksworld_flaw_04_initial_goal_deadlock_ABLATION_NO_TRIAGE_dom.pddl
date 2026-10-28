@@ -2,18 +2,18 @@
   (:requirements :strips :typing)
 
   (:predicates
-    (state_deadlock_mutex_lock)
     (clear ?x - object)
     (ontable ?x - object)
     (handempty)
     (holding ?x - object)
     (on ?x - object ?y - object)
+    (state_deadlock_mutex_lock)
   )
 
   (:action pick-up
     :parameters (?ob - object)
     :precondition (and (clear ?ob) (ontable ?ob) (handempty))
-    :effect (and (holding ?ob) (not (clear ?ob)) (not (ontable ?ob)) (not (handempty)))
+    :effect (and (not (clear ?ob)) (not (ontable ?ob)) (not (handempty)) (holding ?ob))
   )
 
   (:action put-down
@@ -25,7 +25,7 @@
   (:action stack
     :parameters (?ob - object ?underob - object)
     :precondition (and (clear ?underob) (holding ?ob))
-    :effect (and (handempty) (clear ?ob) (on ?ob ?underob) (not (clear ?underob)) (not (holding ?ob)))
+    :effect (and (not (clear ?underob)) (on ?ob ?underob) (clear ?ob) (not (holding ?ob)) (handempty))
   )
 
   (:action unstack

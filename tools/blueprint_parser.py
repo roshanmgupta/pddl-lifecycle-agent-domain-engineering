@@ -7,7 +7,7 @@ reducing code duplication in app.py, benchmark loaders, and evaluation scripts.
 """
 
 import re
-from typing import Dict, List, Set, Any, Optional
+from typing import Dict, List, Set, Any, Optional, Tuple
 
 def extract_predicate_names(atom_list: List[str]) -> Set[str]:
     """Extracts base predicate names from a list of PDDL atom strings."""
@@ -32,7 +32,136 @@ def clean_blueprint_expression(raw_s: str) -> Optional[str]:
         s = f"{s})"
     while re.match(r"^\(\s*not\s*\(\s*not\s*(\(.+\))\s*\)\s*\)$", s, flags=re.IGNORECASE):
         s = re.sub(r"^\(\s*not\s*\(\s*not\s*(\(.+\))\s*\)\s*\)$", r"\1", s, flags=re.IGNORECASE).strip()
+    # Strip accidental inline typing in atomic formulas (classical PDDL 2.1 invariant)
+    s = re.sub(r"(\?[a-zA-Z0-9_\-]+|[a-zA-Z0-9_\-]+)\s+-\s+[a-zA-Z0-9_\-]+", r"\1", s)
+    # Collapse multiple spaces
+    s = re.sub(r"\s+", " ", s).strip()
     return s
+
+
+def alpha_convert_action_variables(
+    action_name: str,
+    parameters: Dict[str, str],
+    preconditions: List[str],
+    effects: List[str],
+    predicates: List[str],
+    types_hierarchy: Optional[Dict[str, str]] = None
+) -> Tuple[List[str], List[str]]:
+    """
+    Universal FOL Alpha-Conversion for PDDL Action Schemas:
+    Aligns locally renamed dummy variables in action preconditions/effects
+    to the declared formal parameter names of that action based on predicate
+    argument types and classical first-order logic variable binding invariants.
+    """
+    if not parameters:
+        return preconditions, effects
+
+    norm_params: Dict[str, str] = {
+        (k if k.startswith("?") else f"?{k}"): str(v).lower()
+        for k, v in parameters.items()
+    }
+    canon_vars = set(norm_params.keys())
+
+    # Parse predicate signatures: predicate_name -> list of parameter types
+    pred_sigs: Dict[str, List[str]] = {}
+    for p in predicates:
+        pm = re.match(r"\(\s*([a-zA-Z0-9_\-]+)\s*(.*?)\)", str(p))
+        if pm:
+            psym = pm.group(1).lower()
+            rest = pm.group(2)
+            ptypes: List[str] = []
+            tokens = rest.split()
+            cur: List[str] = []
+            i = 0
+            while i < len(tokens):
+                if tokens[i] == "-":
+                    t = tokens[i + 1].lower() if i + 1 < len(tokens) else "object"
+                    for _ in cur:
+                        ptypes.append(t)
+                    cur = []
+                    i += 2
+                elif tokens[i].startswith("?"):
+                    cur.append(tokens[i])
+                    i += 1
+                else:
+                    i += 1
+            for _ in cur:
+                ptypes.append("object")
+            pred_sigs[psym] = ptypes
+
+    def extract_atoms(exprs: List[str]) -> List[Tuple[str, List[str]]]:
+        atoms: List[Tuple[str, List[str]]] = []
+        for e in exprs:
+            for m in re.finditer(r"\(\s*([a-zA-Z0-9_\-]+)\s*(.*?)\)", str(e)):
+                sym = m.group(1).lower()
+                if sym in ("not", "and", "or", "imply", "forall", "exists"):
+                    continue
+                args = [a for a in m.group(2).split() if a.startswith("?")]
+                atoms.append((sym, args))
+        return atoms
+
+    all_atoms = extract_atoms(preconditions) + extract_atoms(effects)
+    used_vars = {v for _, args in all_atoms for v in args}
+
+    unbound_vars = [v for v in sorted(used_vars) if v not in canon_vars]
+    if not unbound_vars:
+        return preconditions, effects
+
+    unused_params = [p for p in norm_params.keys() if p not in used_vars]
+    if not unused_params:
+        return preconditions, effects
+
+    # Subtype helper
+    def is_type_compatible(actual: str, declared: str) -> bool:
+        if not actual or not declared:
+            return False
+        a, d = actual.lower(), declared.lower()
+        if a == d or d == "object" or a == "object":
+            return True
+        if types_hierarchy and isinstance(types_hierarchy, dict):
+            curr = a
+            while curr in types_hierarchy and types_hierarchy[curr]:
+                curr = types_hierarchy[curr].lower()
+                if curr == d:
+                    return True
+        return False
+
+    # Infer type of each unbound variable from its positions in predicate atoms
+    inferred_unbound_types: Dict[str, Set[str]] = {}
+    for sym, args in all_atoms:
+        if sym in pred_sigs:
+            sig = pred_sigs[sym]
+            for idx, arg in enumerate(args):
+                if arg in unbound_vars and idx < len(sig):
+                    inferred_unbound_types.setdefault(arg, set()).add(sig[idx])
+
+    var_mapping: Dict[str, str] = {}
+    remaining_params = list(unused_params)
+
+    for uv in unbound_vars:
+        types = inferred_unbound_types.get(uv, set())
+        if not types:
+            continue
+        req_type = next(iter(types))
+        compatible = [p for p in remaining_params if is_type_compatible(req_type, norm_params[p])]
+        if compatible:
+            chosen = compatible[0]
+            var_mapping[uv] = chosen
+            remaining_params.remove(chosen)
+
+    if not var_mapping:
+        return preconditions, effects
+
+    def substitute_in_expr(expr: str) -> str:
+        res = expr
+        for old_v, new_v in var_mapping.items():
+            # Replace variable with word boundary so ?p does not match ?p2
+            res = re.sub(rf"\{old_v}\b", new_v, res)
+        return res
+
+    new_precs = [substitute_in_expr(p) for p in preconditions]
+    new_effs = [substitute_in_expr(e) for e in effects]
+    return new_precs, new_effs
 
 def parse_pddl_domain_to_blueprint(pddl_str: str) -> Dict[str, Any]:
     """
@@ -117,16 +246,23 @@ def parse_pddl_domain_to_blueprint(pddl_str: str) -> Dict[str, Any]:
         if params_match:
             raw_p = params_match.group(1).strip()
             tokens = raw_p.split()
+            current_vars: List[str] = []
             i = 0
             while i < len(tokens):
-                if tokens[i].startswith("?"):
-                    pvar = tokens[i]
-                    ptype = "object"
-                    if i + 2 < len(tokens) and tokens[i+1] == "-":
-                        ptype = tokens[i+2]
-                        i += 2
-                    param_dict[pvar] = ptype
-                i += 1
+                tok = tokens[i]
+                if tok == "-":
+                    ptype = tokens[i+1] if i + 1 < len(tokens) else "object"
+                    for v in current_vars:
+                        param_dict[v] = ptype
+                    current_vars = []
+                    i += 2
+                elif tok.startswith("?"):
+                    current_vars.append(tok)
+                    i += 1
+                else:
+                    i += 1
+            for v in current_vars:
+                param_dict[v] = "object"
 
         pre_match = re.search(r":precondition\s+(.*?)(?=:effect)", act_body, re.DOTALL | re.IGNORECASE)
         pre_list: List[str] = []

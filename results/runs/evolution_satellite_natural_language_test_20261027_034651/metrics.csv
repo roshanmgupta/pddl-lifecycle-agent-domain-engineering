@@ -1,0 +1,2 @@
+domain,evolution_task,agent_type,e2e_success,is_syntax_valid,target_executability_valid,target_feasibility_valid,reference_interpretability_pct,reference_instances_passed,reference_instances_total,macro_structural_f1,precondition_f1,add_effect_f1,delete_effect_f1,action_f1,plan_length,plan_cost,iterations_used,behavioral_code,wall_clock_seconds,total_tokens,estimated_cost_usd,error_summary
+satellite,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,True,True,True,True,100.0,3,3,1.0,1.0,1.0,1.0,1.0,7,7,1,EVO.A1: First-Attempt Verified Evolution,39.34,3412,0.0,

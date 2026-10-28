@@ -1,0 +1,4 @@
+domain,evolution_task,agent_type,instance_idx,is_solvable,val_valid,error
+pipesworld-notankage04-bfs,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,1,False,False,VAL Syntax Error: Problem in domain definition!
+pipesworld-notankage04-bfs,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,2,False,False,VAL Syntax Error: Problem in domain definition!
+pipesworld-notankage04-bfs,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,3,False,False,VAL Syntax Error: Problem in domain definition!

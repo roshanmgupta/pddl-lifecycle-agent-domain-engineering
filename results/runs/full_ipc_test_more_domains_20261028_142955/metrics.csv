@@ -1,0 +1,11 @@
+domain,agent_type,task_type,e2e_success,is_syntax_valid,is_solvable,is_plan_valid,executability_valid,feasibility_valid,interpretability_valid,svr_init,iterations_used,is_repaired,repair_iterations,macro_structural_f1,action_f1,top1_element,top1_repair_op,parameter_arity_match,precondition_f1,add_effect_f1,delete_effect_f1,semantic_soundness,planner_timeout,rpr_regression_pass_rate,reference_instances_passed,reference_instances_total,candidate_rejections_count,evolution_iteration_overhead,plan_length,plan_cost,search_time_sec,execution_time_sec,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,behavioral_code,defect_class,error_summary
+ferry,CLOSED_LOOP_AST_AGENT,ELICITATION,False,True,False,False,False,False,False,False,4,False,3,0.7803,1.0,sail,RepairOperationType.EFFECT_ALIGNMENT,1.0,0.8963,0.5556,0.8889,False,False,1.0,0,0,0,0,0,0,2.1e-05,47.23,54542,2173,56715,0.009485,C: Syntactically Valid but Planner Deadlock (Unsolvable),CAUSAL_REACHABILITY_DEADLOCK,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: 'C:\Users\Sru"
+visitall,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,True,True,1,False,0,1.0,1.0,NONE,NONE,1.0,1.0,1.0,1.0,True,False,1.0,0,0,0,0,3,3,6e-05,3.13,1123,83,1206,0.000218,A.1: First-Attempt Direct Success,NONE,
+zenotravel02,CLOSED_LOOP_AST_AGENT,ELICITATION,True,True,True,True,True,True,True,False,4,True,3,1.0,1.0,fly,RepairOperationType.PRECONDITION_INSERTION,1.0,1.0,1.0,1.0,True,False,1.0,0,0,0,0,1,1,3.8e-05,68.42,49380,4048,53428,0.009836,A.2: Refined Success via Feedback Loops,RECOVERED,

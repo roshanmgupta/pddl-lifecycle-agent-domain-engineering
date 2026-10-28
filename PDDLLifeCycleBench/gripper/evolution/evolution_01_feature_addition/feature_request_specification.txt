@@ -2,29 +2,18 @@
 CATEGORY C: CONTINUOUS DOMAIN EVOLUTION SPECIFICATION (CAPABILITY EXTENSION)
 BASELINE DOMAIN: GRIPPER -> EVOLVED DOMAIN: GRIPPER (COOPERATIVE INTER-ROBOT TRANSFER)
 ================================================================================
-REQUIREMENT SPECIFICATION (AUTOPLANBENCH / CLASSICAL PLANNING GROUNDING):
+REQUIREMENT SPECIFICATION (AUTOPLANBENCH NATURAL LANGUAGE ENCODING):
 Extend the existing operational model of the multi-robot gripper domain to support direct cooperative inter-robot object transfers.
 
-The baseline domain enables:
-- a robot moving between rooms: (move ?r - robot ?from ?to - room)
-- a robot picking up an object from a room using a free gripper: (pick ?r - robot ?obj - object ?room - room ?g - gripper)
-- a robot dropping an object in a room: (drop ?r - robot ?obj - object ?room - room ?g - gripper)
+I can carry out the following new action:
+cooperatively transfer an object C from a robot A using a gripper D to a robot B using a gripper E in a room F
 
-CAPABILITY EXTENSION REQUIREMENTS:
-1. New Action Schema:
-   - Name: cooperative_transfer
-   - Parameters:
-     ?r1 - robot, ?r2 - robot, ?obj - object, ?g1 - gripper, ?g2 - gripper, ?room - room
-   - Preconditions:
-     Robot ?r1 must be at ?room: (at-robby ?r1 ?room).
-     Robot ?r2 must be at ?room: (at-robby ?r2 ?room).
-     Robot ?r1 must be carrying ?obj in gripper ?g1: (carry ?r1 ?obj ?g1).
-     Robot ?r2 must have gripper ?g2 free: (free ?r2 ?g2).
-   - Effects:
-     Robot ?r2 is now carrying ?obj in gripper ?g2: (carry ?r2 ?obj ?g2).
-     Robot ?r1 has gripper ?g1 free: (free ?r1 ?g1).
-     Robot ?r1 is no longer carrying ?obj in gripper ?g1: (not (carry ?r1 ?obj ?g1)).
-     Robot ?r2 gripper ?g2 is no longer free: (not (free ?r2 ?g2)).
+I have the following restrictions on my actions:
+I can only cooperatively transfer an object C from a robot A using a gripper D to a robot B using a gripper E in a room F if it is the case that A is at F and B is at F and A is carrying C to D and B is free from E
+
+The actions have the following effects on the state:
+Once I cooperatively transfer an object C from a robot A using a gripper D to a robot B using a gripper E in a room F, it is the case that B is carrying C to E and A is free from D
+Once I cooperatively transfer an object C from a robot A using a gripper D to a robot B using a gripper E in a room F, it is not the case anymore that A is carrying C to D and it is not the case anymore that B is free from E
 
 SOLVABILITY PRESERVATION MANDATE:
-All baseline action schemas (move, pick, drop) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.
+All baseline actions (moving between rooms, picking objects with a gripper, and dropping objects in a room) must remain intact so that all baseline benchmark problem instances remain 100% solvable without reachability regressions.

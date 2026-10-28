@@ -26,15 +26,43 @@ class EvaluationMetrics(BaseModel):
     )
     
     # -------------------------------------------------------------
-    # 1. Operational Verification Metrics (Symbolic Oracles)
+    # 1. Operational Verification Metrics (Multi-Stage Funnel)
     # -------------------------------------------------------------
     svr_syntax_valid_rate: float = Field(
         default=0.0,
-        description="SVR: 1.0 if domain and problem pass VAL syntactic and typing parser; else 0.0"
+        description="Stage 1: SVR: 1.0 if domain and problem pass VAL syntactic and typing parser; else 0.0"
+    )
+    is_solvable: bool = Field(
+        default=False,
+        description="Stage 2a: Fast Downward found a valid plan within search budget"
+    )
+    planner_timeout: bool = Field(
+        default=False,
+        description="Stage 2b: Search budget exhausted (30s) without proving unsolvability"
+    )
+    executability_valid: bool = Field(
+        default=False,
+        description="Stage 2c: Internal Consistency / Self-Certification: VAL(D_gen, P_gen, pi_gen) == PASS"
     )
     tpv_target_plan_valid: bool = Field(
         default=False,
         description="TPV: True iff Fast Downward exits 0 and VAL certifies plan execution validity on target task; else False"
+    )
+    feasibility_valid: bool = Field(
+        default=False,
+        description="Stage 3a: Forward Soundness: VAL(D_gold, P_gold, pi_gen) == PASS"
+    )
+    interpretability_valid: bool = Field(
+        default=False,
+        description="Stage 3b: Inverse Completeness: VAL(D_gen, P_gold, pi_gold) == PASS"
+    )
+    semantic_soundness: bool = Field(
+        default=False,
+        description="Stage 3c: Non-Circular Semantic Transfer: feasibility_valid and interpretability_valid"
+    )
+    e2e_gate_success: bool = Field(
+        default=False,
+        description="Strict E2E Gate: SVR and is_solvable and executability_valid and semantic_soundness"
     )
     cov_ref_coverage_rate: Optional[float] = Field(
         default=None,
@@ -70,7 +98,35 @@ class EvaluationMetrics(BaseModel):
     )
     action_f1: Optional[float] = Field(
         default=None,
-        description="Action_F1: Harmonic mean of operator precision and recall"
+        description="Action_F1: Harmonic mean of operator precision and recall (Level 1 AST Element F1)"
+    )
+    parameter_arity_match: Optional[float] = Field(
+        default=None,
+        description="Level 2: Parameter count and signature alignment rate"
+    )
+
+    # -------------------------------------------------------------
+    # 2b. Hierarchical Multi-Granular Fault Localization (H-MGFL) Metrics
+    # -------------------------------------------------------------
+    fla_top1: Optional[bool] = Field(
+        default=None,
+        description="Level 1: Top-1 Fault Localization Accuracy against gold fault element"
+    )
+    fla_top3: Optional[bool] = Field(
+        default=None,
+        description="Level 1: Top-3 Fault Localization Accuracy against gold fault element"
+    )
+    fla_mrr: Optional[float] = Field(
+        default=None,
+        description="Level 1: Mean Reciprocal Rank (MRR) of gold fault element"
+    )
+    top1_element: Optional[str] = Field(
+        default=None,
+        description="Level 1: Top-1 diagnosed AST element (Action Schema, 'types', or 'predicates')"
+    )
+    top1_repair_op: Optional[str] = Field(
+        default=None,
+        description="Level 2: Top-1 diagnosed Causal Repair Operation Type"
     )
 
     # -------------------------------------------------------------
@@ -117,35 +173,20 @@ class EvaluationMetrics(BaseModel):
         description="Summary of remaining oracle diagnostic error if verification failed"
     )
 
-    # -------------------------------------------------------------
-    # Convenience compatibility properties (mapped directly to canonical)
-    # -------------------------------------------------------------
     @property
     def is_syntax_valid(self) -> bool:
         return self.svr_syntax_valid_rate >= 1.0
 
     @property
     def is_plan_valid(self) -> bool:
-        return self.tpv_target_plan_valid
-
-    @property
-    def plan_execution_valid(self) -> bool:
-        return self.tpv_target_plan_valid
+        return self.is_solvable
 
     @property
     def e2e_success(self) -> bool:
+        if self.e2e_gate_success:
+            if self.cov_ref_coverage_rate is not None:
+                return self.cov_ref_coverage_rate >= 100.0
+            return True
         if self.cov_ref_coverage_rate is not None:
             return self.tpv_target_plan_valid and (self.cov_ref_coverage_rate >= 100.0)
         return self.tpv_target_plan_valid
-
-    @property
-    def regression_pass_rate(self) -> Optional[float]:
-        return (self.cov_ref_coverage_rate / 100.0) if self.cov_ref_coverage_rate is not None else None
-
-    @property
-    def historical_problems_passed(self) -> Optional[int]:
-        return self.reference_instances_passed
-
-    @property
-    def historical_problems_total(self) -> Optional[int]:
-        return self.reference_instances_total

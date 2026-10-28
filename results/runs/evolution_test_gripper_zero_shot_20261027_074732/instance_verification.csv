@@ -1,0 +1,4 @@
+domain,evolution_task,agent_type,instance_idx,is_solvable,val_valid,error
+gripper,evolution_01_feature_addition,ZERO_SHOT,1,True,True,
+gripper,evolution_01_feature_addition,ZERO_SHOT,2,True,True,
+gripper,evolution_01_feature_addition,ZERO_SHOT,3,True,True,

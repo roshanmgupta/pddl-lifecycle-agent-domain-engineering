@@ -1,0 +1,7 @@
+domain,evolution_task,agent_type,instance_idx,is_solvable,val_valid,error
+rovers,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,1,True,True,
+rovers,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,2,True,True,
+rovers,evolution_01_feature_addition,CLOSED_LOOP_AST_AGENT,3,True,True,
+rovers,evolution_02_composite_action,CLOSED_LOOP_AST_AGENT,1,True,True,
+rovers,evolution_02_composite_action,CLOSED_LOOP_AST_AGENT,2,True,True,
+rovers,evolution_02_composite_action,CLOSED_LOOP_AST_AGENT,3,True,True,
