@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_04_missing_goal_add_effect_2",
+  "domain": "logistics",
+  "flaw_category": "ACTION_EFFECT_DELETION",
+  "mutation_operator": "OPERATOR_2_REMOVE_GOAL_ADD_EFFECT",
+  "target_action": "FLY-AIRPLANE",
+  "description": "Removed required add effect '(at ?airplane ?loc-to)' from action 'FLY-AIRPLANE'",
+  "ground_truth_fix": "Restore add effect '(at ?airplane ?loc-to)' in action 'FLY-AIRPLANE' effects.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

@@ -1,16 +1,4 @@
-"""
-eval/ac.py
-Structural Action Reconstruction & Operator Alignment for PDDL Model Verification.
-
-Grounded in Peer-Reviewed AI Planning Literature:
-- Action Reconstruction Error (ARE) & Operator Alignment (Oswald et al., ICAPS 2024 / AAAI 2024).
-- Decoupled Precondition, Add-Effect, and Delete-Effect Information Retrieval Metrics (Precision, Recall, F1).
-- Polynomial-Time Optimal Bipartite Matching via Kuhn-Munkres (Hungarian) Algorithm.
-
-Note:
-True semantic equivalence is determined by Plan Transferability via VAL (tools/symbolic_oracles.py).
-This module provides structural/syntactic operator-level reconstruction metrics without arbitrary hardcoded weights.
-"""
+"""Structural action reconstruction and operator alignment for PDDL model verification."""
 
 import re
 import difflib

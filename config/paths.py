@@ -40,19 +40,16 @@ def resolve_path(env_var_name: str, default_rel_path: str) -> Path:
 
 def get_benchmark_dir() -> Path:
     """
-    Active canonical benchmark dataset directory (default: PDDLLifeCycleBench).
-    Configurable via PDDLLIFECYCLEBENCH_DIR or BENCHMARK_DIR in .env.
+    Active canonical benchmark dataset directory (default: autoplanbench/data).
+    Configurable via AUTOPLANBENCH_DIR or BENCHMARK_DIR in .env.
     """
-    env_key = "PDDLLIFECYCLEBENCH_DIR" if os.getenv("PDDLLIFECYCLEBENCH_DIR") else "BENCHMARK_DIR"
-    return resolve_path(env_key, "PDDLLifeCycleBench")
+    env_key = "AUTOPLANBENCH_DIR" if os.getenv("AUTOPLANBENCH_DIR") else "BENCHMARK_DIR"
+    return resolve_path(env_key, "autoplanbench/data")
 
 
 def get_autoplanbench_dir() -> Path:
-    """
-    AutoPlanBench dataset directory (default: autoplanbench/data).
-    Configurable via AUTOPLANBENCH_DIR in .env.
-    """
-    return resolve_path("AUTOPLANBENCH_DIR", "autoplanbench/data")
+    """AutoPlanBench dataset directory (default: autoplanbench/data)."""
+    return get_benchmark_dir()
 
 
 def get_autoplanbench_prompts_dir() -> Path:
@@ -61,22 +58,6 @@ def get_autoplanbench_prompts_dir() -> Path:
     Configurable via AUTOPLANBENCH_PROMPTS_DIR in .env.
     """
     return resolve_path("AUTOPLANBENCH_PROMPTS_DIR", "prompt_autoplanbench")
-
-
-def get_nl2pddl_dir() -> Path:
-    """
-    NL2PDDL benchmark test directory (default: NL2PDDL/test).
-    Configurable via NL2PDDL_DIR in .env.
-    """
-    return resolve_path("NL2PDDL_DIR", "NL2PDDL/test")
-
-
-def get_nl2pddl_prompts_dir() -> Path:
-    """
-    Extracted NL2PDDL prompts directory (default: prompt_NL2PDDL).
-    Configurable via NL2PDDL_PROMPTS_DIR in .env.
-    """
-    return resolve_path("NL2PDDL_PROMPTS_DIR", "prompt_NL2PDDL")
 
 
 # ==============================================================================
@@ -149,35 +130,28 @@ def get_temp_eval_plan_path() -> str:
 
 def get_eval_output_dir() -> Path:
     """Evaluation experiment artifacts scratch directory (default: results/eval_artifacts)."""
-    p = resolve_path("OUTPUT_DIR_EVAL", "results/eval_artifacts")
+    p = get_results_dir() / "eval_artifacts"
     p.mkdir(parents=True, exist_ok=True)
     return p
 
 
 def get_generated_output_dir() -> Path:
     """General generated outputs directory (default: results/generated)."""
-    p = resolve_path("GENERATED_OUTPUT_DIR", "results/generated")
+    p = get_results_dir() / "generated"
     p.mkdir(parents=True, exist_ok=True)
     return p
 
 
 def get_flaw_output_dir() -> Path:
     """Curated Flaw Repair outputs directory (default: results/generated/repair)."""
-    p = resolve_path("OUTPUT_DIR_FLAW", "results/generated/repair")
-    p.mkdir(parents=True, exist_ok=True)
-    return p
-
-
-def get_evolve_output_dir() -> Path:
-    """Continuous Evolution outputs directory (default: results/generated/evolution)."""
-    p = resolve_path("OUTPUT_DIR_EVOLVE", "results/generated/evolution")
+    p = get_generated_output_dir() / "repair"
     p.mkdir(parents=True, exist_ok=True)
     return p
 
 
 def get_elicitation_output_dir() -> Path:
     """Fresh Elicitation outputs directory (default: results/generated/elicitation)."""
-    p = resolve_path("OUTPUT_DIR_ELICITATION", "results/generated/elicitation")
+    p = get_generated_output_dir() / "elicitation"
     p.mkdir(parents=True, exist_ok=True)
     return p
 

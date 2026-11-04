@@ -1,0 +1,3 @@
+Task ID,Domain,Task Type,Architecture,Status,SVR,TPV,Executability,Feasibility,Interpretability,Macro F1,Plan Length,Iterations (k),Latency (s),Cost ($),Error Summary
+apb_gripper_instance-9,gripper,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified ✅,1.0,PASS,Certified,PASS,PASS,N/A,10,1,17.43,$0.00026,
+apb_gripper_instance-2,gripper,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified ✅,1.0,PASS,Certified,PASS,PASS,N/A,6,1,17.28,$0.00027,

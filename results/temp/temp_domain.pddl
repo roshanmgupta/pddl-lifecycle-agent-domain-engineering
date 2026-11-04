@@ -1,45 +1,63 @@
-(define (domain zeno-travel)
-  (:requirements :strips :typing)
+(define (domain floor-tile)
+  (:requirements :typing)
+
+  (:types
+    color robot tile - object
+  )
 
   (:predicates
-    (at ?x - object ?c - object)
-    (in ?p - object ?a - object)
-    (fuel-level ?a - object ?l - object)
-    (next ?l1 - object ?l2 - object)
-    (aircraft ?p - object)
-    (person ?x - object)
-    (city ?x - object)
-    (flevel ?x - object)
+    (robot-at ?r - object ?x - object)
+    (up ?x - object ?y - object)
+    (down ?x - object ?y - object)
+    (right ?x - object ?y - object)
+    (left ?x - object ?y - object)
+    (clear ?x - object)
+    (painted ?x - object ?c - object)
+    (robot-has ?r - object ?c - object)
+    (available-color ?c - object)
+    (free-color ?r - object)
   )
 
-  (:action board
-    :parameters (?p - object ?a - object ?c - object)
-    :precondition (and (person ?p) (aircraft ?a) (city ?c) (at ?p ?c) (at ?a ?c))
-    :effect (and (in ?p ?a) (not (at ?p ?c)))
+  (:action change-color
+    :parameters (?r - robot ?c - color ?c2 - color)
+    :precondition (and (robot-has ?r ?c) (available-color ?c2))
+    :effect (and (robot-has ?r ?c2) (not (robot-has ?r ?c)))
   )
 
-  (:action debark
-    :parameters (?p - object ?a - object ?c - object)
-    :precondition (and (person ?p) (aircraft ?a) (city ?c) (in ?p ?a) (at ?a ?c))
-    :effect (and (at ?p ?c) (not (in ?p ?a)))
+  (:action paint-up
+    :parameters (?r - robot ?y - tile ?x - tile ?c - color)
+    :precondition (and (robot-has ?r ?c) (robot-at ?r ?x) (up ?y ?x) (clear ?y))
+    :effect (and (painted ?y ?c) (not (clear ?y)))
   )
 
-  (:action fly
-    :parameters (?a - object ?c1 - object ?c2 - object ?l1 - object ?l2 - object)
-    :precondition (and (aircraft ?a) (city ?c1) (city ?c2) (flevel ?l1) (flevel ?l2) (at ?a ?c1) (fuel-level ?a ?l1) (next ?l2 ?l1))
-    :effect (and (at ?a ?c2) (fuel-level ?a ?l2) (not (at ?a ?c1)) (not (fuel-level ?a ?l1)))
+  (:action paint-down
+    :parameters (?r - robot ?y - tile ?x - tile ?c - color)
+    :precondition (and (robot-has ?r ?c) (robot-at ?r ?x) (down ?y ?x) (clear ?y))
+    :effect (and (painted ?y ?c) (not (clear ?y)))
   )
 
-  (:action zoom
-    :parameters (?a - object ?c1 - object ?c2 - object ?l1 - object ?l2 - object ?l3 - object)
-    :precondition (and (aircraft ?a) (city ?c1) (city ?c2) (flevel ?l1) (flevel ?l2) (flevel ?l3) (at ?a ?c1) (fuel-level ?a ?l1) (next ?l2 ?l1) (next ?l2 ?l3))
-    :effect (and (at ?a ?c2) (fuel-level ?a ?l3) (not (at ?a ?c1)) (not (fuel-level ?a ?l1)))
+  (:action up
+    :parameters (?r - robot ?x - tile ?y - tile)
+    :precondition (and (robot-at ?r ?x) (up ?y ?x) (clear ?y))
+    :effect (and (robot-at ?r ?y) (clear ?x) (not (robot-at ?r ?x)) (not (clear ?y)))
   )
 
-  (:action refuel
-    :parameters (?a - object ?c - object ?l - object ?l1 - object)
-    :precondition (and (aircraft ?a) (city ?c) (flevel ?l) (flevel ?l1) (at ?a ?c) (fuel-level ?a ?l) (next ?l1 ?l))
-    :effect (and (fuel-level ?a ?l1) (not (fuel-level ?a ?l)))
+  (:action down
+    :parameters (?r - robot ?x - tile ?y - tile)
+    :precondition (and (robot-at ?r ?x) (down ?y ?x) (clear ?y))
+    :effect (and (robot-at ?r ?y) (clear ?x) (not (robot-at ?r ?x)) (not (clear ?y)))
+  )
+
+  (:action right
+    :parameters (?r - robot ?x - tile ?y - tile)
+    :precondition (and (robot-at ?r ?x) (right ?y ?x) (clear ?y))
+    :effect (and (robot-at ?r ?y) (clear ?x) (not (robot-at ?r ?x)) (not (clear ?y)))
+  )
+
+  (:action left
+    :parameters (?r - robot ?x - tile ?y - tile)
+    :precondition (and (robot-at ?r ?x) (left ?y ?x) (clear ?y))
+    :effect (and (robot-at ?r ?y) (clear ?x) (not (robot-at ?r ?x)) (not (clear ?y)))
   )
 
 )

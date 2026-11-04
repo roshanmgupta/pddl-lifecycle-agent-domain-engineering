@@ -5,10 +5,9 @@ from pydantic import BaseModel, Field
 class LifecycleTaskType(str, Enum):
     ELICITATION = "ELICITATION"
     SYNTHETIC_FAULT_REPAIR = "SYNTHETIC_FAULT_REPAIR"
-    DOMAIN_EVOLUTION = "DOMAIN_EVOLUTION"
 
 class BenchmarkTask(BaseModel):
-    """Schema for individual benchmark evaluation tasks in PDDLLifeCycleBench."""
+    """Schema for individual benchmark evaluation tasks in the canonical benchmark suite."""
     task_id: str = Field(
         description="Unique identifier for the benchmark task, e.g. 'blocksworld_repair_missing_precondition_01'"
     )
@@ -16,22 +15,22 @@ class BenchmarkTask(BaseModel):
         description="IPC Domain family name: 'blocksworld', 'logistics', 'rovers', 'depots', 'satellite'"
     )
     task_type: LifecycleTaskType = Field(
-        description="Lifecycle task category: ELICITATION, SYNTHETIC_FAULT_REPAIR, DOMAIN_EVOLUTION"
+        description="Lifecycle task category: ELICITATION or SYNTHETIC_FAULT_REPAIR"
     )
     title: str = Field(
         default="",
         description="Short human-readable summary of the evaluation scenario"
     )
     natural_language_requirements: str = Field(
-        description="Natural language description of the domain rules or evolution requirements"
+        description="Natural language description of the domain rules or requirements"
     )
     initial_domain_pddl: Optional[str] = Field(
         default=None,
-        description="Starting domain PDDL text containing a fault (for REPAIR) or baseline specification (for EVOLUTION)"
+        description="Starting domain PDDL text containing a fault (for REPAIR)"
     )
     initial_problem_pddl: Optional[str] = Field(
         default=None,
-        description="Starting problem PDDL text (for REPAIR or EVOLUTION)"
+        description="Starting problem PDDL text (for REPAIR)"
     )
     fault_category: Optional[str] = Field(
         default=None,
@@ -48,14 +47,6 @@ class BenchmarkTask(BaseModel):
     expected_repair_behavior: Optional[str] = Field(
         default=None,
         description="Description or specification of the intended behavior to be restored"
-    )
-    baseline_benchmark_problems: List[str] = Field(
-        default_factory=list,
-        description="List of baseline benchmark problem PDDL strings that must remain solvable after domain evolution to certify solvability preservation across reference instances"
-    )
-    evolution_target_problem_pddl: Optional[str] = Field(
-        default=None,
-        description="New capability problem PDDL string introduced during domain evolution"
     )
     ground_truth_domain_pddl: str = Field(
         default="",

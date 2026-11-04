@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-10-23T03:22:06.148795",
+  "domain_name": "transport08-bfs",
+  "run_index": 1,
+  "verification_status": "PASSED",
+  "repair_iterations_used": 0,
+  "initial_verification_errors": [],
+  "final_verification_errors": [],
+  "diagnostic_issues_count": 0,
+  "diagnostic_reports": [],
+  "formatted_diagnostic_feedback": "",
+  "plan_summary": {
+    "is_solvable": true,
+    "plan_length": 5,
+    "search_time_seconds": 0.000159,
+    "val_plan_valid": true,
+    "plan_steps": [
+      "(pick_up_package package-1 truck-1 city-loc-3 capacity-4 capacity-3)",
+      "(pick_up_package package-2 truck-1 city-loc-3 capacity-3 capacity-2)",
+      "(drive_vehicle truck-1 city-loc-3 city-loc-2)",
+      "(drop_package package-1 truck-1 city-loc-2 capacity-2 capacity-3)",
+      "(drop_package package-2 truck-1 city-loc-2 capacity-3 capacity-4)"
+    ]
+  }
+}

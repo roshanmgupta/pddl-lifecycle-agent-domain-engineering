@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_01_unsatisfiable_precondition_1",
+  "domain": "satellite",
+  "flaw_category": "PRECONDITION_UNSATISFIABLE",
+  "mutation_operator": "OPERATOR_1_UNSATISFIABLE_PRECONDITION",
+  "target_action": "calibrate",
+  "description": "Added unsatisfiable precondition '(unreachable_precondition)' to action 'calibrate'",
+  "ground_truth_fix": "Remove '(unreachable_precondition)' from action 'calibrate' preconditions.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

@@ -1,0 +1,187 @@
+{
+  "domain_name": "scanalyzer08",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "scanalyzer08",
+    "requirements": [
+      ":strips",
+      ":typing"
+    ],
+    "types": {
+      "car": "object",
+      "segment": "object",
+      "physical_entity": "object"
+    },
+    "constants": {},
+    "predicates": [
+      "(in-cycle-length-2 ?a - segment ?b - segment)",
+      "(in-cycle-length-4 ?a - segment ?b - segment ?c - segment ?d - segment)",
+      "(on ?car - car ?seg - segment)",
+      "(analyzed ?car - car)"
+    ],
+    "actions": [
+      {
+        "action_name": "analyze_cycle_length_2",
+        "parameters": {
+          "?c": "car",
+          "?d": "car",
+          "?a": "segment",
+          "?b": "segment"
+        },
+        "preconditions": [
+          "(in-cycle-length-2 ?a ?b)",
+          "(on ?c ?a)",
+          "(on ?d ?b)"
+        ],
+        "effects": [
+          "(on ?c ?b)",
+          "(on ?d ?a)",
+          "(analyzed ?c)",
+          "(not (on ?c ?a))",
+          "(not (on ?d ?b))"
+        ]
+      },
+      {
+        "action_name": "analyze_cycle_length_4",
+        "parameters": {
+          "?e": "car",
+          "?f": "car",
+          "?g": "car",
+          "?h": "car",
+          "?a": "segment",
+          "?b": "segment",
+          "?c": "segment",
+          "?d": "segment"
+        },
+        "preconditions": [
+          "(in-cycle-length-4 ?a ?b ?c ?d)",
+          "(on ?e ?a)",
+          "(on ?f ?b)",
+          "(on ?g ?c)",
+          "(on ?h ?d)"
+        ],
+        "effects": [
+          "(on ?e ?d)",
+          "(on ?f ?a)",
+          "(on ?g ?b)",
+          "(on ?h ?c)",
+          "(analyzed ?e)",
+          "(not (on ?e ?a))",
+          "(not (on ?f ?b))",
+          "(not (on ?g ?c))",
+          "(not (on ?h ?d))"
+        ]
+      },
+      {
+        "action_name": "rotate_cars_length_2",
+        "parameters": {
+          "?c": "car",
+          "?d": "car",
+          "?a": "segment",
+          "?b": "segment"
+        },
+        "preconditions": [
+          "(in-cycle-length-2 ?a ?b)",
+          "(on ?c ?a)",
+          "(on ?d ?b)"
+        ],
+        "effects": [
+          "(on ?c ?b)",
+          "(on ?d ?a)",
+          "(not (on ?c ?a))",
+          "(not (on ?d ?b))"
+        ]
+      },
+      {
+        "action_name": "rotate_cars_length_4",
+        "parameters": {
+          "?e": "car",
+          "?f": "car",
+          "?g": "car",
+          "?h": "car",
+          "?a": "segment",
+          "?b": "segment",
+          "?c": "segment",
+          "?d": "segment"
+        },
+        "preconditions": [
+          "(in-cycle-length-4 ?a ?b ?c ?d)",
+          "(on ?e ?a)",
+          "(on ?f ?b)",
+          "(on ?g ?c)",
+          "(on ?h ?d)"
+        ],
+        "effects": [
+          "(on ?e ?d)",
+          "(on ?f ?a)",
+          "(on ?g ?b)",
+          "(on ?h ?c)",
+          "(not (on ?e ?a))",
+          "(not (on ?f ?b))",
+          "(not (on ?g ?c))",
+          "(not (on ?h ?d))"
+        ]
+      }
+    ]
+  },
+  "problem_blueprint": {
+    "problem_name": "instance-1.pddl",
+    "domain_name": "scanalyzer08",
+    "objects": {
+      "car-in-1": "car",
+      "car-in-2": "car",
+      "car-in-3": "car",
+      "car-out-1": "car",
+      "car-out-2": "car",
+      "car-out-3": "car",
+      "seg-in-1": "segment",
+      "seg-in-2": "segment",
+      "seg-in-3": "segment",
+      "seg-out-1": "segment",
+      "seg-out-2": "segment",
+      "seg-out-3": "segment"
+    },
+    "initial_state": [
+      "(in-cycle-length-2 seg-in-1 seg-out-1)",
+      "(in-cycle-length-2 seg-in-1 seg-out-2)",
+      "(in-cycle-length-2 seg-in-1 seg-out-3)",
+      "(in-cycle-length-2 seg-in-2 seg-out-1)",
+      "(in-cycle-length-2 seg-in-2 seg-out-2)",
+      "(in-cycle-length-2 seg-in-2 seg-out-3)",
+      "(in-cycle-length-2 seg-in-3 seg-out-1)",
+      "(in-cycle-length-2 seg-in-3 seg-out-2)",
+      "(in-cycle-length-2 seg-in-3 seg-out-3)",
+      "(in-cycle-length-2 seg-in-1 seg-out-1)",
+      "(in-cycle-length-2 seg-in-1 seg-out-2)",
+      "(in-cycle-length-2 seg-in-1 seg-out-3)",
+      "(in-cycle-length-2 seg-in-2 seg-out-1)",
+      "(in-cycle-length-2 seg-in-2 seg-out-2)",
+      "(in-cycle-length-2 seg-in-2 seg-out-3)",
+      "(in-cycle-length-2 seg-in-3 seg-out-1)",
+      "(in-cycle-length-2 seg-in-3 seg-out-2)",
+      "(in-cycle-length-2 seg-in-3 seg-out-3)",
+      "(on car-in-1 seg-in-1)",
+      "(on car-in-2 seg-in-2)",
+      "(on car-in-3 seg-in-3)",
+      "(on car-out-1 seg-out-1)",
+      "(on car-out-2 seg-out-2)",
+      "(on car-out-3 seg-out-3)"
+    ],
+    "goal_state": [
+      "(analyzed car-in-1)",
+      "(analyzed car-in-2)",
+      "(analyzed car-in-3)",
+      "(analyzed car-out-1)",
+      "(analyzed car-out-2)",
+      "(analyzed car-out-3)",
+      "(on car-in-1 seg-in-1)",
+      "(on car-in-2 seg-in-2)",
+      "(on car-in-3 seg-in-3)",
+      "(on car-out-1 seg-out-1)",
+      "(on car-out-2 seg-out-2)",
+      "(on car-out-3 seg-out-3)"
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

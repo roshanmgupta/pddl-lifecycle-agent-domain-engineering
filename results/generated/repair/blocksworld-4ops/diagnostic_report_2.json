@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-10-20T10:24:42.678923",
+  "domain_name": "blocksworld-4ops",
+  "run_index": 2,
+  "verification_status": "PASSED",
+  "repair_iterations_used": 2,
+  "initial_verification_errors": [
+    "Planner Error: Could not find a plan. INFO     planner time limit: None\nINFO     planner memory limit: None\n\nINFO     Running translator.\nINFO     translator stdin: None\nINFO     translator time limit: None\nINFO     translator memory limit: None\nINFO     translator command line string: 'C:\\Users\\Srushti\\miniconda3\\envs\\agent_env\\python.exe' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\translate\\translate.py' 'Streamlit_output_file\\temp_domain.pddl' 'Streamlit_output_file\\temp_problem.pddl' --sas-file output.sas\nWarning! SIGXCPU is not available on your platform. This means that the planner cannot be gracefully terminated when using a time limit, which, however, is probably supported on your platform anyway.\nParsing...\nParsing domain\n\t->Parsing axiom/action entry #1\n\t->Parsing action #1\n\t->Parsing action 'pick-up'\n\t->Parsing precondition\n\t->Parsing condition\n\t->Parsing literal\nUndefined variable\nGot: ?ob\ntranslate exit code: 31\n\nDriver aborting after translate\n\n"
+  ],
+  "final_verification_errors": [],
+  "diagnostic_issues_count": 2,
+  "diagnostic_reports": [
+    {
+      "error_category": "SYNTAX_PARSE",
+      "repair_operation_type": "GENERAL_AST_REPAIR",
+      "faulty_element": "pick-up",
+      "suspiciousness_score": 1.0,
+      "raw_log": "Undefined variable Got: ?ob",
+      "suggested_repair_hint": "Add parameters to the 'pick-up' action to define '?ob' as an object, e.g., 'parameters: (?ob - object)'."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pick-up",
+      "suspiciousness_score": 0.8,
+      "raw_log": "VAL Error: Type-checking pick-up x has bad type definition",
+      "suggested_repair_hint": "Ensure that the parameter '?ob' in the action 'pick-up' is correctly typed. Define a type for 'object' in the 'types' section of the domain blueprint, or ensure that the parameter is declared correctly according to the expected types."
+    }
+  ],
+  "formatted_diagnostic_feedback": "",
+  "plan_summary": {
+    "is_solvable": true,
+    "plan_length": 4,
+    "search_time_seconds": 6.6e-05,
+    "val_plan_valid": true,
+    "plan_steps": [
+      "(unstack b c)",
+      "(put-down b)",
+      "(pick-up c)",
+      "(stack c b)"
+    ]
+  }
+}

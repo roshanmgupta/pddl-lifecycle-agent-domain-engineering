@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_03_missing_goal_add_effect_1",
+  "domain": "depot",
+  "flaw_category": "ACTION_EFFECT_DELETION",
+  "mutation_operator": "OPERATOR_2_REMOVE_GOAL_ADD_EFFECT",
+  "target_action": "Drop",
+  "description": "Removed required goal add effect '(on ?y ?z)' from action 'Drop'",
+  "ground_truth_fix": "Restore add effect '(on ?y ?z)' in action 'Drop' effects.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

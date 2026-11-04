@@ -1,0 +1,4 @@
+task_id,domain,task_type,agent,run_idx,init_syntax_ok,is_syntax_valid,is_solvable,soundness_valid,completeness_valid,e2e_success,iterations_used,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,execution_time_sec,behavioral_code,defect_class,error_summary
+blocksworld_elicit,blocksworld,ELICITATION,CLOSED_LOOP_AST_AGENT,1,True,True,True,True,True,True,1,1491,322,1813,0.000417,27.06,A.1: First-Attempt Direct Success,NONE,
+blocksworld_elicit,blocksworld,ELICITATION,ABLATION_NO_AST,1,True,True,True,True,True,True,1,718,328,1046,0.000304,70.14,A.1: First-Attempt Direct Success,NONE,
+blocksworld_elicit,blocksworld,ELICITATION,ZERO_SHOT,1,True,True,True,True,True,True,1,718,328,1046,0.000304,52.13,A.1: First-Attempt Direct Success,NONE,

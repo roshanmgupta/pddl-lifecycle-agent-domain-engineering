@@ -1,0 +1,11 @@
+{
+  "task_id": "gripper_evolve_01",
+  "domain_family": "gripper",
+  "task_type": "DOMAIN_EVOLUTION",
+  "iteration_count": 1,
+  "total_tokens": 1862,
+  "estimated_cost_usd": 0.000279,
+  "execution_time_seconds": 20.42,
+  "diagnostic_reports": [],
+  "verification_errors": []
+}

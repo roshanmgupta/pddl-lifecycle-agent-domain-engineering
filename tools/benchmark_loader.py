@@ -12,9 +12,7 @@ from typing import List, Dict, Any, Optional
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BENCHMARK_ROOT = os.path.join(PROJECT_ROOT, "pddl_benchmark_instances")
 
-# Predefined Pure Natural Language Descriptions for classic IPC domains
-# Formulated without explicit PDDL formalisms (no types/predicates/actions)
-# to strictly evaluate the Elicitation Phase of the Lifecycle Agent.
+# Natural language domain descriptions for benchmark tasks
 IPC_NL_DESCRIPTIONS = {
     # Classic IPC Domains (IPC-1998, IPC-2000, IPC-2002)
     "gripper": (
@@ -715,20 +713,8 @@ def get_nl_requirement_for_domain(domain_name: str) -> str:
     )
     return f"Model the classic {clean_title} planning domain in PDDL with standard state predicates, preconditions, and action schemas."
 
-def load_historical_case_from_ipc(year: str, domain_name: str, instance_filename: str) -> Optional[Dict[str, Any]]:
-    """Loads a real IPC instance file and prepares it as a HistoricalProblemCase."""
-    raw_pddl = get_ipc_instance_pddl(year, domain_name, instance_filename)
-    if not raw_pddl:
-        return None
-    return {
-        "case_id": f"{year}_{domain_name}_{instance_filename.replace('.pddl', '')}",
-        "problem_pddl": raw_pddl,
-        "raw_pddl": raw_pddl
-    }
 
-
-# ==============================================================================
-# AutoPlanBench (ICAPS 2025 Pure Typed STRIPS) Loader Helpers
+# AutoPlanBench loader helpers
 try:
     from config.paths import get_autoplanbench_dir
     _cfg_apb = str(get_autoplanbench_dir())
@@ -782,25 +768,14 @@ def get_autoplanbench_instance_pddl(domain_name: str, instance_filename: str) ->
             return f.read().strip()
     return ""
 
-def load_historical_case_from_autoplanbench(domain_name: str, instance_filename: str) -> Optional[Dict[str, Any]]:
-    """Loads an AutoPlanBench problem instance as a HistoricalProblemCase."""
-    raw_pddl = get_autoplanbench_instance_pddl(domain_name, instance_filename)
-    if not raw_pddl:
-        return None
-    return {
-        "case_id": f"apb_{domain_name}_{instance_filename.replace('.pddl', '')}",
-        "problem_pddl": raw_pddl,
-        "raw_pddl": raw_pddl
-    }
 
+from config.paths import get_benchmark_dir
 
-# ==============================================================================
-# PDDLLifeCycleBench (24 Domains: Flaws & Evolution) Helpers
-# ==============================================================================
-PDDL_LIFECYCLE_BENCH_ROOT = os.path.join(PROJECT_ROOT, "PDDLLifeCycleBench")
+# Benchmark loader helpers
+PDDL_LIFECYCLE_BENCH_ROOT = str(get_benchmark_dir())
 
 def list_lifecycle_domains() -> List[str]:
-    """Returns list of canonical domains in PDDLLifeCycleBench."""
+    """Returns list of canonical domains in the benchmark repository."""
     if not os.path.exists(PDDL_LIFECYCLE_BENCH_ROOT):
         return []
     return sorted([
@@ -851,15 +826,5 @@ def get_lifecycle_flaw_pddl(domain_name: str, flaw_name: str) -> Dict[str, Any]:
             if res["metadata"].get("flaw_category") in ("BACKWARD_COMPATIBILITY_REGRESSION", "STATE_REACHABILITY_REGRESSION"):
                 res["metadata"]["flaw_category"] = "STATE_REACHABILITY_COLLAPSE"
     return res
-
-def list_lifecycle_evolutions(domain_name: str) -> List[str]:
-    """Returns list of evolution directories in PDDLLifeCycleBench/<domain>/evolution."""
-    evo_dir = os.path.join(PDDL_LIFECYCLE_BENCH_ROOT, domain_name, "evolution")
-    if not os.path.exists(evo_dir):
-        return []
-    return sorted([
-        e for e in os.listdir(evo_dir)
-        if os.path.isdir(os.path.join(evo_dir, e))
-    ])
 
 

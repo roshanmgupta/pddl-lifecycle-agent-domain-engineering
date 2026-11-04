@@ -1,0 +1,10 @@
+task_id,domain,agent,runs_evaluated,runs_succeeded,task_succeeds,mean_iterations_penalized,svr_rate,mean_prompt_tokens,mean_completion_tokens,mean_total_tokens,mean_latency_sec
+ferry_elicit,ferry,CLOSED_LOOP_AST_AGENT,1,0,False,6.0,1.0,21464.0,2111.0,23575.0,112.47
+parking11_elicit,parking11,CLOSED_LOOP_AST_AGENT,1,1,True,1.0,1.0,1821.0,498.0,2319.0,29.0
+zenotravel02_elicit,zenotravel02,CLOSED_LOOP_AST_AGENT,1,0,False,6.0,1.0,32052.0,4787.0,36839.0,235.33
+ferry_elicit,ferry,ABLATION_NO_AST,1,1,True,1.0,1.0,622.0,291.0,913.0,13.81
+parking11_elicit,parking11,ABLATION_NO_AST,1,0,False,6.0,1.0,0.0,0.0,0.0,3.09
+zenotravel02_elicit,zenotravel02,ABLATION_NO_AST,1,0,False,6.0,1.0,1257.0,623.0,1880.0,25.76
+ferry_elicit,ferry,ZERO_SHOT,1,1,True,1.0,1.0,622.0,291.0,913.0,12.87
+parking11_elicit,parking11,ZERO_SHOT,1,1,True,1.0,1.0,1009.0,586.0,1595.0,29.24
+zenotravel02_elicit,zenotravel02,ZERO_SHOT,1,0,False,6.0,1.0,1257.0,623.0,1880.0,33.35

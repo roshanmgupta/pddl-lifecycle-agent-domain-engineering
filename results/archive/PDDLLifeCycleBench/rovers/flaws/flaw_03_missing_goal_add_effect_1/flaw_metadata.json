@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_03_missing_goal_add_effect_1",
+  "domain": "rovers",
+  "flaw_category": "ACTION_EFFECT_DELETION",
+  "mutation_operator": "OPERATOR_2_REMOVE_GOAL_ADD_EFFECT",
+  "target_action": "communicate_soil_data",
+  "description": "Removed required goal add effect '(communicated_soil_data ?p)' from action 'communicate_soil_data'",
+  "ground_truth_fix": "Restore add effect '(communicated_soil_data ?p)' in action 'communicate_soil_data' effects.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

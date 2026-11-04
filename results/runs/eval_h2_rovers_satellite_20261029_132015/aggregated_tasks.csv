@@ -1,0 +1,17 @@
+task_id,domain,agent,runs_evaluated,runs_succeeded,task_succeeds,mean_iterations_penalized,svr_rate,mean_prompt_tokens,mean_completion_tokens,mean_total_tokens,mean_latency_sec
+rovers_flaw_01_unsatisfiable_precondition_1,rovers,CLOSED_LOOP_AST_AGENT,3,1,False,5.0,1.0,26927.0,5338.7,32265.7,77.1
+rovers_flaw_02_unsatisfiable_precondition_2,rovers,CLOSED_LOOP_AST_AGENT,3,3,True,2.67,1.0,19816.0,4472.7,24288.7,63.73
+rovers_flaw_03_missing_goal_add_effect_1,rovers,CLOSED_LOOP_AST_AGENT,3,3,True,2.0,1.0,12491.0,3178.0,15669.0,28.35
+rovers_flaw_04_missing_goal_add_effect_2,rovers,CLOSED_LOOP_AST_AGENT,3,0,False,6.0,1.0,29540.3,5214.7,34755.0,58.52
+satellite_flaw_01_unsatisfiable_precondition_1,satellite,CLOSED_LOOP_AST_AGENT,3,3,True,1.0,1.0,7474.0,781.7,8255.7,7.37
+satellite_flaw_02_unsatisfiable_precondition_2,satellite,CLOSED_LOOP_AST_AGENT,3,1,False,4.67,1.0,2502.7,252.3,2755.0,7.66
+satellite_flaw_03_missing_goal_add_effect_1,satellite,CLOSED_LOOP_AST_AGENT,3,3,True,1.0,1.0,7508.3,775.3,8283.7,9.39
+satellite_flaw_04_missing_goal_add_effect_2,satellite,CLOSED_LOOP_AST_AGENT,3,2,True,2.67,1.0,2328.7,437.3,2766.0,5.23
+rovers_flaw_01_unsatisfiable_precondition_1,rovers,ABLATION_NO_TRIAGE,3,0,False,6.0,1.0,23336.0,5017.7,28353.7,68.86
+rovers_flaw_02_unsatisfiable_precondition_2,rovers,ABLATION_NO_TRIAGE,3,0,False,6.0,1.0,28616.0,5383.3,33999.3,62.14
+rovers_flaw_03_missing_goal_add_effect_1,rovers,ABLATION_NO_TRIAGE,3,3,True,2.0,1.0,12491.0,3178.0,15669.0,47.51
+rovers_flaw_04_missing_goal_add_effect_2,rovers,ABLATION_NO_TRIAGE,3,0,False,6.0,1.0,29538.0,5176.0,34714.0,41.87
+satellite_flaw_01_unsatisfiable_precondition_1,satellite,ABLATION_NO_TRIAGE,3,2,True,3.33,1.0,7763.3,585.3,8348.7,9.67
+satellite_flaw_02_unsatisfiable_precondition_2,satellite,ABLATION_NO_TRIAGE,3,1,False,4.33,1.0,2491.3,260.7,2752.0,8.46
+satellite_flaw_03_missing_goal_add_effect_1,satellite,ABLATION_NO_TRIAGE,3,2,True,3.0,1.0,3575.7,472.7,4048.3,6.67
+satellite_flaw_04_missing_goal_add_effect_2,satellite,ABLATION_NO_TRIAGE,3,0,False,6.0,1.0,0.0,0.0,0.0,3.52

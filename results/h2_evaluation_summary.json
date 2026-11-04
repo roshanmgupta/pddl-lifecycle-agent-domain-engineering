@@ -1,0 +1,29 @@
+{
+  "n_evaluated_tasks": 42,
+  "closed_loop_agent": {
+    "success_count": 36,
+    "success_rate_percent": 85.71,
+    "mean_penalized_iterations": 1.548
+  },
+  "ablation_no_triage": {
+    "success_count": 33,
+    "success_rate_percent": 78.57,
+    "mean_penalized_iterations": 1.429
+  },
+  "mcnemar_test": {
+    "table": {
+      "a_both_pass": 33,
+      "b_full_only": 3,
+      "c_notriage_only": 0,
+      "d_both_fail": 6
+    },
+    "discordant_pairs": 3,
+    "p_value": 0.25,
+    "significant_at_05": false
+  },
+  "wilcoxon_test": {
+    "statistic": 17.0,
+    "p_value": 0.30806,
+    "significant_at_05": false
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-10-20T10:11:00.356390",
+  "domain_name": "barman",
+  "run_index": 3,
+  "verification_status": "FAILED",
+  "repair_iterations_used": 9,
+  "initial_verification_errors": [
+    "VAL Error: Type-checking grasp\nObject with unknown type: c\n\nErrors: 0, warnings: 0\n\nError: Error in type-checking!"
+  ],
+  "final_verification_errors": [
+    "VAL Error: Type-checking grasp\n...action passes type checking.\nType-checking leave\n...action passes type checking.\nType-checking fill-shot\n...action passes type checking.\nType-checking refill-shot\n...action passes type checking.\nType-checking empty-shot\n...action passes type checking.\nType-checking clean-shot\n...action passes type checking.\nType-checking pour-shot-to-clean-shaker\nType problem with proposition (shaker-level d l) - parameter 2 is incorrectly typed\nConditions fail type-checking.\n\nType problem in domain description!"
+  ],
+  "diagnostic_issues_count": 5,
+  "diagnostic_reports": [
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "grasp",
+      "suspiciousness_score": 1.0,
+      "raw_log": "VAL Error: Type-checking grasp\nObject with unknown type: c",
+      "suggested_repair_hint": "Change the parameter type of '?c' in the 'grasp' action from 'object' to 'container' to match the expected type for the grasp action."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "fill-shot",
+      "suspiciousness_score": 1.0,
+      "raw_log": "Type problem with proposition (holding h1 s) - parameter 1 is incorrectly typed",
+      "suggested_repair_hint": "Change the parameter type of '?h1' in the 'fill-shot' action from 'object' to 'hand' to match the expected type for the 'holding' predicate."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "fill-shot",
+      "suspiciousness_score": 1.0,
+      "raw_log": "Type problem with proposition (holding h1 s) - parameter 1 is incorrectly typed",
+      "suggested_repair_hint": "Change the parameter type of '?h1' in the 'fill-shot' action from 'hand' to 'object' to ensure it can accept any object type, as it is currently causing a type mismatch."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "fill-shot",
+      "suspiciousness_score": 1.0,
+      "raw_log": "Type problem with proposition (holding h1 s) - parameter 1 is incorrectly typed",
+      "suggested_repair_hint": "Change the parameter type of '?h1' in the 'fill-shot' action from 'hand' to 'object' to ensure it can accept any object type, as the current type does not match the usage in the precondition."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pour-shot-to-clean-shaker",
+      "suspiciousness_score": 1.0,
+      "raw_log": "Type problem with proposition (shaker-level d l) - parameter 2 is incorrectly typed",
+      "suggested_repair_hint": "Change the type of the second parameter in the predicate 'shaker-level' to match the expected type 'level'. Ensure that all parameters in the action 'pour-shot-to-clean-shaker' are correctly typed according to their definitions."
+    }
+  ],
+  "formatted_diagnostic_feedback": "### Diagnostic Failure Analysis Report (Symbolic Oracle Triage):\n\nIssue #1:\n  - [ERROR TYPE]: TYPE_SIGNATURE\n  - [TARGET AST OPERATION]: TYPE_ARITY_ALIGNMENT\n  - [LOCATION / COMPONENT]: pour-shot-to-clean-shaker (Fault Suspiciousness Score: 1.00)\n  - [DESCRIPTION / RAW TRACE]: Type problem with proposition (shaker-level d l) - parameter 2 is incorrectly typed\n  - [SUGGESTION FOR REPAIR]: Change the type of the second parameter in the predicate 'shaker-level' to match the expected type 'level'. Ensure that all parameters in the action 'pour-shot-to-clean-shaker' are correctly typed according to their definitions.",
+  "plan_summary": null
+}

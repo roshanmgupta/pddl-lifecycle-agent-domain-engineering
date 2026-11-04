@@ -1,0 +1,2 @@
+Task ID,Domain,Task Type,Architecture,Status,SVR,TPV,Executability,Feasibility,Interpretability,Macro F1,Plan Length,Iterations (k),Latency (s),Cost ($),Error Summary
+apb_satellite_instance-1,satellite,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified ✅,1.0,PASS,Certified,PASS,PASS,N/A,5,2,179.68,$0.00255,

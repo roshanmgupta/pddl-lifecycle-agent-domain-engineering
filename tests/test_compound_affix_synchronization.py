@@ -9,7 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from nodes.generation import synchronize_ast_predicate_symbols
+from nodes.ast_to_pddl_compiler import synchronize_ast_predicate_symbols
 
 
 def test_compound_affix_sync():

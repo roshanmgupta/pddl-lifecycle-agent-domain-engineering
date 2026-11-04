@@ -1,5 +1,6 @@
 import os
 import time
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 from benchmark.schema import BenchmarkTask, LifecycleTaskType
 from eval.metrics import EvaluationMetrics
@@ -8,46 +9,9 @@ from graph import pddl_lifecycle_graph
 from tools.symbolic_oracles import run_val_validator, run_fast_downward_with_plan
 from config.paths import get_eval_output_dir
 
-def compute_fault_localization_metrics(
-    gold_element: Optional[str],
-    diagnostic_reports: List[Any]
-) -> tuple[Optional[bool], Optional[bool], Optional[float]]:
-    """
-    Computes Top-1, Top-3, and MRR for fault localization against explicit ground truth AST element.
-    Returns (top1, top3, mrr).
-    """
-    if not gold_element or not diagnostic_reports:
-        return None, None, None
-
-    clean_gold = gold_element.strip().lower()
-    ranked_candidates = []
-    for r in diagnostic_reports:
-        faulty = getattr(r, "faulty_element", "") if hasattr(r, "faulty_element") else str(r.get("faulty_element", ""))
-        if faulty:
-            ranked_candidates.append(faulty.strip().lower())
-
-    if not ranked_candidates:
-        return False, False, 0.0
-
-    def _matches(gold: str, cand: str) -> bool:
-        return gold in cand or cand in gold
-
-    top1 = _matches(clean_gold, ranked_candidates[0])
-    top3 = any(_matches(clean_gold, c) for c in ranked_candidates[:3])
-
-    mrr = 0.0
-    for idx, cand in enumerate(ranked_candidates):
-        if _matches(clean_gold, cand):
-            mrr = 1.0 / (idx + 1)
-            break
-
-    return top1, top3, mrr
 
 def run_evaluation_on_task(task: BenchmarkTask, agent_type: str, max_iterations: int = 5) -> EvaluationMetrics:
-    """
-    Executes evaluation of a single benchmark task using the specified agent architecture.
-    Strictly NO evaluation leakage or ground truth fallback.
-    """
+    """Executes evaluation of a single benchmark task using the specified agent architecture."""
     start_time = time.time()
     
     generated_domain_pddl = ""
@@ -178,95 +142,60 @@ def evaluate_candidate_pddl(
             error_summary="Generation Failed: Incomplete or missing domain/problem PDDL output from agent."
         )
 
-    with open(eval_dom_file, "w", encoding="utf-8") as f:
-        f.write(generated_domain_pddl)
-    with open(eval_prob_file, "w", encoding="utf-8") as f:
-        f.write(generated_problem_pddl)
-
-    eval_dom_gt_file = None
-    if getattr(task, "ground_truth_domain_pddl", None):
-        eval_dom_gt_file = os.path.join(eval_dir, f"eval_dom_gt_{task.task_id}_{agent_type}.pddl")
-        with open(eval_dom_gt_file, "w", encoding="utf-8") as f:
-            f.write(task.ground_truth_domain_pddl)
-
-    # Oracle 1: VAL Syntax & Semantics
-    is_syntax_valid, val_log = run_val_validator(eval_dom_file, eval_prob_file)
-    svr_syntax_valid_rate = 1.0 if is_syntax_valid else 0.0
-
-    # Oracle 2: Fast Downward Search & Oracle 3: VAL Plan Certification
-    is_plan_valid = False
-    plan_length = None
-    plan_cost = None
-    search_time = None
-
-    is_solvable = False
-    planner_timeout = False
-    executability_valid = False
-    feasibility_valid = False
-    interpretability_valid = False
-
-    if is_syntax_valid:
-        fd_gt_path = str(eval_dom_gt_file) if (eval_dom_gt_file and task.task_type != LifecycleTaskType.ELICITATION) else None
-        fd_res = run_fast_downward_with_plan(
-            eval_dom_file, 
-            eval_prob_file, 
-            ground_truth_domain_path=fd_gt_path
-        )
-        is_plan_valid = fd_res["is_solvable"]
-        is_solvable = fd_res.get("is_solvable", False)
-        planner_timeout = fd_res.get("timed_out", False)
-        executability_valid = fd_res.get("executability_valid", False) or fd_res.get("val_plan_valid", False)
-        feasibility_valid = fd_res.get("feasibility_valid", False)
-        interpretability_valid = fd_res.get("interpretability_valid", False)
-        plan_length = fd_res["plan_length"]
-        plan_cost = fd_res["plan_cost"]
-        search_time = fd_res["search_time"]
-
-        if not is_plan_valid:
-            if planner_timeout:
-                error_summary = "Planner Search Timeout (30s): Unsolvability not proven."
-            else:
-                error_summary = "Planner Unsolvability: " + fd_res["raw_fd_log"][:200]
-        elif not executability_valid:
-            error_summary = "Plan Certification Failed: " + fd_res.get("val_log", "")[:200]
-    else:
-        error_summary = "VAL Validation Error: " + val_log[:200]
-
-    # Target Plan Validity (TPV): Solvable by planner AND verified valid by VAL
-    tpv_target_plan_valid = bool(is_syntax_valid and is_plan_valid and executability_valid)
-    semantic_soundness = bool(feasibility_valid and interpretability_valid)
-    e2e_gate_success = bool(is_syntax_valid and is_solvable and executability_valid and (semantic_soundness or task.task_type == LifecycleTaskType.ELICITATION))
-
-    # -------------------------------------------------------------
-    # Structural Reconstruction Metrics (Oswald 2024 / Aineto 2022)
-    # -------------------------------------------------------------
-    macro_structural_f1 = None
-    precondition_f1 = None
-    add_effect_f1 = None
-    delete_effect_f1 = None
-    action_f1 = None
-    parameter_arity_match = None
+    from eval.verification_pipeline import verify_pddl_candidate
 
     gt_dom_str = getattr(task, "ground_truth_domain_pddl", None) or getattr(task, "initial_domain_pddl", None)
-    if gt_dom_str:
-        try:
-            from eval.action_reconstruction import evaluate_action_reconstruction
-            are_res = evaluate_action_reconstruction(gt_dom_str, generated_domain_pddl)
-            macro_structural_f1 = are_res.get("macro_structural_f1")
-            precondition_f1 = are_res.get("mean_precondition_f1")
-            add_effect_f1 = are_res.get("mean_add_effect_f1")
-            delete_effect_f1 = are_res.get("mean_delete_effect_f1")
-            action_f1 = are_res.get("action_f1")
-            parameter_arity_match = are_res.get("mean_arity_match")
-        except Exception:
-            pass
+    gt_prob_str = getattr(task, "ground_truth_problem_pddl", None) or getattr(task, "initial_problem_pddl", None)
+
+    verif = verify_pddl_candidate(
+        generated_domain_pddl=generated_domain_pddl,
+        generated_problem_pddl=generated_problem_pddl,
+        ground_truth_domain_pddl=gt_dom_str,
+        ground_truth_problem_pddl=gt_prob_str,
+        temp_dir=Path(eval_dir),
+        tag=f"{task.task_id}_{agent_type}"
+    )
+
+    is_syntax_valid = verif["is_syntax_valid"]
+    svr_syntax_valid_rate = 1.0 if is_syntax_valid else 0.0
+    is_solvable = verif["is_solvable"]
+    is_plan_valid = is_solvable
+    planner_timeout = verif["planner_timeout"]
+    executability_valid = verif["executability_valid"]
+    feasibility_valid = verif["feasibility_valid"]
+    interpretability_valid = verif["interpretability_valid"]
+    semantic_soundness = verif["semantic_soundness"]
+    e2e_gate_success = verif["e2e_success"]
+    tpv_target_plan_valid = bool(is_syntax_valid and is_solvable and executability_valid)
+
+    plan_length = verif["plan_length"]
+    plan_cost = verif["plan_cost"]
+    search_time = verif["search_time_sec"]
+
+    if not is_syntax_valid:
+        error_summary = error_summary or ("VAL Syntax Error: " + (verif.get("val_syntax_log", "")[:200]))
+    elif not is_plan_valid:
+        if planner_timeout:
+            error_summary = "Planner Search Timeout (30s): Unsolvability not proven."
+        else:
+            error_summary = error_summary or ("Planner Unsolvability: " + (verif.get("raw_fd_log", "")[:200]))
+    elif not executability_valid:
+        error_summary = error_summary or "Plan Certification Failed: Generated plan failed VAL on generated domain."
+    elif not feasibility_valid:
+        error_summary = error_summary or "Feasibility Failed: Generated plan failed VAL on ground-truth domain."
+    elif not interpretability_valid:
+        error_summary = error_summary or "Interpretability Failed: Ground-truth plan failed VAL on generated domain."
+
+    macro_structural_f1 = verif.get("macro_structural_f1")
+    precondition_f1 = verif.get("precondition_f1")
+    add_effect_f1 = verif.get("add_effect_f1")
+    delete_effect_f1 = verif.get("delete_effect_f1")
+    action_f1 = verif.get("action_f1")
+    parameter_arity_match = verif.get("parameter_arity_match")
 
     # -------------------------------------------------------------
     # Hierarchical Multi-Granular Fault Localization (H-MGFL) Metrics
     # -------------------------------------------------------------
-    fla_top1 = None
-    fla_top3 = None
-    fla_mrr = None
     top1_element = None
     top1_repair_op = None
 
@@ -275,62 +204,25 @@ def evaluate_candidate_pddl(
         top1_element = getattr(first_rep, "faulty_element", "") if hasattr(first_rep, "faulty_element") else str(first_rep.get("faulty_element", ""))
         top1_repair_op = str(getattr(first_rep, "repair_operation_type", "") if hasattr(first_rep, "repair_operation_type") else first_rep.get("repair_operation_type", ""))
 
-    gold_fault = getattr(task, "gold_fault_element", None)
-    if gold_fault and diagnostic_reports:
-        fla_top1, fla_top3, fla_mrr = compute_fault_localization_metrics(gold_fault, diagnostic_reports)
 
-    # -------------------------------------------------------------
-    # Domain Evolution & Reference Suite Coverage (Cov_ref)
-    # -------------------------------------------------------------
     cov_ref_coverage_rate = None
     hist_passed = None
     hist_total = None
 
-    if task.task_type == LifecycleTaskType.DOMAIN_EVOLUTION:
-        # Align problem domain name to match generated domain name to satisfy Fast Downward parser requirement
-        import re
-        m_dom = re.search(r"\(\s*domain\s+([a-zA-Z0-9_\-]+)\s*\)", generated_domain_pddl, re.IGNORECASE)
-        dom_name = m_dom.group(1) if m_dom else None
-
-        bench_problems = getattr(task, "baseline_benchmark_problems", []) or getattr(task, "historical_regression_problems", []) or []
-        if bench_problems:
-            hist_total = len(bench_problems)
-            hist_passed = 0
-            for idx, hist_pddl in enumerate(bench_problems):
-                hist_prob_file = os.path.join(eval_dir, f"eval_hist_{task.task_id}_{idx}.pddl")
-                h_content = hist_pddl
-                if dom_name:
-                    h_content = re.sub(r"\(\s*:domain\s+[a-zA-Z0-9_\-]+\s*\)", f"(:domain {dom_name})", h_content, count=1, flags=re.IGNORECASE)
-                with open(hist_prob_file, "w", encoding="utf-8") as f:
-                    f.write(h_content)
-                h_res = run_fast_downward_with_plan(eval_dom_file, hist_prob_file)
-                if h_res["is_solvable"] and h_res["val_plan_valid"]:
-                    hist_passed += 1
-            cov_ref_coverage_rate = round((hist_passed / hist_total) * 100.0, 2) if hist_total > 0 else 100.0
-
     # -------------------------------------------------------------
-    # Standardized Behavioral Classification Code
+    # Standardized Behavioral Outcome Classification
     # -------------------------------------------------------------
-    if task.task_type == LifecycleTaskType.DOMAIN_EVOLUTION:
-        if not is_syntax_valid:
-            behavioral_code = "E.S"
-        elif not tpv_target_plan_valid:
-            behavioral_code = "E.T"
-        elif cov_ref_coverage_rate is not None and cov_ref_coverage_rate < 100.0:
-            behavioral_code = "E.B"
-        elif iterations_used <= 1:
-            behavioral_code = "E.1"
-        else:
-            behavioral_code = "E.2"
-    else:
-        if not is_syntax_valid:
-            behavioral_code = "S.S"
-        elif not tpv_target_plan_valid:
-            behavioral_code = "S.T"
-        elif iterations_used <= 1:
-            behavioral_code = "S.1"
-        else:
-            behavioral_code = "S.2"
+    from eval.verification_pipeline import classify_behavioral_outcome
+    behavioral_code, defect_class = classify_behavioral_outcome(
+        is_syntax_valid=is_syntax_valid,
+        is_solvable=is_solvable,
+        executability_valid=executability_valid,
+        feasibility_valid=feasibility_valid,
+        interpretability_valid=interpretability_valid,
+        macro_f1=macro_structural_f1 or 0.0,
+        iters=iterations_used,
+        planner_timed_out=planner_timeout
+    )
 
     return EvaluationMetrics(
         task_id=task.task_id,
@@ -350,14 +242,11 @@ def evaluate_candidate_pddl(
         reference_instances_passed=hist_passed,
         reference_instances_total=hist_total,
         macro_structural_f1=macro_structural_f1,
-        precondition_f1=precondition_f1,
-        add_effect_f1=add_effect_f1,
-        delete_effect_f1=delete_effect_f1,
-        action_f1=action_f1,
+        precondition_f1=None,
+        add_effect_f1=None,
+        delete_effect_f1=None,
+        action_f1=None,
         parameter_arity_match=parameter_arity_match,
-        fla_top1=fla_top1,
-        fla_top3=fla_top3,
-        fla_mrr=fla_mrr,
         top1_element=top1_element,
         top1_repair_op=top1_repair_op,
         plan_length=plan_length,
@@ -422,7 +311,7 @@ def generate_evaluation_report(metrics_list: List[EvaluationMetrics]) -> str:
         "## 1. Decoupled Multi-Stage Verification Funnel Table",
         "",
         "| Agent Architecture | Tasks | SVR (%) | Solvability (%) | Timeout (%) | Executability (%) | Feasibility (%) | Interpretability (%) | Semantic Soundness (%) | Strict E2E (%) |",
-        "|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
+        "|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
     ]
 
     agent_groups: Dict[str, List[EvaluationMetrics]] = {}
@@ -461,10 +350,10 @@ def generate_evaluation_report(metrics_list: List[EvaluationMetrics]) -> str:
     # -------------------------------------------------------------
     lines.extend([
         "",
-        "## 2. Hierarchical Multi-Granular Fault Localization (H-MGFL) Performance",
+        "## 2. Hierarchical Multi-Granular Semantic Alignment Performance",
         "",
-        "| Agent Architecture | Tasks | L1: Action F1 | L1: FLA Top-1 (%) | L1: FLA Top-3 (%) | L1: MRR | L2: Parameter Arity (%) | L2: Pre F1 | L2: Add F1 | L2: Del F1 |",
-        "|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
+        "| Agent Architecture | Tasks | L1: Action F1 | L2: Parameter Arity (%) | L2: Pre F1 | L2: Add F1 | L2: Del F1 |",
+        "|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
     ])
 
     for agent, group in agent_groups.items():
@@ -472,14 +361,6 @@ def generate_evaluation_report(metrics_list: List[EvaluationMetrics]) -> str:
         act_tasks = [m for m in group if m.action_f1 is not None]
         avg_act_f1 = round(sum(m.action_f1 for m in act_tasks) / len(act_tasks), 3) if act_tasks else "N/A"
 
-        top1_tasks = [m for m in group if m.fla_top1 is not None]
-        top1_pct = round(sum(1 for m in top1_tasks if m.fla_top1) / len(top1_tasks) * 100, 1) if top1_tasks else "N/A"
-
-        top3_tasks = [m for m in group if m.fla_top3 is not None]
-        top3_pct = round(sum(1 for m in top3_tasks if m.fla_top3) / len(top3_tasks) * 100, 1) if top3_tasks else "N/A"
-
-        mrr_tasks = [m for m in group if m.fla_mrr is not None]
-        avg_mrr = round(sum(m.fla_mrr for m in mrr_tasks) / len(mrr_tasks), 3) if mrr_tasks else "N/A"
 
         arity_tasks = [m for m in group if m.parameter_arity_match is not None]
         avg_arity = round(sum(m.parameter_arity_match for m in arity_tasks) / len(arity_tasks) * 100, 1) if arity_tasks else "N/A"
@@ -493,35 +374,31 @@ def generate_evaluation_report(metrics_list: List[EvaluationMetrics]) -> str:
         del_tasks = [m for m in group if m.delete_effect_f1 is not None]
         avg_del = round(sum(m.delete_effect_f1 for m in del_tasks) / len(del_tasks), 3) if del_tasks else "N/A"
 
-        top1_str = f"{top1_pct}%" if isinstance(top1_pct, (int, float)) else top1_pct
-        top3_str = f"{top3_pct}%" if isinstance(top3_pct, (int, float)) else top3_pct
         arity_str = f"{avg_arity}%" if isinstance(avg_arity, (int, float)) else avg_arity
 
         lines.append(
-            f"| **{agent}** | {total} | {avg_act_f1} | {top1_str} | {top3_str} | {avg_mrr} | "
-            f"{arity_str} | {avg_pre} | {avg_add} | {avg_del} |"
+            f"| **{agent}** | {total} | {avg_act_f1} | {arity_str} | {avg_pre} | {avg_add} | {avg_del} |"
         )
 
     lines.extend([
         "",
         "## 3. Granular Task Execution Log",
         "",
-        "| Task ID | Agent Architecture | SVR | TPV | Cov_ref | Macro F1 | L1 Top-1 Element | L2 Top-1 Op | |Plan| | Iters (k) | Code | Diagnostic Summary |",
-        "|:---|:---|:---:|:---:|:---:|:---:|:---|:---|:---:|:---:|:---:|:---|"
+        "| Task ID | Agent Architecture | SVR | TPV | Cov_ref | L1 Top-1 Element | L2 Top-1 Op | |Plan| | Iters (k) | Code | Diagnostic Summary |",
+        "|:---|:---|:---:|:---:|:---:|:---|:---|:---:|:---:|:---:|:---|"
     ])
 
     for m in metrics_list:
         err = m.error_summary if m.error_summary else "Passed (Verified)"
         clean_err = err.encode("ascii", "ignore").decode("ascii").replace("|", "/").replace("\n", " ")[:60]
         c_rate = f"{round(m.cov_ref_coverage_rate)}%" if m.cov_ref_coverage_rate is not None else "N/A"
-        f1_str = f"{m.macro_structural_f1:.3f}" if m.macro_structural_f1 is not None else "N/A"
         p_len = str(m.plan_length) if m.plan_length is not None else "N/A"
         b_code = m.behavioral_code or "N/A"
         top1_elem_str = m.top1_element or "N/A"
         top1_op_str = m.top1_repair_op or "N/A"
         lines.append(
             f"| `{m.task_id}` | `{m.agent_type}` | {m.svr_syntax_valid_rate >= 1.0} | "
-            f"**{m.tpv_target_plan_valid}** | {c_rate} | {f1_str} | `{top1_elem_str}` | `{top1_op_str}` | {p_len} | "
+            f"**{m.tpv_target_plan_valid}** | {c_rate} | `{top1_elem_str}` | `{top1_op_str}` | {p_len} | "
             f"{m.iterations_used} | `{b_code}` | {clean_err} |"
         )
 
@@ -542,9 +419,8 @@ def save_metrics_to_csv(metrics_list: List[EvaluationMetrics], output_csv_path: 
         "semantic_soundness", "e2e_gate_success", "e2e_success",
         "tpv_target_plan_valid", "cov_ref_coverage_rate",
         "reference_instances_passed", "reference_instances_total",
-        "macro_structural_f1",
         # Level 1 AST Element Granularity
-        "action_f1", "top1_element", "fla_top1", "fla_top3", "fla_mrr",
+        "action_f1", "top1_element",
         # Level 2 Causal Component Granularity
         "top1_repair_op", "parameter_arity_match", "precondition_f1", "add_effect_f1", "delete_effect_f1",
         "plan_length", "plan_cost", "search_time",

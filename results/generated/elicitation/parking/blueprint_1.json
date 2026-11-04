@@ -1,0 +1,107 @@
+{
+  "domain_name": "parking",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "parking",
+    "requirements": [
+      ":strips",
+      ":typing"
+    ],
+    "types": {
+      "car": "object",
+      "curb": "object"
+    },
+    "constants": {},
+    "predicates": [
+      "(at-curb ?car)",
+      "(at-curb-num ?car ?curb)",
+      "(behind-car ?car ?front-car)",
+      "(car-clear ?car)",
+      "(curb-clear ?curb)"
+    ],
+    "actions": [
+      {
+        "action_name": "move-curb-to-curb",
+        "parameters": {
+          "?car": "car",
+          "?curbsrc": "curb",
+          "?curbdest": "curb"
+        },
+        "preconditions": [
+          "(car-clear ?car)",
+          "(curb-clear ?curbdest)",
+          "(at-curb-num ?car ?curbsrc)"
+        ],
+        "effects": [
+          "(curb-clear ?curbsrc)",
+          "(at-curb-num ?car ?curbdest)",
+          "(not (curb-clear ?curbdest))",
+          "(not (at-curb-num ?car ?curbsrc))"
+        ]
+      },
+      {
+        "action_name": "move-curb-to-car",
+        "parameters": {
+          "?car": "car",
+          "?curbsrc": "curb",
+          "?cardest": "car"
+        },
+        "preconditions": [
+          "(car-clear ?car)",
+          "(car-clear ?cardest)",
+          "(at-curb-num ?car ?curbsrc)",
+          "(at-curb ?cardest)"
+        ],
+        "effects": [
+          "(curb-clear ?curbsrc)",
+          "(behind-car ?car ?cardest)",
+          "(not (car-clear ?cardest))",
+          "(not (at-curb-num ?car ?curbsrc))",
+          "(not (at-curb ?car))"
+        ]
+      },
+      {
+        "action_name": "move-car-to-curb",
+        "parameters": {
+          "?car": "car",
+          "?carsrc": "car",
+          "?curbdest": "curb"
+        },
+        "preconditions": [
+          "(car-clear ?car)",
+          "(curb-clear ?curbdest)",
+          "(behind-car ?car ?carsrc)"
+        ],
+        "effects": [
+          "(car-clear ?carsrc)",
+          "(at-curb-num ?car ?curbdest)",
+          "(at-curb ?car)",
+          "(not (curb-clear ?curbdest))",
+          "(not (behind-car ?car ?carsrc))"
+        ]
+      },
+      {
+        "action_name": "move-car-to-car",
+        "parameters": {
+          "?car": "car",
+          "?carsrc": "car",
+          "?cardest": "car"
+        },
+        "preconditions": [
+          "(car-clear ?car)",
+          "(car-clear ?cardest)",
+          "(behind-car ?car ?carsrc)",
+          "(at-curb ?cardest)"
+        ],
+        "effects": [
+          "(car-clear ?carsrc)",
+          "(behind-car ?car ?cardest)",
+          "(not (car-clear ?cardest))",
+          "(not (behind-car ?car ?carsrc))"
+        ]
+      }
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

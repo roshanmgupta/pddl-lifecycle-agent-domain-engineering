@@ -1,0 +1,192 @@
+{
+  "timestamp": "2026-11-02T03:53:22.553379",
+  "domain_name": "woodworking",
+  "run_index": 1,
+  "verification_status": "FAILED",
+  "repair_iterations_used": 5,
+  "initial_verification_errors": [
+    "Planner Error: Could not find a plan. INFO     planner time limit: None\nINFO     planner memory limit: None\n\nINFO     Running translator.\nINFO     translator stdin: None\nINFO     translator time limit: None\nINFO     translator memory limit: None\nINFO     translator command line string: 'C:\\Users\\Srushti\\miniconda3\\envs\\agent_env\\python.exe' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\translate\\translate.py' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_woodworking_70091_iter_0_dom.pddl' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_woodworking_70091_iter_0_prob.pddl' --sas-file output.sas\nWarning! SIGXCPU is not available on your platform. This means that the planner cannot be gracefully terminated when using a time limit, which, however, is probably supported on your platform anyway.\nParsing...\nParsing: [0.000s CPU, 0.004s wall-clock]\nNormalizing task... [0.000s CPU, 0.000s wall-clock]\nInstantiating...\nGenerating Datalog program... [0.016s CPU, 0.002s wall-clock]\nNormalizing Datalog program...\nNormalizing Datalog program: [0.000s CPU, 0.005s wall-clock]\nPreparing model... [0.000s CPU, 0.001s wall-clock]\nGenerated 198 rules.\nComputing model... [0.000s CPU, 0.002s wall-clock]\n203 relevant atoms\n330 auxiliary atoms\n533 final queue length\n687 total queue pushes\nCompleting instantiation... [0.000s CPU, 0.001s wall-clock]\nInstantiating: [0.016s CPU, 0.012s wall-clock]\nNo relaxed solution! Generating unsolvable task...\nTranslator variables: 1\nTranslator derived variables: 0\nTranslator facts: 2\nTranslator goal facts: 1\nTranslator mutex groups: 0\nTranslator total mutex groups size: 0\nTranslator operators: 0\nTranslator axioms: 0\nTranslator task size: 4\nwarning: could not determine peak memory\nWriting output... [0.000s CPU, 0.000s wall-clock]\nDone! [0.016s CPU, 0.017s wall-clock]\ntranslate exit code: 0\n\nINFO     Running search (release).\nINFO     search stdin: output.sas\nINFO     search time limit: None\nINFO     search memory limit: None\nINFO     search command line string: 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\downward.exe' --search 'lazy_greedy([ff()])' --internal-plan-file 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_woodworking_70091_iter_0_plan.txt' < output.sas\n[t=0.000116s, 820 KB] reading input...\n[t=0.000198s, 824 KB] done reading input!\n[t=0.001396s, 1256 KB] Simplifying 0 unary operators... done! [0 unary operators]\n[t=0.001413s, 1256 KB] time to simplify: 0.000019s\n[t=0.001417s, 1256 KB] Initializing additive heuristic...\n[t=0.001420s, 1256 KB] Initializing FF heuristic...\n[t=0.001442s, 1256 KB] Building successor generator...done!\n[t=0.001448s, 1256 KB] peak memory difference for successor generator creation: 0 KB\n[t=0.001450s, 1256 KB] time for successor generation creation: 0.000002s\n[t=0.001455s, 1256 KB] Variables: 1\n[t=0.001458s, 1256 KB] FactPairs: 2\n[t=0.001461s, 1256 KB] Bytes per state: 4\n[t=0.001475s, 1256 KB] Conducting lazy best first search, (real) bound = 2147483647\n[t=0.001483s, 1256 KB] Initial heuristic value for ff: infinity\n[t=0.001487s, 1256 KB] Completely explored state space -- no solution!\n[t=0.001490s, 1256 KB] Actual search time: 0.000012s\n[t=0.001493s, 1256 KB] Expanded 0 state(s).\n[t=0.001493s, 1256 KB] Reopened 0 state(s).\n[t=0.001493s, 1256 KB] Evaluated 1 state(s).\n[t=0.001493s, 1256 KB] Evaluations: 1\n[t=0.001493s, 1256 KB] Generated 0 state(s).\n[t=0.001493s, 1256 KB] Dead ends: 1 state(s).\n[t=0.001493s, 1256 KB] Number of registered states: 1\n[t=0.001493s, 1256 KB] Int hash set load factor: 1/1 = 1.000000\n[t=0.001493s, 1256 KB] Int hash set resizes: 0\n[t=0.001493s, 1256 KB] Search time: 0.000019s\n[t=0.001493s, 1256 KB] Total time: 0.001493s\nSearch stopped without finding a solution.\nRemove intermediate file output.sas\nsearch exit code: 12\n\nDriver aborting after search\n\n"
+  ],
+  "final_verification_errors": [
+    "Planner Error: Could not find a plan. INFO     planner time limit: None\nINFO     planner memory limit: None\n\nINFO     Running translator.\nINFO     translator stdin: None\nINFO     translator time limit: None\nINFO     translator memory limit: None\nINFO     translator command line string: 'C:\\Users\\Srushti\\miniconda3\\envs\\agent_env\\python.exe' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\translate\\translate.py' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_woodworking_70091_iter_5_dom.pddl' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_woodworking_70091_iter_5_prob.pddl' --sas-file output.sas\nWarning! SIGXCPU is not available on your platform. This means that the planner cannot be gracefully terminated when using a time limit, which, however, is probably supported on your platform anyway.\nParsing...\nParsing: [0.000s CPU, 0.008s wall-clock]\nNormalizing task... [0.000s CPU, 0.000s wall-clock]\nInstantiating...\nGenerating Datalog program... [0.000s CPU, 0.003s wall-clock]\nNormalizing Datalog program...\nNormalizing Datalog program: [0.000s CPU, 0.007s wall-clock]\nPreparing model... [0.000s CPU, 0.002s wall-clock]\nGenerated 198 rules.\nComputing model... [0.016s CPU, 0.003s wall-clock]\n203 relevant atoms\n330 auxiliary atoms\n533 final queue length\n687 total queue pushes\nCompleting instantiation... [0.000s CPU, 0.002s wall-clock]\nInstantiating: [0.016s CPU, 0.017s wall-clock]\nNo relaxed solution! Generating unsolvable task...\nTranslator variables: 1\nTranslator derived variables: 0\nTranslator facts: 2\nTranslator goal facts: 1\nTranslator mutex groups: 0\nTranslator total mutex groups size: 0\nTranslator operators: 0\nTranslator axioms: 0\nTranslator task size: 4\nwarning: could not determine peak memory\nWriting output... [0.000s CPU, 0.001s wall-clock]\nDone! [0.031s CPU, 0.026s wall-clock]\ntranslate exit code: 0\n\nINFO     Running search (release).\nINFO     search stdin: output.sas\nINFO     search time limit: None\nINFO     search memory limit: None\nINFO     search command line string: 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\downward.exe' --search 'lazy_greedy([ff()])' --internal-plan-file 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_woodworking_70091_iter_5_plan.txt' < output.sas\n[t=0.000139s, 828 KB] reading input...\n[t=0.000247s, 832 KB] done reading input!\n[t=0.001760s, 1220 KB] Simplifying 0 unary operators... done! [0 unary operators]\n[t=0.001779s, 1220 KB] time to simplify: 0.000022s\n[t=0.001785s, 1220 KB] Initializing additive heuristic...\n[t=0.001787s, 1220 KB] Initializing FF heuristic...\n[t=0.001816s, 1220 KB] Building successor generator...done!\n[t=0.001823s, 1220 KB] peak memory difference for successor generator creation: 0 KB\n[t=0.001826s, 1220 KB] time for successor generation creation: 0.000003s\n[t=0.001829s, 1220 KB] Variables: 1\n[t=0.001832s, 1220 KB] FactPairs: 2\n[t=0.001834s, 1220 KB] Bytes per state: 4\n[t=0.001852s, 1220 KB] Conducting lazy best first search, (real) bound = 2147483647\n[t=0.001859s, 1220 KB] Initial heuristic value for ff: infinity\n[t=0.001862s, 1220 KB] Completely explored state space -- no solution!\n[t=0.001864s, 1220 KB] Actual search time: 0.000010s\n[t=0.001866s, 1220 KB] Expanded 0 state(s).\n[t=0.001866s, 1220 KB] Reopened 0 state(s).\n[t=0.001866s, 1220 KB] Evaluated 1 state(s).\n[t=0.001866s, 1220 KB] Evaluations: 1\n[t=0.001866s, 1220 KB] Generated 0 state(s).\n[t=0.001866s, 1220 KB] Dead ends: 1 state(s).\n[t=0.001866s, 1220 KB] Number of registered states: 1\n[t=0.001866s, 1220 KB] Int hash set load factor: 1/1 = 1.000000\n[t=0.001866s, 1220 KB] Int hash set resizes: 0\n[t=0.001866s, 1220 KB] Search time: 0.000015s\n[t=0.001866s, 1220 KB] Total time: 0.001866s\nSearch stopped without finding a solution.\nRemove intermediate file output.sas\nsearch exit code: 12\n\nDriver aborting after search\n\n"
+  ],
+  "diagnostic_issues_count": 25,
+  "diagnostic_reports": [
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "cut-board-small",
+      "raw_log": "Irreversible resource depletion in 'cut-board-small': (not (unused ?p))",
+      "suggested_repair_hint": "In action 'cut-board-small', delete effect '(not (unused ?p))' permanently depletes fluent 'unused', which has ZERO producing actions in the domain and is required by other action(s) ['cut-board-large', 'cut-board-medium', 'do-saw-large', 'do-saw-medium', 'do-saw-small']. This creates an irreversible absorbing deadlock. If this capability or resource is reusable, assert positive '(unused ?p)' in effects upon completion and omit '(not (unused ?p))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "cut-board-medium",
+      "raw_log": "Irreversible resource depletion in 'cut-board-medium': (not (unused ?p))",
+      "suggested_repair_hint": "In action 'cut-board-medium', delete effect '(not (unused ?p))' permanently depletes fluent 'unused', which has ZERO producing actions in the domain and is required by other action(s) ['cut-board-large', 'cut-board-small', 'do-saw-large', 'do-saw-medium', 'do-saw-small']. This creates an irreversible absorbing deadlock. If this capability or resource is reusable, assert positive '(unused ?p)' in effects upon completion and omit '(not (unused ?p))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "cut-board-large",
+      "raw_log": "Irreversible resource depletion in 'cut-board-large': (not (unused ?p))",
+      "suggested_repair_hint": "In action 'cut-board-large', delete effect '(not (unused ?p))' permanently depletes fluent 'unused', which has ZERO producing actions in the domain and is required by other action(s) ['cut-board-medium', 'cut-board-small', 'do-saw-large', 'do-saw-medium', 'do-saw-small']. This creates an irreversible absorbing deadlock. If this capability or resource is reusable, assert positive '(unused ?p)' in effects upon completion and omit '(not (unused ?p))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-saw-small",
+      "raw_log": "Irreversible resource depletion in 'do-saw-small': (not (unused ?p))",
+      "suggested_repair_hint": "In action 'do-saw-small', delete effect '(not (unused ?p))' permanently depletes fluent 'unused', which has ZERO producing actions in the domain and is required by other action(s) ['cut-board-large', 'cut-board-medium', 'cut-board-small', 'do-saw-large', 'do-saw-medium']. This creates an irreversible absorbing deadlock. If this capability or resource is reusable, assert positive '(unused ?p)' in effects upon completion and omit '(not (unused ?p))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-saw-medium",
+      "raw_log": "Irreversible resource depletion in 'do-saw-medium': (not (unused ?p))",
+      "suggested_repair_hint": "In action 'do-saw-medium', delete effect '(not (unused ?p))' permanently depletes fluent 'unused', which has ZERO producing actions in the domain and is required by other action(s) ['cut-board-large', 'cut-board-medium', 'cut-board-small', 'do-saw-large', 'do-saw-small']. This creates an irreversible absorbing deadlock. If this capability or resource is reusable, assert positive '(unused ?p)' in effects upon completion and omit '(not (unused ?p))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "cut-board-small",
+      "raw_log": "Action 'cut-board-small' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'.",
+      "suggested_repair_hint": "Action 'cut-board-small' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "cut-board-medium",
+      "raw_log": "Action 'cut-board-medium' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'.",
+      "suggested_repair_hint": "Action 'cut-board-medium' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "cut-board-large",
+      "raw_log": "Action 'cut-board-large' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'.",
+      "suggested_repair_hint": "Action 'cut-board-large' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-saw-small",
+      "raw_log": "Action 'do-saw-small' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'.",
+      "suggested_repair_hint": "Action 'do-saw-small' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-saw-medium",
+      "raw_log": "Action 'do-saw-medium' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'.",
+      "suggested_repair_hint": "Action 'do-saw-medium' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-saw-large",
+      "raw_log": "Action 'do-saw-large' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'.",
+      "suggested_repair_hint": "Action 'do-saw-large' transitions 'boardsize' on '?b' from '(boardsize ?b ?size_before)' to positive effect '(boardsize ?b ?size_after)', but omits the required delete effect '(not (boardsize ?b ?size_before))'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-grind",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'do-grind' action does not produce the 'varnished' treatment status required for part p0 in the goal state. Add '(treatment ?x varnished)' as an effect in the 'do-grind' action to align with the goal requirements."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-glaze",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'do-glaze' action does not produce the 'glazed' treatment status required for part p1 in the goal state. Ensure '(treatment ?x glazed)' is correctly added as an effect in the 'do-glaze' action."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-immersion-varnish",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'do-immersion-varnish' action does not produce the 'mauve' color required for part p2 in the goal state. Ensure '(colour ?x mauve)' is correctly added as an effect in the 'do-immersion-varnish' action."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-grind",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'do-grind' does not produce the 'surface-condition' effect for 'verysmooth'. Add '(surface-condition ?x verysmooth)' to the effects of 'do-grind' to align with the goal state requirements."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-plane",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'do-plane' does not produce the 'surface-condition' effect for 'smooth'. Add '(surface-condition ?x smooth)' to the effects of 'do-plane' to align with the goal state requirements."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-glaze",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'do-glaze' does not produce the 'treatment' effect for 'glazed'. Add '(treatment ?x glazed)' to the effects of 'do-glaze' to align with the goal state requirements."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-immersion-varnish",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'do-immersion-varnish' does not produce the 'treatment' effect for 'varnished'. Add '(treatment ?x varnished)' to the effects of 'do-immersion-varnish' to align with the goal state requirements."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-spray-varnish",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'do-spray-varnish' does not produce the 'treatment' effect for 'varnished'. Add '(treatment ?x varnished)' to the effects of 'do-spray-varnish' to align with the goal state requirements."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-grind",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'do-grind' action does not produce the 'verysmooth' surface condition required for part p0 in the goal state. Modify the action's effects to include '(surface-condition ?x verysmooth)'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-glaze",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'do-glaze' action does not produce the 'glazed' treatment status required for part p1 in the goal state. Ensure the action's effects include '(treatment ?x glazed)'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-immersion-varnish",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'do-immersion-varnish' action does not produce the 'varnished' treatment status required for part p0 in the goal state. Ensure the action's effects include '(treatment ?x varnished)'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-grind",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'do-grind' action does not produce the 'verysmooth' surface condition required for part p0 in the goal state. Modify the 'do-grind' action to ensure it correctly transitions the surface condition to 'verysmooth'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-glaze",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'do-glaze' action does not produce the 'glazed' treatment status required for part p1 in the goal state. Ensure the 'do-glaze' action correctly transitions the treatment status to 'glazed'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "do-immersion-varnish",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'do-immersion-varnish' action does not produce the 'varnished' treatment status required for part p0 in the goal state. Modify the 'do-immersion-varnish' action to ensure it correctly transitions the treatment status to 'varnished'."
+    }
+  ],
+  "formatted_diagnostic_feedback": "### Diagnostic Failure Analysis Report (Layered Fault Localization Priority: Tier 4 (Precondition & Effect Refinements)):\nCRITICAL GUIDANCE: Focus repairs strictly on resolving these top-priority causal blockers before modifying unrelated actions.\n\n\nIssue #1:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: EFFECT_ALIGNMENT\n  - [LOCATION / COMPONENT]: do-grind\n  - [DESCRIPTION / RAW TRACE]: Completely explored state space -- no solution!\n  - [SUGGESTION FOR REPAIR]: The 'do-grind' action does not produce the 'verysmooth' surface condition required for part p0 in the goal state. Modify the 'do-grind' action to ensure it correctly transitions the surface condition to 'verysmooth'.\n\nIssue #2:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: EFFECT_ALIGNMENT\n  - [LOCATION / COMPONENT]: do-glaze\n  - [DESCRIPTION / RAW TRACE]: Completely explored state space -- no solution!\n  - [SUGGESTION FOR REPAIR]: The 'do-glaze' action does not produce the 'glazed' treatment status required for part p1 in the goal state. Ensure the 'do-glaze' action correctly transitions the treatment status to 'glazed'.\n\nIssue #3:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: EFFECT_ALIGNMENT\n  - [LOCATION / COMPONENT]: do-immersion-varnish\n  - [DESCRIPTION / RAW TRACE]: Completely explored state space -- no solution!\n  - [SUGGESTION FOR REPAIR]: The 'do-immersion-varnish' action does not produce the 'varnished' treatment status required for part p0 in the goal state. Modify the 'do-immersion-varnish' action to ensure it correctly transitions the treatment status to 'varnished'."
+}

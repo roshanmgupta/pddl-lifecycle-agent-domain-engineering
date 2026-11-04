@@ -1,0 +1,151 @@
+{
+  "domain_name": "tpp06-bfs",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "tpp06-bfs",
+    "requirements": [
+      ":strips",
+      ":typing"
+    ],
+    "types": {
+      "object": null,
+      "place": "object",
+      "locatable": "object",
+      "level": "object",
+      "depot": "place",
+      "market": "place",
+      "truck": "locatable",
+      "goods": "locatable"
+    },
+    "constants": {},
+    "predicates": [
+      "(at ?x - locatable ?y - place)",
+      "(connected ?x - place ?y - place)",
+      "(loaded ?g - goods ?t - truck ?l - level)",
+      "(ready-to-load ?g - goods ?m - market ?l - level)",
+      "(stored ?g - goods ?l - level)",
+      "(on-sale ?g - goods ?m - market ?l - level)",
+      "(next-to ?x - level ?y - level)"
+    ],
+    "actions": [
+      {
+        "action_name": "drive_truck",
+        "parameters": {
+          "?t": "truck",
+          "?from": "place",
+          "?to": "place"
+        },
+        "preconditions": [
+          "(at ?t ?from)",
+          "(connected ?from ?to)"
+        ],
+        "effects": [
+          "(at ?t ?to)",
+          "(not (at ?t ?from))"
+        ]
+      },
+      {
+        "action_name": "load_goods",
+        "parameters": {
+          "?g": "goods",
+          "?t": "truck",
+          "?m": "market",
+          "?e": "level",
+          "?g_next": "level",
+          "?d": "level",
+          "?f": "level"
+        },
+        "preconditions": [
+          "(at ?t ?m)",
+          "(loaded ?g ?t ?f)",
+          "(ready-to-load ?g ?m ?e)",
+          "(next-to ?e ?d)",
+          "(next-to ?g_next ?f)"
+        ],
+        "effects": [
+          "(loaded ?g ?t ?g_next)",
+          "(ready-to-load ?g ?m ?d)",
+          "(not (loaded ?g ?t ?f))",
+          "(not (ready-to-load ?g ?m ?e))"
+        ]
+      },
+      {
+        "action_name": "unload_goods",
+        "parameters": {
+          "?g": "goods",
+          "?t": "truck",
+          "?d": "depot",
+          "?e": "level",
+          "?g_next": "level",
+          "?f": "level",
+          "?target": "level"
+        },
+        "preconditions": [
+          "(at ?t ?d)",
+          "(loaded ?g ?t ?e)",
+          "(stored ?g ?f)",
+          "(next-to ?g_next ?f)",
+          "(next-to ?e ?g_next)"
+        ],
+        "effects": [
+          "(loaded ?g ?t ?g_next)",
+          "(stored ?g ?target)",
+          "(not (loaded ?g ?t ?e))",
+          "(not (stored ?g ?f))"
+        ]
+      },
+      {
+        "action_name": "buy_goods",
+        "parameters": {
+          "?g": "goods",
+          "?t": "truck",
+          "?m": "market",
+          "?e": "level",
+          "?d": "level",
+          "?f": "level",
+          "?g_next": "level"
+        },
+        "preconditions": [
+          "(at ?t ?m)",
+          "(on-sale ?g ?m ?e)",
+          "(ready-to-load ?g ?m ?f)",
+          "(next-to ?e ?d)",
+          "(next-to ?g_next ?f)"
+        ],
+        "effects": [
+          "(on-sale ?g ?m ?d)",
+          "(ready-to-load ?g ?m ?g_next)",
+          "(not (on-sale ?g ?m ?e))",
+          "(not (ready-to-load ?g ?m ?f))"
+        ]
+      }
+    ]
+  },
+  "problem_blueprint": {
+    "problem_name": "instance-1.pddl",
+    "domain_name": "tpp06-bfs",
+    "objects": {
+      "goods1": "goods",
+      "truck1": "truck",
+      "market1": "market",
+      "depot1": "depot",
+      "level0": "level",
+      "level1": "level"
+    },
+    "initial_state": [
+      "(next-to level1 level0)",
+      "(ready-to-load goods1 market1 level0)",
+      "(stored goods1 level0)",
+      "(loaded goods1 truck1 level0)",
+      "(connected depot1 market1)",
+      "(connected market1 depot1)",
+      "(on-sale goods1 market1 level1)",
+      "(at truck1 depot1)"
+    ],
+    "goal_state": [
+      "(stored goods1 level1)"
+    ]
+  },
+  "iteration_count": 5,
+  "is_valid": false
+}

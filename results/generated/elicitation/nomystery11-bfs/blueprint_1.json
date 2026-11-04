@@ -1,0 +1,173 @@
+{
+  "domain_name": "nomystery11-bfs",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "nomystery11-bfs",
+    "requirements": [
+      ":strips",
+      ":typing"
+    ],
+    "types": {
+      "object": null,
+      "location": "object",
+      "fuellevel": "object",
+      "locatable": "object",
+      "package": "locatable",
+      "truck": "locatable"
+    },
+    "constants": {},
+    "predicates": [
+      "(at ?x - locatable ?y - location)",
+      "(in ?p - package ?t - truck)",
+      "(connected ?l1 - location ?l2 - location)",
+      "(fuel-cost ?f1 - fuellevel ?l - location ?f2 - fuellevel)"
+    ],
+    "actions": [
+      {
+        "action_name": "load_package",
+        "parameters": {
+          "?p": "package",
+          "?t": "truck",
+          "?l": "location"
+        },
+        "preconditions": [
+          "(at ?t ?l)",
+          "(at ?p ?l)"
+        ],
+        "effects": [
+          "(in ?p ?t)",
+          "(not (at ?p ?l))"
+        ]
+      },
+      {
+        "action_name": "unload_package",
+        "parameters": {
+          "?p": "package",
+          "?t": "truck",
+          "?l": "location"
+        },
+        "preconditions": [
+          "(at ?t ?l)",
+          "(in ?p ?t)"
+        ],
+        "effects": [
+          "(at ?p ?l)",
+          "(not (in ?p ?t))"
+        ]
+      },
+      {
+        "action_name": "drive_truck",
+        "parameters": {
+          "?t": "truck",
+          "?from": "location",
+          "?to": "location",
+          "?f_cost": "fuellevel",
+          "?f_start": "fuellevel",
+          "?f_end": "fuellevel"
+        },
+        "preconditions": [
+          "(connected ?from ?to)",
+          "(fuel-cost ?f_cost ?from ?f_end)",
+          "(at ?t ?from)",
+          "(not (at ?t ?to))",
+          "(not (in ?t ?from))"
+        ],
+        "effects": [
+          "(at ?t ?to)",
+          "(not (at ?t ?from))",
+          "(not (has-fuel ?t ?f_start))",
+          "(has-fuel ?t ?f_end)"
+        ]
+      }
+    ]
+  },
+  "problem_blueprint": {
+    "problem_name": "instance-1.pddl",
+    "domain_name": "nomystery11-bfs",
+    "objects": {
+      "l0": "location",
+      "l1": "location",
+      "l2": "location",
+      "l3": "location",
+      "t0": "truck",
+      "p0": "package",
+      "p1": "package",
+      "p2": "package",
+      "level0": "fuellevel",
+      "level1": "fuellevel",
+      "level2": "fuellevel",
+      "level3": "fuellevel",
+      "level4": "fuellevel",
+      "level5": "fuellevel",
+      "level6": "fuellevel",
+      "level7": "fuellevel",
+      "level8": "fuellevel",
+      "level9": "fuellevel",
+      "level10": "fuellevel",
+      "level11": "fuellevel",
+      "level12": "fuellevel",
+      "level13": "fuellevel",
+      "level14": "fuellevel",
+      "level15": "fuellevel",
+      "level16": "fuellevel",
+      "level17": "fuellevel",
+      "level18": "fuellevel",
+      "level19": "fuellevel",
+      "level20": "fuellevel",
+      "level21": "fuellevel",
+      "level22": "fuellevel",
+      "level23": "fuellevel",
+      "level24": "fuellevel",
+      "level25": "fuellevel",
+      "level26": "fuellevel",
+      "level27": "fuellevel",
+      "level28": "fuellevel",
+      "level29": "fuellevel",
+      "level30": "fuellevel",
+      "level31": "fuellevel",
+      "level32": "fuellevel",
+      "level33": "fuellevel",
+      "level34": "fuellevel",
+      "level35": "fuellevel",
+      "level36": "fuellevel"
+    },
+    "initial_state": [
+      "(at t0 l2)",
+      "(has-fuel t0 level36)",
+      "(at p0 l0)",
+      "(at p1 l1)",
+      "(at p2 l3)",
+      "(connected l0 l1)",
+      "(fuel-cost level13 l0 level1)",
+      "(connected l0 l2)",
+      "(fuel-cost level2 l0 level2)",
+      "(connected l0 l3)",
+      "(fuel-cost level18 l0 level3)",
+      "(connected l1 l0)",
+      "(fuel-cost level13 l1 level0)",
+      "(connected l1 l2)",
+      "(fuel-cost level3 l1 level2)",
+      "(connected l1 l3)",
+      "(fuel-cost level11 l1 level3)",
+      "(connected l2 l0)",
+      "(fuel-cost level2 l2 level0)",
+      "(connected l2 l1)",
+      "(fuel-cost level3 l2 level1)",
+      "(connected l2 l3)",
+      "(fuel-cost level6 l2 level3)",
+      "(connected l3 l0)",
+      "(fuel-cost level18 l3 level0)",
+      "(connected l3 l1)",
+      "(fuel-cost level11 l3 level1)",
+      "(connected l3 l2)",
+      "(fuel-cost level6 l3 level2)"
+    ],
+    "goal_state": [
+      "(at p0 l1)",
+      "(at p1 l0)",
+      "(at p2 l0)"
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

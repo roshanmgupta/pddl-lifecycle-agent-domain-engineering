@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-10-23T03:37:48.945344",
+  "domain_name": "jump_move_domain",
+  "run_index": 1,
+  "verification_status": "PASSED",
+  "repair_iterations_used": 1,
+  "initial_verification_errors": [
+    "VAL Error: Type-checking jump_new_move\n...action passes type checking.\nType-checking continue_jump\n...action passes type checking.\nType-checking end_move\n...action passes type checking.\nObject with unknown type: m\n\nErrors: 0, warnings: 1\n\nError: Error in type-checking!"
+  ],
+  "final_verification_errors": [],
+  "diagnostic_issues_count": 6,
+  "diagnostic_reports": [
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "GENERAL_AST_REPAIR",
+      "faulty_element": null,
+      "raw_log": "Object with unknown type: m",
+      "suggested_repair_hint": "In problem ':objects', declare 'm - move' to resolve the type issue for the variable 'm' used in predicates."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "jump_new_move",
+      "raw_log": "Action 'jump_new_move' deletes 'occupied' (which claims operational resource 'free' in action 'continue_jump'), but fails to restore '(free ?a)' in its positive effects.",
+      "suggested_repair_hint": "In domain.actions.jump_new_move, ADD positive effect '(free ?a)' to restore the state of location A after the action is executed."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "jump_new_move",
+      "raw_log": "Action 'jump_new_move' deletes 'occupied' (which claims operational resource 'free' in action 'continue_jump'), but fails to restore '(free ?b)' in its positive effects.",
+      "suggested_repair_hint": "In domain.actions.jump_new_move, ADD positive effect '(free ?b)' to restore the state of location B after the action is executed."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "continue_jump",
+      "raw_log": "Action 'continue_jump' deletes 'occupied' (which claims operational resource 'free' in action 'jump_new_move'), but fails to restore '(free ?a)' in its positive effects.",
+      "suggested_repair_hint": "In domain.actions.continue_jump, ADD positive effect '(free ?a)' to restore the state of location A after the action is executed."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "continue_jump",
+      "raw_log": "Action 'continue_jump' deletes 'occupied' (which claims operational resource 'free' in action 'jump_new_move'), but fails to restore '(free ?b)' in its positive effects.",
+      "suggested_repair_hint": "In domain.actions.continue_jump, ADD positive effect '(free ?b)' to restore the state of location B after the action is executed."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "objects",
+      "raw_log": "Object with unknown type: m",
+      "suggested_repair_hint": "Symbol 'm' in problem definition has unknown type. Declare 'm - <type>' in problem ':objects' or domain 'constants'."
+    }
+  ],
+  "formatted_diagnostic_feedback": "",
+  "plan_summary": {
+    "is_solvable": true,
+    "plan_length": 9,
+    "search_time_seconds": 0.008467,
+    "val_plan_valid": true,
+    "plan_steps": [
+      "(jump_new_move pos-3-2 pos-3-3 pos-3-4 m)",
+      "(end_move pos-3-4 m)",
+      "(jump_new_move pos-4-3 pos-4-4 pos-4-5 m)",
+      "(end_move pos-4-5 m)",
+      "(jump_new_move pos-2-4 pos-3-4 pos-4-4 m)",
+      "(end_move pos-4-4 m)",
+      "(jump_new_move pos-4-5 pos-4-4 pos-4-3 m)",
+      "(end_move pos-4-3 m)",
+      "(jump_new_move pos-5-3 pos-4-3 pos-3-3 m)"
+    ]
+  }
+}

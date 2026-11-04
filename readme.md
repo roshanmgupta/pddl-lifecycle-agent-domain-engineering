@@ -17,7 +17,6 @@ This project implements an **Autonomous Closed-Loop Lifecycle Agent** for classi
 1. **Phase 1: Requirements Elicitation** — Extracts relational semantics from natural language specifications into a strongly typed Pydantic intermediate representation (`DomainBlueprint` and `ProblemBlueprint`).
 2. **Phase 2: Deterministic Compilation** — Compiles the validated Abstract Syntax Tree (AST) schema into 100% syntactically valid PDDL 2.1 code via a deterministic Python compiler, eliminating token-level syntax malformations.
 3. **Phase 3: Symbolic Verification, Layered Model-Based Fault Localization & Repair** — Couples formal symbolic oracles (**VAL** for syntax and plan execution validation, and **Fast Downward** for state reachability) with Deterministic Causal Fault Analysis & SAS+ Invariant Analysis to localize, categorize, and surgically repair domain bugs.
-4. **Phase 4: Continuous Domain Evolution & Solvability Preservation Verification** — Extends existing domain capabilities with new action schemas and predicates while verifying reachability across a reference benchmark problem suite to prevent solvability regressions on canonical problem instances.
 
 ---
 
@@ -25,7 +24,7 @@ This project implements an **Autonomous Closed-Loop Lifecycle Agent** for classi
 
 ### 1. Overall End-to-End Autonomous Lifecycle Architecture
 
-The agent functions as a closed-loop state machine powered by LangGraph, coordinating elicitation, deterministic compilation, oracle verification, layered model-based fault localization, surgical repair, and solvability preservation verification.
+The agent functions as a closed-loop state machine powered by LangGraph, coordinating elicitation, deterministic compilation, oracle verification, layered model-based fault localization, and surgical repair.
 
 ```mermaid
 flowchart TD
@@ -37,14 +36,46 @@ flowchart TD
     Oracles -->|Syntax / Plan Error| Triage["FaultLocalizationNode\n(Layered Model-Based Fault Localization)"]
     Triage -->|Diagnostic Hints| Repair["Surgical AST Repair Node\n(Targeted Blueprint Patching)"]
     Repair --> Blueprint
-    Oracles -->|Verified & Semantically Sound| Maintenance["Phase 4: Domain Evolution & Solvability Verification\n(Reference Problem Suite Pi_ref)"]
-    Maintenance -->|Solvability Regression Detected| Repair
-    Maintenance -->|All Reference Problems Solved| Certified["Certified PDDL Domain Model\n(Formally Verified Domain)"]
+    Oracles -->|Verified & Semantically Sound| Certified["Certified PDDL Domain Model\n(Formally Verified Domain)"]
 ```
 
 ---
 
-### 2. Phase 1 & 2 Mechanism: Decoupled Elicitation & Deterministic AST Compilation
+### 2. LangGraph State Machine Workflow Diagram (`graph.py`)
+
+The active computational graph in `graph.py` coordinates control flow across discrete agent nodes, conditional routers, and oracle gates:
+
+```mermaid
+flowchart TD
+    Start([Start Task Execution]) --> RouteInit{"route_initial_entry\n(Inspect Task State)"}
+    
+    RouteInit -->|New Requirements / Formulation Task| ElicitNode["elicit\n(run_elicitation_node)"]
+    RouteInit -->|Pre-loaded Domain / Fault Repair Task| ValidateNode["validate\n(run_full_validation_node)"]
+    
+    ElicitNode --> GenerateNode["generate\n(run_generation_node)"]
+    
+    GenerateNode -->|Compiled PDDL 2.1| ValidateNode
+    
+    ValidateNode --> RouteVal{"route_after_validation\n(Check Active Errors)"}
+    
+    RouteVal -->|Errors Found & ZERO_SHOT Baseline| EndFail([END: Baseline Terminated])
+    RouteVal -->|Errors Found & Autonomous Mode| FaultLocNode["fault_localization\n(FaultLocalizationNode)"]
+    RouteVal -->|Zero Errors: Bidirectional Pass| EndSuccess([END: SUCCESS / Certified Domain])
+    
+    FaultLocNode --> RouteFL{"route_after_fault_localization\n(Evaluate Diagnostic Reports & Budget)"}
+    
+    RouteFL -->|No Faults Remaining| EndSuccess
+    RouteFL -->|ZERO_SHOT Mode| EndFail
+    RouteFL -->|System Binary Error| EndHalt([END: Critical System Halt])
+    RouteFL -->|Iteration k >= k_max| EndMax([END: Max Iterations Reached])
+    RouteFL -->|Iteration k < k_max| RepairNode["repair\n(run_repair_node)"]
+    
+    RepairNode -->|Spliced AST Blueprint| GenerateNode
+```
+
+---
+
+### 3. Phase 1 & 2 Mechanism: Decoupled Elicitation & Deterministic AST Compilation
 
 By separating semantic reasoning from concrete PDDL syntax generation, the system ensures that large language models reason exclusively over relational structures, while a deterministic compiler handles exact syntax, parentheses, and typing formatting.
 
@@ -63,7 +94,7 @@ flowchart LR
 
 ---
 
-### 3. Phase 3 Mechanism: Layered Model-Based Fault Localization & Closed-Loop Repair
+### 4. Phase 3 Mechanism: Layered Model-Based Fault Localization & Closed-Loop Repair
 
 When formal symbolic oracles detect a failure, the FaultLocalizationNode categorizes the fault into a structured hierarchy, prioritizes root causes via Layered Model-Based Fault Localization, and provides actionable repair hints to the AST repair engine.
 
@@ -84,37 +115,6 @@ flowchart TD
     StratifiedRanking --> SurgicalHints
     SurgicalHints --> RepairNode["Phase 3: Targeted Repair Node\n(Surgically patches AST Blueprint)"]
     RepairNode --> Recompile["Deterministic Re-Compiler & Oracle Re-Verification"]
-```
-
----
-
-### 4. Phase 4 Mechanism: Continuous Domain Evolution & Solvability Preservation Verification
-
-When extending domain capabilities (e.g., adding actions to satisfy new planning requirements), the agent preserves reachability by validating candidate domains against a suite of canonical reference problem instances.
-
-```mermaid
-flowchart TD
-    BaseDomain["Baseline Verified Domain (D_base)"] --> EvolveReq["New Capability Feature Request (Delta Req)"]
-    EvolveReq --> EvolveNode["Phase 4: Evolution Node\n(Synthesizes New Actions / Predicates)"]
-    EvolveNode --> EvolvedCandidate["Evolved Domain Candidate (D_evolved)"]
-    
-    TargetTest["Target Problem Validation\n(Solve New Target Task)"]
-    EvolvedCandidate --> TargetTest
-    TargetTest -->|Fails Target Task| TriageRepair["Fault Localization & Repair Loop"]
-    TriageRepair --> EvolveNode
-    
-    TargetTest -->|Solves Target Task| PreservVerifier["Solvability Preservation Verifier\n(Evaluate Reference Suite P1..Pn)"]
-    
-    subgraph ReferenceSuite["Reference Benchmark Problem Suite (Pi_ref)"]
-        P1["Reference Problem 1"]
-        P2["Reference Problem 2"]
-        PN["Reference Problem N"]
-    end
-    
-    PreservVerifier <--> ReferenceSuite
-    PreservVerifier -->|Coverage Loss: Solved < 100%| Reject["Solvability Repair\n(Preserve Reference Solvability)"]
-    Reject --> EvolveNode
-    PreservVerifier -->|100% Reference Coverage Preserved| Release["Certified Evolved Domain Release"]
 ```
 
 ---

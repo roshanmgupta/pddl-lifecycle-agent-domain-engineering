@@ -1,0 +1,4 @@
+task_id,domain_family,task_type,is_syntax_valid,is_plan_valid,is_repaired,iterations_used,plan_length,fault_localization_top1,regression_pass_rate,execution_time_seconds,total_tokens,estimated_cost_usd,error_summary
+gripper_elicit_01,gripper,ELICITATION,True,True,False,1,5,,,40.76,2191,0.000392,
+gripper_repair_capacity_01,gripper,SYNTHETIC_FAULT_REPAIR,True,True,True,1,1,False,,19.58,1791,0.000251,
+gripper_evolve_01,gripper,DOMAIN_EVOLUTION,True,True,False,1,1,,100.0,20.42,1862,0.000279,

@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_04_missing_goal_add_effect_2",
+  "domain": "rovers",
+  "flaw_category": "ACTION_EFFECT_DELETION",
+  "mutation_operator": "OPERATOR_2_REMOVE_GOAL_ADD_EFFECT",
+  "target_action": "sample_soil",
+  "description": "Removed required add effect '(have_soil_analysis ?x ?p)' from action 'sample_soil'",
+  "ground_truth_fix": "Restore add effect '(have_soil_analysis ?x ?p)' in action 'sample_soil' effects.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

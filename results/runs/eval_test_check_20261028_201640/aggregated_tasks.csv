@@ -1,0 +1,4 @@
+task_id,domain,agent,runs_evaluated,runs_succeeded,task_succeeds,mean_iterations_penalized,svr_rate,mean_prompt_tokens,mean_completion_tokens,mean_total_tokens,mean_latency_sec
+blocksworld_elicit,blocksworld,CLOSED_LOOP_AST_AGENT,1,1,True,1.0,1.0,1491.0,322.0,1813.0,27.06
+blocksworld_elicit,blocksworld,ABLATION_NO_AST,1,1,True,1.0,1.0,718.0,328.0,1046.0,70.14
+blocksworld_elicit,blocksworld,ZERO_SHOT,1,1,True,1.0,1.0,718.0,328.0,1046.0,52.13

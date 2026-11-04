@@ -1,0 +1,5 @@
+﻿Architecture,E2E Success,VAL Syntax,FD Solvable,VAL Certified,Iterations,Latency,Tokens,Cost ($)
+CLOSED_LOOP_AST_AGENT,✅ PASS,✅ Valid,✅ Solvable (4 steps),✅ Certified,1,15.69s,"3,257",$0.00050
+ABLATION_NO_TRIAGE,✅ PASS,✅ Valid,✅ Solvable (4 steps),✅ Certified,1,14.40s,"3,265",$0.00051
+UNSTRUCTURED_RETRY,✅ PASS,✅ Valid,✅ Solvable (4 steps),✅ Certified,1,13.08s,"1,025",$0.00023
+ZERO_SHOT,✅ PASS,✅ Valid,✅ Solvable (4 steps),✅ Certified,1,13.29s,"1,025",$0.00023

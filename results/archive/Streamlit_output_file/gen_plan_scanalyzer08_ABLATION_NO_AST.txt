@@ -1,0 +1,7 @@
+(analyze-cycle-2 car-in-1 car-out-1 seg-in-1 seg-out-1)
+(analyze-cycle-2 car-out-1 car-in-1 seg-in-1 seg-out-1)
+(analyze-cycle-2 car-in-2 car-out-2 seg-in-2 seg-out-2)
+(analyze-cycle-2 car-out-2 car-in-2 seg-in-2 seg-out-2)
+(analyze-cycle-2 car-in-3 car-out-3 seg-in-3 seg-out-3)
+(analyze-cycle-2 car-out-3 car-in-3 seg-in-3 seg-out-3)
+; cost = 6 (unit cost)

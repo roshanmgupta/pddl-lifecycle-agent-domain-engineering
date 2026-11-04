@@ -1,0 +1,11 @@
+{
+  "task_id": "bw_elicit_01",
+  "domain_family": "blocksworld",
+  "task_type": "ELICITATION",
+  "iteration_count": 4,
+  "total_tokens": 13212,
+  "estimated_cost_usd": 0.002252,
+  "execution_time_seconds": 138.31,
+  "diagnostic_reports": [],
+  "verification_errors": []
+}

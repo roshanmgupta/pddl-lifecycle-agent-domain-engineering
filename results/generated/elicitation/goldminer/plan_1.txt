@@ -1,0 +1,5 @@
+1: (move_robot robot1 f0-0f f1-0f)
+2: (pick_up_bomb robot1 f1-0f)
+3: (detonate_bomb robot1 f1-0f f1-1f)
+4: (move_robot robot1 f1-0f f1-1f)
+5: (pick_gold robot1 f1-1f)

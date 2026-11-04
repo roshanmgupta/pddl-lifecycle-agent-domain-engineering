@@ -1,0 +1,166 @@
+{
+  "domain_name": "floor-tile",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "floor-tile",
+    "requirements": [
+      ":typing"
+    ],
+    "types": {
+      "robot": "object",
+      "tile": "object",
+      "color": "object"
+    },
+    "constants": {},
+    "predicates": [
+      "(robot-at ?r ?x)",
+      "(up ?x ?y)",
+      "(down ?x ?y)",
+      "(right ?x ?y)",
+      "(left ?x ?y)",
+      "(clear ?x)",
+      "(painted ?x ?c)",
+      "(robot-has ?r ?c)",
+      "(available-color ?c)",
+      "(free-color ?r)"
+    ],
+    "actions": [
+      {
+        "action_name": "change-color",
+        "parameters": {
+          "?r": "robot",
+          "?c": "color",
+          "?c2": "color"
+        },
+        "preconditions": [
+          "(robot-has ?r ?c)",
+          "(available-color ?c2)"
+        ],
+        "effects": [
+          "(robot-has ?r ?c2)",
+          "(not (robot-has ?r ?c))"
+        ]
+      },
+      {
+        "action_name": "paint-up",
+        "parameters": {
+          "?r": "robot",
+          "?y": "tile",
+          "?x": "tile",
+          "?c": "color"
+        },
+        "preconditions": [
+          "(robot-has ?r ?c)",
+          "(robot-at ?r ?x)",
+          "(up ?x ?y)",
+          "(clear ?y)"
+        ],
+        "effects": [
+          "(painted ?y ?c)",
+          "(not (clear ?y))",
+          "(not (robot-at ?r ?x))",
+          "(robot-at ?r ?y)"
+        ]
+      },
+      {
+        "action_name": "paint-down",
+        "parameters": {
+          "?r": "robot",
+          "?y": "tile",
+          "?x": "tile",
+          "?c": "color"
+        },
+        "preconditions": [
+          "(robot-has ?r ?c)",
+          "(robot-at ?r ?x)",
+          "(up ?x ?y)",
+          "(clear ?y)"
+        ],
+        "effects": [
+          "(painted ?y ?c)",
+          "(not (clear ?y))",
+          "(not (robot-at ?r ?x))",
+          "(robot-at ?r ?y)"
+        ]
+      },
+      {
+        "action_name": "up",
+        "parameters": {
+          "?r": "robot",
+          "?x": "tile",
+          "?y": "tile"
+        },
+        "preconditions": [
+          "(robot-at ?r ?x)",
+          "(up ?x ?y)",
+          "(clear ?y)"
+        ],
+        "effects": [
+          "(robot-at ?r ?y)",
+          "(clear ?x)",
+          "(not (robot-at ?r ?x))",
+          "(not (clear ?y))"
+        ]
+      },
+      {
+        "action_name": "down",
+        "parameters": {
+          "?r": "robot",
+          "?x": "tile",
+          "?y": "tile"
+        },
+        "preconditions": [
+          "(robot-at ?r ?x)",
+          "(down ?y ?x)",
+          "(clear ?y)"
+        ],
+        "effects": [
+          "(robot-at ?r ?y)",
+          "(clear ?x)",
+          "(not (robot-at ?r ?x))",
+          "(not (clear ?y))"
+        ]
+      },
+      {
+        "action_name": "right",
+        "parameters": {
+          "?r": "robot",
+          "?x": "tile",
+          "?y": "tile"
+        },
+        "preconditions": [
+          "(robot-at ?r ?x)",
+          "(right ?x ?y)",
+          "(clear ?y)"
+        ],
+        "effects": [
+          "(robot-at ?r ?y)",
+          "(clear ?x)",
+          "(not (robot-at ?r ?x))",
+          "(not (clear ?y))"
+        ]
+      },
+      {
+        "action_name": "left",
+        "parameters": {
+          "?r": "robot",
+          "?x": "tile",
+          "?y": "tile"
+        },
+        "preconditions": [
+          "(robot-at ?r ?x)",
+          "(left ?x ?y)",
+          "(clear ?y)"
+        ],
+        "effects": [
+          "(robot-at ?r ?y)",
+          "(clear ?x)",
+          "(not (robot-at ?r ?x))",
+          "(not (clear ?y))"
+        ]
+      }
+    ]
+  },
+  "iteration_count": 5,
+  "is_valid": false
+}

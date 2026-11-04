@@ -1,0 +1,80 @@
+{
+  "domain_name": "gripper-strips",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "gripper-strips",
+    "requirements": [
+      ":strips",
+      ":typing"
+    ],
+    "types": {
+      "room": "object",
+      "object": "object",
+      "robot": "object",
+      "gripper": "object"
+    },
+    "constants": {},
+    "predicates": [
+      "(at-robby ?r ?x)",
+      "(at ?o ?x)",
+      "(free ?r ?g)",
+      "(carry ?r ?o ?g)"
+    ],
+    "actions": [
+      {
+        "action_name": "move",
+        "parameters": {
+          "?r": "robot",
+          "?from": "room",
+          "?to": "room"
+        },
+        "preconditions": [
+          "(at-robby ?r ?from)"
+        ],
+        "effects": [
+          "(at-robby ?r ?to)",
+          "(not (at-robby ?r ?from))"
+        ]
+      },
+      {
+        "action_name": "pick",
+        "parameters": {
+          "?r": "robot",
+          "?obj": "object",
+          "?room": "room",
+          "?g": "gripper"
+        },
+        "preconditions": [
+          "(at ?obj ?room)",
+          "(at-robby ?r ?room)",
+          "(free ?r ?g)"
+        ],
+        "effects": [
+          "(carry ?r ?obj ?g)",
+          "(not (at ?obj ?room))",
+          "(not (free ?r ?g))"
+        ]
+      },
+      {
+        "action_name": "drop",
+        "parameters": {
+          "?r": "robot",
+          "?obj": "object",
+          "?room": "room",
+          "?g": "gripper"
+        },
+        "preconditions": [
+          "(carry ?r ?obj ?g)",
+          "(at-robby ?r ?room)"
+        ],
+        "effects": [
+          "(at ?obj ?room)",
+          "(free ?r ?g)",
+          "(not (carry ?r ?obj ?g))"
+        ]
+      }
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

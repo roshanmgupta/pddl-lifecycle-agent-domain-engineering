@@ -1,0 +1,255 @@
+{
+  "domain_name": "pipesworld_strips",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "pipesworld_strips",
+    "requirements": [
+      ":strips",
+      ":typing"
+    ],
+    "types": {
+      "pipe": "object",
+      "area": "object",
+      "product": "object",
+      "batch-atom": "object",
+      "tank-slot": "object"
+    },
+    "constants": {
+      "lco": "a oca1 oc1b",
+      "gasoleo": "a oca1 oc1b",
+      "rat": "a oca1 oc1b"
+    },
+    "predicates": [
+      "(connect ?from ?to ?pipe)",
+      "(unitary ?pipe)",
+      "(not (-unitary ?pipe))",
+      "(last ?batch-atom ?pipe)",
+      "(first ?batch-atom ?pipe)",
+      "(follow ?next ?previous)",
+      "(is-product ?batch-atom ?product)",
+      "(on ?batch-atom ?area)",
+      "(may-interface ?product-a ?product-b)",
+      "(normal ?pipe)",
+      "(push-updating ?pipe)",
+      "(pop-updating ?pipe)",
+      "(tank-slot-product-location ?tank-slot ?product ?area)",
+      "(occupied ?tank-slot)",
+      "(not (-occupied ?tank-slot))"
+    ],
+    "actions": [
+      {
+        "action_name": "PUSH-START",
+        "parameters": {
+          "?pipe": "pipe",
+          "?batch-atom-in": "batch-atom",
+          "?from-area": "area",
+          "?to-area": "area",
+          "?first-batch-atom": "batch-atom",
+          "?product-batch-atom-in": "product",
+          "?product-first-batch": "product",
+          "?tank-slot": "tank-slot"
+        },
+        "preconditions": [
+          "(normal ?pipe)",
+          "(not (-unitary ?pipe))",
+          "(connect ?from-area ?to-area ?pipe)",
+          "(first ?first-batch-atom ?pipe)",
+          "(on ?batch-atom-in ?from-area)",
+          "(is-product ?batch-atom-in ?product-batch-atom-in)",
+          "(is-product ?first-batch-atom ?product-first-batch)",
+          "(may-interface ?product-batch-atom-in ?product-first-batch)",
+          "(tank-slot-product-location ?tank-slot ?product-batch-atom-in ?from-area)",
+          "(occupied ?tank-slot)"
+        ],
+        "effects": [
+          "(push-updating ?pipe)",
+          "(first ?batch-atom-in ?pipe)",
+          "(follow ?first-batch-atom ?batch-atom-in)",
+          "(not (-occupied ?tank-slot))",
+          "(not (normal ?pipe))",
+          "(not (first ?first-batch-atom ?pipe))",
+          "(not (on ?batch-atom-in ?from-area))",
+          "(not (occupied ?tank-slot))"
+        ]
+      },
+      {
+        "action_name": "PUSH-END",
+        "parameters": {
+          "?pipe": "pipe",
+          "?from-area": "area",
+          "?to-area": "area",
+          "?last-batch-atom": "batch-atom",
+          "?next-last-batch-atom": "batch-atom",
+          "?product-last-batch": "product",
+          "?tank-slot": "tank-slot"
+        },
+        "preconditions": [
+          "(push-updating ?pipe)",
+          "(not (-unitary ?pipe))",
+          "(connect ?from-area ?to-area ?pipe)",
+          "(last ?last-batch-atom ?pipe)",
+          "(follow ?last-batch-atom ?next-last-batch-atom)",
+          "(is-product ?last-batch-atom ?product-last-batch)",
+          "(tank-slot-product-location ?tank-slot ?product-last-batch ?to-area)",
+          "(not (-occupied ?tank-slot))"
+        ],
+        "effects": [
+          "(normal ?pipe)",
+          "(last ?next-last-batch-atom ?pipe)",
+          "(on ?last-batch-atom ?to-area)",
+          "(occupied ?tank-slot)",
+          "(not (push-updating ?pipe))",
+          "(not (follow ?last-batch-atom ?next-last-batch-atom))",
+          "(not (last ?last-batch-atom ?pipe))",
+          "(not (not-occupied ?tank-slot))"
+        ]
+      },
+      {
+        "action_name": "POP-START",
+        "parameters": {
+          "?pipe": "pipe",
+          "?batch-atom-in": "batch-atom",
+          "?from-area": "area",
+          "?to-area": "area",
+          "?last-batch-atom": "batch-atom",
+          "?product-batch-atom-in": "product",
+          "?product-last-batch": "product",
+          "?tank-slot": "tank-slot"
+        },
+        "preconditions": [
+          "(normal ?pipe)",
+          "(not (-unitary ?pipe))",
+          "(connect ?from-area ?to-area ?pipe)",
+          "(last ?last-batch-atom ?pipe)",
+          "(on ?batch-atom-in ?to-area)",
+          "(is-product ?batch-atom-in ?product-batch-atom-in)",
+          "(is-product ?last-batch-atom ?product-last-batch)",
+          "(may-interface ?product-batch-atom-in ?product-last-batch)",
+          "(tank-slot-product-location ?tank-slot ?product-batch-atom-in ?to-area)",
+          "(occupied ?tank-slot)"
+        ],
+        "effects": [
+          "(pop-updating ?pipe)",
+          "(last ?batch-atom-in ?pipe)",
+          "(follow ?batch-atom-in ?last-batch-atom)",
+          "(not (-occupied ?tank-slot))",
+          "(not (normal ?pipe))",
+          "(not (last ?last-batch-atom ?pipe))",
+          "(not (on ?batch-atom-in ?to-area))",
+          "(not (occupied ?tank-slot))"
+        ]
+      },
+      {
+        "action_name": "POP-END",
+        "parameters": {
+          "?pipe": "pipe",
+          "?from-area": "area",
+          "?to-area": "area",
+          "?first-batch-atom": "batch-atom",
+          "?next-first-batch-atom": "batch-atom",
+          "?product-first-batch": "product",
+          "?tank-slot": "tank-slot"
+        },
+        "preconditions": [
+          "(pop-updating ?pipe)",
+          "(not (-unitary ?pipe))",
+          "(connect ?from-area ?to-area ?pipe)",
+          "(first ?first-batch-atom ?pipe)",
+          "(follow ?next-first-batch-atom ?first-batch-atom)",
+          "(tank-slot-product-location ?tank-slot ?product-first-batch ?from-area)",
+          "(not (-occupied ?tank-slot))"
+        ],
+        "effects": [
+          "(normal ?pipe)",
+          "(first ?next-first-batch-atom ?pipe)",
+          "(on ?first-batch-atom ?from-area)",
+          "(occupied ?tank-slot)",
+          "(not (pop-updating ?pipe))",
+          "(not (follow ?next-first-batch-atom ?first-batch-atom))",
+          "(not (first ?first-batch-atom ?pipe))",
+          "(not (not-occupied ?tank-slot))"
+        ]
+      },
+      {
+        "action_name": "PUSH-UNITARYPIPE",
+        "parameters": {
+          "?pipe": "pipe",
+          "?batch-atom-in": "batch-atom",
+          "?from-area": "area",
+          "?to-area": "area",
+          "?first-batch-atom": "batch-atom",
+          "?product-batch-atom-in": "product",
+          "?product-first-batch": "product",
+          "?from-tank-slot": "tank-slot",
+          "?to-tank-slot": "tank-slot"
+        },
+        "preconditions": [
+          "(first ?first-batch-atom ?pipe)",
+          "(connect ?from-area ?to-area ?pipe)",
+          "(on ?batch-atom-in ?from-area)",
+          "(unitary ?pipe)",
+          "(is-product ?batch-atom-in ?product-batch-atom-in)",
+          "(is-product ?first-batch-atom ?product-first-batch)",
+          "(may-interface ?product-batch-atom-in ?product-first-batch)",
+          "(tank-slot-product-location ?from-tank-slot ?product-batch-atom-in ?from-area)",
+          "(occupied ?from-tank-slot)",
+          "(tank-slot-product-location ?to-tank-slot ?product-first-batch ?to-area)",
+          "(not (-occupied ?to-tank-slot))"
+        ],
+        "effects": [
+          "(first ?batch-atom-in ?pipe)",
+          "(last ?batch-atom-in ?pipe)",
+          "(not (-occupied ?from-tank-slot))",
+          "(on ?first-batch-atom ?to-area)",
+          "(occupied ?to-tank-slot)",
+          "(not (first ?first-batch-atom ?pipe))",
+          "(not (last ?first-batch-atom ?pipe))",
+          "(not (on ?batch-atom-in ?from-area))",
+          "(not (occupied ?from-tank-slot))",
+          "(not (not-occupied ?to-tank-slot))"
+        ]
+      },
+      {
+        "action_name": "POP-UNITARYPIPE",
+        "parameters": {
+          "?pipe": "pipe",
+          "?batch-atom-in": "batch-atom",
+          "?from-area": "area",
+          "?to-area": "area",
+          "?first-batch-atom": "batch-atom",
+          "?product-batch-atom-in": "product",
+          "?product-first-batch": "product",
+          "?from-tank-slot": "tank-slot",
+          "?to-tank-slot": "tank-slot"
+        },
+        "preconditions": [
+          "(first ?first-batch-atom ?pipe)",
+          "(connect ?from-area ?to-area ?pipe)",
+          "(on ?batch-atom-in ?to-area)",
+          "(unitary ?pipe)",
+          "(is-product ?batch-atom-in ?product-batch-atom-in)",
+          "(is-product ?first-batch-atom ?product-first-batch)",
+          "(may-interface ?product-batch-atom-in ?product-first-batch)",
+          "(tank-slot-product-location ?from-tank-slot ?product-batch-atom-in ?to-area)",
+          "(occupied ?from-tank-slot)",
+          "(tank-slot-product-location ?to-tank-slot ?product-first-batch ?from-area)",
+          "(not (-occupied ?to-tank-slot))"
+        ],
+        "effects": [
+          "(last ?batch-atom-in ?pipe)",
+          "(first ?batch-atom-in ?pipe)",
+          "(not (-occupied ?from-tank-slot))",
+          "(on ?first-batch-atom ?from-area)",
+          "(occupied ?to-tank-slot)",
+          "(not (last ?first-batch-atom ?pipe))",
+          "(not (first ?first-batch-atom ?pipe))",
+          "(not (on ?batch-atom-in ?to-area))",
+          "(not (occupied ?from-tank-slot))",
+          "(not (not-occupied ?to-tank-slot))"
+        ]
+      }
+    ]
+  },
+  "iteration_count": 5,
+  "is_valid": false
+}

@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_04_missing_goal_add_effect_2",
+  "domain": "depot",
+  "flaw_category": "ACTION_EFFECT_DELETION",
+  "mutation_operator": "OPERATOR_2_REMOVE_GOAL_ADD_EFFECT",
+  "target_action": "Lift",
+  "description": "Removed required add effect '(lifting ?x ?y)' from action 'Lift'",
+  "ground_truth_fix": "Restore add effect '(lifting ?x ?y)' in action 'Lift' effects.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

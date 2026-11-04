@@ -18,9 +18,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from benchmark.loader import (
     list_benchmark_domains,
     list_domain_flaws,
-    list_domain_evolutions,
-    load_flaw_task,
-    load_evolution_task
+    load_flaw_task
 )
 from graph import pddl_lifecycle_graph
 from tools.symbolic_oracles import run_val_validator, run_fast_downward
@@ -107,22 +105,21 @@ def main():
     parser = argparse.ArgumentParser(description="Manual test runner for PDDLLifeCycleBench flaws and evolutions.")
     parser.add_argument("--domain", type=str, default=None, help="Domain name (e.g. barman14-bfs, blocksworld, depot)")
     parser.add_argument("--flaw", type=str, default=None, help="Flaw name (e.g. flaw_01_type_signature_arity, flaw_03_action_effect_deletion)")
-    parser.add_argument("--evolution", type=str, default=None, help="Evolution task name (e.g. evolution_01_feature_addition)")
-    parser.add_argument("--list", action="store_true", help="List all available domains, flaws, and evolutions.")
+    parser.add_argument("--list", action="store_true", help="List all available domains and flaws.")
     args = parser.parse_args()
 
     domains = list_benchmark_domains()
 
     if args.list or not args.domain:
         print("=" * 80)
-        print(f"PDDLLifeCycleBench: {len(domains)} Canonical Domains Available")
+        print(f"Canonical Benchmark: {len(domains)} Domains Available")
         print("=" * 80)
         for d in domains:
             flaws = list_domain_flaws(d)
-            evos = list_domain_evolutions(d)
-            print(f"• {d:28} | Flaws: {len(flaws)} | Evolution: {len(evos)}")
+            if flaws:
+                print(f"• {d:28} | Flaws: {len(flaws)}")
         print("\nUsage example:")
-        print("  python scripts/manual_test_lifecycle_bench.py --domain barman14-bfs --flaw flaw_03_action_effect_deletion")
+        print("  python scripts/manual_test_lifecycle_bench.py --domain gripper --flaw flaw_01_unsatisfiable_precondition_1")
         return
 
     if args.domain not in domains:
@@ -130,24 +127,13 @@ def main():
         return
 
     flaws = list_domain_flaws(args.domain)
-    evos = list_domain_evolutions(args.domain)
 
     if args.flaw:
         run_manual_flaw_test(args.domain, args.flaw)
-    elif args.evolution:
-        print(f"Evolution task manual testing selected: {args.domain} -> {args.evolution}")
-        task = load_evolution_task(args.domain, args.evolution)
-        if task:
-            print(f"  Task ID: {task.task_id}")
-            print(f"  Requirements:\n{task.natural_language_requirements}")
-            print(f"  Baseline benchmark problem count: {len(getattr(task, 'baseline_benchmark_problems', []))}")
     else:
         print(f"Available Flaws for '{args.domain}':")
         for f in flaws:
             print(f"  --flaw {f}")
-        print(f"\nAvailable Evolution tasks for '{args.domain}':")
-        for e in evos:
-            print(f"  --evolution {e}")
 
 if __name__ == "__main__":
     main()

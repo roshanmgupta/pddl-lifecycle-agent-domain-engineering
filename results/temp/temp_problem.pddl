@@ -1,49 +1,41 @@
-(define (problem ZTRAVEL-1-2)
-(:domain zeno-travel)
-(:objects
-	plane1
-	person1
-	person2
-	city0
-	city1
-	city2
-	fl0
-	fl1
-	fl2
-	fl3
-	fl4
-	fl5
-	fl6
-	)
-(:init
-	(at plane1 city0)
-	(aircraft plane1)
-	(fuel-level plane1 fl1)
-	(at person1 city0)
-	(person person1)
-	(at person2 city2)
-	(person person2)
-	(city city0)
-	(city city1)
-	(city city2)
-	(next fl0 fl1)
-	(next fl1 fl2)
-	(next fl2 fl3)
-	(next fl3 fl4)
-	(next fl4 fl5)
-	(next fl5 fl6)
-	(flevel fl0)
-	(flevel fl1)
-	(flevel fl2)
-	(flevel fl3)
-	(flevel fl4)
-	(flevel fl5)
-	(flevel fl6)
+(define (problem floortile-2-2-2)
+ (:domain floor-tile)
+ (:objects tile_0-1 tile_0-2 
+           tile_1-1 tile_1-2 
+           tile_2-1 tile_2-2 - tile
+           robot1 robot2 - robot
+           white black - color
 )
-(:goal (and
-	(at plane1 city1)
-	(at person1 city0)
-	(at person2 city2)
-	))
-
+ (:init 
+   (robot-at robot1 tile_1-2)
+   (robot-has robot1 white)
+   (robot-at robot2 tile_1-1)
+   (robot-has robot2 black)
+   (available-color white)
+   (available-color black)
+   (clear tile_0-1)
+   (clear tile_0-2)
+   (clear tile_2-1)
+   (clear tile_2-2)
+   (up tile_1-1 tile_0-1)
+   (up tile_1-2 tile_0-2)
+   (up tile_2-1 tile_1-1)
+   (up tile_2-2 tile_1-2)
+   (down tile_0-1 tile_1-1)
+   (down tile_0-2 tile_1-2)
+   (down tile_1-1 tile_2-1)
+   (down tile_1-2 tile_2-2)
+   (right tile_0-2 tile_0-1)
+   (right tile_1-2 tile_1-1)
+   (right tile_2-2 tile_2-1)
+   (left tile_0-1 tile_0-2)
+   (left tile_1-1 tile_1-2)
+   (left tile_2-1 tile_2-2)
+)
+ (:goal (and
+    (painted tile_1-1 white)
+    (painted tile_1-2 black)
+    (painted tile_2-1 black)
+    (painted tile_2-2 white)
+))
 )

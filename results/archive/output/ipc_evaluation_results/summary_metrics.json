@@ -1,0 +1,14 @@
+{
+  "agent_type": "CLOSED_LOOP_AST_AGENT",
+  "total_tasks_evaluated": 3,
+  "syntax_validity_rate_pct": 100.0,
+  "plan_solvability_rate_pct": 100.0,
+  "repair_success_rate_pct": 100.0,
+  "avg_repair_iterations": 1.0,
+  "top1_fault_localization_accuracy_pct": 0.0,
+  "regression_suite_pass_rate_pct": 100.0,
+  "avg_latency_seconds": 26.92,
+  "avg_total_tokens": 1948,
+  "avg_cost_usd": 0.000307,
+  "timestamp": "2026-10-08 18:16:40"
+}

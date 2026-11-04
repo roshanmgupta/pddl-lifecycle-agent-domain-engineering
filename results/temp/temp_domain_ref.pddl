@@ -1,39 +1,80 @@
-(define (domain zeno-travel)
+;;Created by Tomas de la Rosa
+;;Domain for painting floor tiles with two colors
+
+(define (domain floor-tile)
+(:requirements :typing)
+(:types robot tile color - object)
+
 (:predicates
-	 (at ?x ?c) (in ?p ?a) (fuel-level ?a ?l) (next ?l1 ?l2)(aircraft ?p) (person ?x) (city ?x) (flevel ?x) )
-(:action board
- :parameters ( ?p ?a ?c)
- :precondition
-	(and (person ?p) (aircraft ?a) (city ?c)  (at ?p ?c) (at ?a ?c))
- :effect
-	(and (in ?p ?a) (not (at ?p ?c))))
+		(robot-at ?r - robot ?x - tile)
+		(up ?x - tile ?y - tile)
+		(down ?x - tile ?y - tile)
+		(right ?x - tile ?y - tile)
+		(left ?x - tile ?y - tile)
 
-(:action debark
- :parameters ( ?p ?a ?c)
- :precondition
-	(and (person ?p) (aircraft ?a) (city ?c)  (in ?p ?a) (at ?a ?c))
- :effect
-	(and (at ?p ?c) (not (in ?p ?a))))
+		(clear ?x - tile)
+                (painted ?x - tile ?c - color)
+		(robot-has ?r - robot ?c - color)
+                (available-color ?c - color)
+                (free-color ?r - robot))
 
-(:action fly
- :parameters ( ?a ?c1 ?c2 ?l1 ?l2)
- :precondition
-	(and (aircraft ?a) (city ?c1) (city ?c2) (flevel ?l1) (flevel ?l2)  (at ?a ?c1) (fuel-level ?a ?l1) (next ?l2 ?l1))
- :effect
-	(and (at ?a ?c2) (fuel-level ?a ?l2) (not (at ?a ?c1)) (not (fuel-level ?a ?l1))))
 
-(:action zoom
- :parameters ( ?a ?c1 ?c2 ?l1 ?l2 ?l3)
- :precondition
-	(and (aircraft ?a) (city ?c1) (city ?c2) (flevel ?l1) (flevel ?l2) (flevel ?l3)  (at ?a ?c1) (fuel-level ?a ?l1) (next ?l2 ?l1) (next ?l3 ?l2))
- :effect
-	(and (at ?a ?c2) (fuel-level ?a ?l3) (not (at ?a ?c1)) (not (fuel-level ?a ?l1))))
+(:action change-color
+  :parameters (?r - robot ?c - color ?c2 - color)
+  :precondition (and (robot-has ?r ?c) (available-color ?c2))
+  :effect (and (not (robot-has ?r ?c)) (robot-has ?r ?c2)
+               )
+)
 
-(:action refuel
- :parameters ( ?a ?c ?l ?l1)
- :precondition
-	(and (aircraft ?a) (city ?c) (flevel ?l) (flevel ?l1)  (fuel-level ?a ?l) (next ?l ?l1) (at ?a ?c))
- :effect
-	(and (fuel-level ?a ?l1) (not (fuel-level ?a ?l))))
+
+(:action paint-up
+  :parameters (?r - robot ?y - tile ?x - tile ?c - color)
+  :precondition (and (robot-has ?r ?c) (robot-at ?r ?x) (up ?y ?x) (clear ?y))
+  :effect (and (not (clear ?y)) (painted ?y ?c)
+               )
+)
+
+
+(:action paint-down
+  :parameters (?r - robot ?y - tile ?x - tile ?c - color)
+  :precondition (and (robot-has ?r ?c) (robot-at ?r ?x) (down ?y ?x) (clear ?y))
+  :effect (and (not (clear ?y)) (painted ?y ?c)
+)
+)
+
+
+; Robot movements
+(:action up
+  :parameters (?r - robot ?x - tile ?y - tile)
+  :precondition (and (robot-at ?r ?x) (up ?y ?x) (clear ?y))
+  :effect (and (robot-at ?r ?y) (not (robot-at ?r ?x))
+               (clear ?x) (not (clear ?y))
+               )
+)
+
+
+(:action down
+  :parameters (?r - robot ?x - tile ?y - tile)
+  :precondition (and (robot-at ?r ?x) (down ?y ?x) (clear ?y))
+  :effect (and (robot-at ?r ?y) (not (robot-at ?r ?x))
+               (clear ?x) (not (clear ?y))
+               )
+)
+
+(:action right
+  :parameters (?r - robot ?x - tile ?y - tile)
+  :precondition (and (robot-at ?r ?x) (right ?y ?x) (clear ?y))
+  :effect (and (robot-at ?r ?y) (not (robot-at ?r ?x))
+               (clear ?x) (not (clear ?y))
+	       )
+)
+
+(:action left
+  :parameters (?r - robot ?x - tile ?y - tile)
+  :precondition (and (robot-at ?r ?x) (left ?y ?x) (clear ?y))
+  :effect (and (robot-at ?r ?y) (not (robot-at ?r ?x))
+               (clear ?x) (not (clear ?y))
+               )
+)
 
 )

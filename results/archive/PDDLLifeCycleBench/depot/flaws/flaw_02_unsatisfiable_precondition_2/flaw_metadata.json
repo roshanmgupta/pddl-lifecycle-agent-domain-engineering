@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_02_unsatisfiable_precondition_2",
+  "domain": "depot",
+  "flaw_category": "PRECONDITION_UNSATISFIABLE",
+  "mutation_operator": "OPERATOR_1_UNSATISFIABLE_PRECONDITION",
+  "target_action": "Drive",
+  "description": "Added unsatisfiable precondition '(unreachable_precondition)' to action 'Drive'",
+  "ground_truth_fix": "Remove '(unreachable_precondition)' from action 'Drive' preconditions.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

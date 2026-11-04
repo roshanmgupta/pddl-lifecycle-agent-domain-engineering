@@ -1,0 +1,11 @@
+{
+  "task_id": "gripper_repair_capacity_01",
+  "domain_family": "gripper",
+  "task_type": "SYNTHETIC_FAULT_REPAIR",
+  "iteration_count": 1,
+  "total_tokens": 1791,
+  "estimated_cost_usd": 0.000251,
+  "execution_time_seconds": 19.58,
+  "diagnostic_reports": [],
+  "verification_errors": []
+}

@@ -284,7 +284,7 @@ def validate_plan_semantic_soundness(
                         pf.write(f"{clean_stp}\n")
 
             is_valid, log = validate_plan_with_val(ground_truth_domain_path, problem_path, mapped_plan_path)
-            if os.path.exists(mapped_plan_path) and "Streamlit_output_file" not in str(mapped_plan_path):
+            if os.path.exists(mapped_plan_path):
                 try:
                     os.remove(mapped_plan_path)
                 except Exception:

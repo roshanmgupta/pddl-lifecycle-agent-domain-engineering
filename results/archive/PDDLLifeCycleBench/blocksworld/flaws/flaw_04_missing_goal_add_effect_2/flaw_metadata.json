@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_04_missing_goal_add_effect_2",
+  "domain": "blocksworld",
+  "flaw_category": "ACTION_EFFECT_DELETION",
+  "mutation_operator": "OPERATOR_2_REMOVE_GOAL_ADD_EFFECT",
+  "target_action": "stack",
+  "description": "Removed required goal add effect '(on ?ob ?underob)' from action 'stack'",
+  "ground_truth_fix": "Restore add effect '(on ?ob ?underob)' in action 'stack' effects.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

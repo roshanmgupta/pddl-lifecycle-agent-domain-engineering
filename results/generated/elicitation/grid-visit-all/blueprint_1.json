@@ -1,0 +1,39 @@
+{
+  "domain_name": "grid-visit-all",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "grid-visit-all",
+    "requirements": [
+      ":typing"
+    ],
+    "types": {
+      "place": "object"
+    },
+    "constants": {},
+    "predicates": [
+      "(connected ?x ?y)",
+      "(at-robot ?x)",
+      "(visited ?x)"
+    ],
+    "actions": [
+      {
+        "action_name": "move",
+        "parameters": {
+          "?curpos": "place",
+          "?nextpos": "place"
+        },
+        "preconditions": [
+          "(at-robot ?curpos)",
+          "(connected ?curpos ?nextpos)"
+        ],
+        "effects": [
+          "(at-robot ?nextpos)",
+          "(visited ?nextpos)",
+          "(not (at-robot ?curpos))"
+        ]
+      }
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

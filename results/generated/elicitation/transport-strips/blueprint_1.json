@@ -1,0 +1,86 @@
+{
+  "domain_name": "transport-strips",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "transport-strips",
+    "requirements": [
+      ":typing"
+    ],
+    "types": {
+      "location": "object",
+      "fuellevel": "object",
+      "locatable": "object",
+      "package": "locatable",
+      "truck": "locatable"
+    },
+    "constants": {},
+    "predicates": [
+      "(connected ?l1 ?l2)",
+      "(at ?o ?l)",
+      "(in ?p ?t)",
+      "(fuel ?t ?level)",
+      "(fuelcost ?level ?l1 ?l2)",
+      "(sum ?a ?b ?c)"
+    ],
+    "actions": [
+      {
+        "action_name": "LOAD",
+        "parameters": {
+          "?p": "package",
+          "?t": "truck",
+          "?l": "location"
+        },
+        "preconditions": [
+          "(at ?t ?l)",
+          "(at ?p ?l)"
+        ],
+        "effects": [
+          "(in ?p ?t)",
+          "(not (at ?p ?l))"
+        ]
+      },
+      {
+        "action_name": "UNLOAD",
+        "parameters": {
+          "?p": "package",
+          "?t": "truck",
+          "?l": "location"
+        },
+        "preconditions": [
+          "(at ?t ?l)",
+          "(in ?p ?t)"
+        ],
+        "effects": [
+          "(at ?p ?l)",
+          "(not (in ?p ?t))"
+        ]
+      },
+      {
+        "action_name": "DRIVE",
+        "parameters": {
+          "?t": "truck",
+          "?l1": "location",
+          "?l2": "location",
+          "?fuelpost": "fuellevel",
+          "?fueldelta": "fuellevel",
+          "?fuelpre": "fuellevel"
+        },
+        "preconditions": [
+          "(connected ?l1 ?l2)",
+          "(fuelcost ?fueldelta ?l1 ?l2)",
+          "(fuel ?t ?fuelpre)",
+          "(sum ?fuelpost ?fueldelta ?fuelpre)",
+          "(at ?t ?l1)"
+        ],
+        "effects": [
+          "(at ?t ?l2)",
+          "(fuel ?t ?fuelpost)",
+          "(not (at ?t ?l1))",
+          "(not (fuel ?t ?fuelpre))"
+        ]
+      }
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

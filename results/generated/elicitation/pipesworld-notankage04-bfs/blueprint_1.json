@@ -1,0 +1,269 @@
+{
+  "domain_name": "pipesworld-notankage04-bfs",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "pipesworld-notankage04-bfs",
+    "requirements": [
+      ":strips",
+      ":typing"
+    ],
+    "types": {
+      "pipe": "object",
+      "area": "object",
+      "batch-atom": "object",
+      "product": "object",
+      "unitary-pipe": "pipe",
+      "normal-pipe": "pipe",
+      "push-updated-pipe": "normal-pipe",
+      "pop-updated-pipe": "normal-pipe"
+    },
+    "constants": {},
+    "predicates": [
+      "(normal ?p - pipe)",
+      "(unitary ?p - pipe)",
+      "(may-interface ?p1 - object ?p2 - object)",
+      "(on ?b - batch-atom ?a - area)",
+      "(first-in ?b - batch-atom ?p - pipe)",
+      "(last-in ?b - batch-atom ?p - pipe)",
+      "(connected ?a1 - area ?a2 - area)",
+      "(product ?b - object ?x - object)"
+    ],
+    "actions": [
+      {
+        "action_name": "push-start-pipe",
+        "parameters": {
+          "?a": "normal-pipe",
+          "?b": "batch-atom",
+          "?src": "area",
+          "?dst": "area",
+          "?e": "batch-atom",
+          "?f": "product",
+          "?g": "product"
+        },
+        "preconditions": [
+          "(normal ?a)",
+          "(first-in ?e ?a)",
+          "(connected ?src ?dst)",
+          "(on ?b ?src)",
+          "(not (unitary ?a))",
+          "(product ?b ?f)",
+          "(product ?e ?g)",
+          "(may-interface ?f ?g)"
+        ],
+        "effects": [
+          "(push-updated ?a)",
+          "(first-in ?b ?a)",
+          "(last-in ?e ?a)",
+          "(not (normal ?a))",
+          "(not (first-in ?e ?a))",
+          "(not (on ?b ?src))"
+        ]
+      },
+      {
+        "action_name": "push-end-pipe",
+        "parameters": {
+          "?a": "push-updated-pipe",
+          "?d": "batch-atom",
+          "?e": "batch-atom",
+          "?src": "area",
+          "?dst": "area"
+        },
+        "preconditions": [
+          "(connected ?src ?dst)",
+          "(not (unitary ?a))",
+          "(last-in ?d ?a)",
+          "(last-in ?e ?a)"
+        ],
+        "effects": [
+          "(normal ?a)",
+          "(last-in ?e ?a)",
+          "(on ?d ?dst)",
+          "(not (push-updated ?a))",
+          "(not (last-in ?d ?a))",
+          "(not (last-in ?e ?a))"
+        ]
+      },
+      {
+        "action_name": "pop-start-pipe",
+        "parameters": {
+          "?a": "normal-pipe",
+          "?b": "batch-atom",
+          "?src": "area",
+          "?dst": "area",
+          "?e": "batch-atom",
+          "?f": "product",
+          "?g": "product"
+        },
+        "preconditions": [
+          "(normal ?a)",
+          "(last-in ?e ?a)",
+          "(connected ?src ?dst)",
+          "(on ?b ?dst)",
+          "(not (unitary ?a))",
+          "(product ?b ?f)",
+          "(product ?e ?g)",
+          "(may-interface ?f ?g)"
+        ],
+        "effects": [
+          "(pop-updated ?a)",
+          "(last-in ?b ?a)",
+          "(not (normal ?a))",
+          "(not (last-in ?e ?a))",
+          "(not (on ?b ?dst))"
+        ]
+      },
+      {
+        "action_name": "pop-end-pipe",
+        "parameters": {
+          "?a": "pop-updated-pipe",
+          "?d": "batch-atom",
+          "?e": "batch-atom",
+          "?src": "area",
+          "?dst": "area"
+        },
+        "preconditions": [
+          "(connected ?src ?dst)",
+          "(not (unitary ?a))",
+          "(first-in ?d ?a)",
+          "(first-in ?e ?a)"
+        ],
+        "effects": [
+          "(normal ?a)",
+          "(first-in ?e ?a)",
+          "(on ?d ?src)",
+          "(not (pop-updated ?a))",
+          "(not (first-in ?d ?a))",
+          "(not (first-in ?e ?a))"
+        ]
+      },
+      {
+        "action_name": "push-unitary-pipe",
+        "parameters": {
+          "?a": "unitary-pipe",
+          "?b": "batch-atom",
+          "?src": "area",
+          "?dst": "area",
+          "?e": "batch-atom",
+          "?f": "product",
+          "?g": "product"
+        },
+        "preconditions": [
+          "(first-in ?e ?a)",
+          "(connected ?src ?dst)",
+          "(on ?b ?src)",
+          "(unitary ?a)",
+          "(product ?b ?f)",
+          "(product ?e ?g)",
+          "(may-interface ?f ?g)"
+        ],
+        "effects": [
+          "(first-in ?b ?a)",
+          "(last-in ?b ?a)",
+          "(on ?e ?dst)",
+          "(not (first-in ?e ?a))",
+          "(not (last-in ?e ?a))",
+          "(not (on ?b ?src))"
+        ]
+      },
+      {
+        "action_name": "pop-unitary-pipe",
+        "parameters": {
+          "?a": "unitary-pipe",
+          "?b": "batch-atom",
+          "?src": "area",
+          "?dst": "area",
+          "?e": "batch-atom",
+          "?f": "product",
+          "?g": "product"
+        },
+        "preconditions": [
+          "(last-in ?e ?a)",
+          "(connected ?src ?dst)",
+          "(on ?b ?dst)",
+          "(unitary ?a)",
+          "(product ?b ?f)",
+          "(product ?e ?g)",
+          "(may-interface ?f ?g)"
+        ],
+        "effects": [
+          "(last-in ?b ?a)",
+          "(first-in ?b ?a)",
+          "(on ?e ?src)",
+          "(not (last-in ?e ?a))",
+          "(not (first-in ?e ?a))",
+          "(not (on ?b ?dst))"
+        ]
+      }
+    ]
+  },
+  "problem_blueprint": {
+    "problem_name": "instance-1.pddl",
+    "domain_name": "pipesworld-notankage04-bfs",
+    "objects": {
+      "B0": "batch-atom",
+      "B1": "batch-atom",
+      "B2": "batch-atom",
+      "B3": "batch-atom",
+      "B4": "batch-atom",
+      "B5": "batch-atom",
+      "A1": "area",
+      "A2": "area",
+      "A3": "area",
+      "S12": "normal-pipe",
+      "S13": "unitary-pipe",
+      "gasoleo": "product",
+      "oca1": "product",
+      "lco": "product",
+      "rat-a": "product",
+      "oc1b": "product"
+    },
+    "initial_state": [
+      "(normal S12)",
+      "(normal S13)",
+      "(may-interface lco gasoleo)",
+      "(may-interface rat-a rat-a)",
+      "(may-interface oca1 oca1)",
+      "(may-interface oc1b oc1b)",
+      "(may-interface lco gasoleo)",
+      "(may-interface gasoleo lco)",
+      "(may-interface lco oca1)",
+      "(may-interface oca1 lco)",
+      "(may-interface lco oc1b)",
+      "(may-interface oc1b lco)",
+      "(may-interface lco rat-a)",
+      "(may-interface rat-a lco)",
+      "(may-interface gasoleo rat-a)",
+      "(may-interface rat-a gasoleo)",
+      "(may-interface gasoleo oca1)",
+      "(may-interface oca1 gasoleo)",
+      "(may-interface gasoleo oc1b)",
+      "(may-interface oc1b gasoleo)",
+      "(may-interface oca1 oc1b)",
+      "(may-interface oc1b oca1)",
+      "(connected A1 A2)",
+      "(connected A1 A3)",
+      "(product B0 oc1b)",
+      "(product B1 lco)",
+      "(product B2 gasoleo)",
+      "(product B3 rat-a)",
+      "(product B4 lco)",
+      "(product B5 oca1)",
+      "(on B0 A1)",
+      "(on B1 A3)",
+      "(on B2 A1)",
+      "(on B3 A1)",
+      "(first-in B4 S12)",
+      "(last-in B4 S12)",
+      "(first-in B5 S13)",
+      "(last-in B5 S13)",
+      "(unitary S12)",
+      "(unitary S13)"
+    ],
+    "goal_state": [
+      "(on B2 A3)",
+      "(on B5 A2)"
+    ]
+  },
+  "iteration_count": 5,
+  "is_valid": true
+}

@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-10-21T16:59:56.408195",
+  "domain_name": "blocksworld-4ops",
+  "run_index": 5,
+  "verification_status": "FAILED",
+  "repair_iterations_used": 9,
+  "initial_verification_errors": [
+    "Planner Error: Could not find a plan. INFO     planner time limit: None\nINFO     planner memory limit: None\n\nINFO     Running translator.\nINFO     translator stdin: None\nINFO     translator time limit: None\nINFO     translator memory limit: None\nINFO     translator command line string: 'C:\\Users\\Srushti\\miniconda3\\envs\\agent_env\\python.exe' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\translate\\translate.py' temp_domain.pddl temp_problem.pddl --sas-file output.sas\nWarning! SIGXCPU is not available on your platform. This means that the planner cannot be gracefully terminated when using a time limit, which, however, is probably supported on your platform anyway.\nParsing...\nParsing domain\n\t->Parsing axiom/action entry #1\n\t->Parsing action #1\n\t->Parsing action 'pick-up'\n\t->Parsing precondition\n\t->Parsing condition\n\t->Parsing literal\nUndefined variable\nGot: ?ob\ntranslate exit code: 31\n\nDriver aborting after translate\n\n"
+  ],
+  "final_verification_errors": [
+    "VAL Error: Type-checking pick-up\nx has bad type definition\n\nErrors: 0, warnings: 0\n\nError: Error in type-checking!"
+  ],
+  "diagnostic_issues_count": 7,
+  "diagnostic_reports": [
+    {
+      "error_category": "SYNTAX_PARSE",
+      "repair_operation_type": "GENERAL_AST_REPAIR",
+      "faulty_element": "pick-up",
+      "raw_log": "Undefined variable Got: ?ob",
+      "suggested_repair_hint": "The 'pick-up' action must declare parameters for its variables. Update the 'pick-up' action to include a parameter declaration for '?ob' as follows: 'parameters: { ?ob: object }'."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pick-up",
+      "raw_log": "VAL Error: Type-checking pick-up x has bad type definition",
+      "suggested_repair_hint": "Declare a new dedicated predicate for the state of the object being picked up, such as '(ontable-object ?ob - object)'. Update the 'pick-up' action to assert this new predicate and ensure that it is properly referenced in the preconditions and effects."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pick-up",
+      "raw_log": "VAL Error: Type-checking pick-up x has bad type definition",
+      "suggested_repair_hint": "Declare a new dedicated predicate for the state of the object being picked up, such as '(ontable-object ?ob - object)'. Update the 'pick-up' action to assert this new predicate and ensure that it is not conflated with other predicates."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pick-up",
+      "raw_log": "VAL Error: Type-checking pick-up x has bad type definition",
+      "suggested_repair_hint": "Declare a new dedicated predicate for the state of the object being picked up, such as '(picked-up ?ob - object)'. Update the 'pick-up' action to assert this new predicate and ensure that it does not conflict with existing predicates."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pick-up",
+      "raw_log": "VAL Error: Type-checking pick-up x has bad type definition",
+      "suggested_repair_hint": "Declare a new dedicated predicate for the state of the object being picked up, such as '(picked-up ?ob - object)', and update the action 'pick-up' to assert this new predicate while ensuring that the preconditions and effects are consistent with this change."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pick-up",
+      "raw_log": "VAL Error: Type-checking pick-up x has bad type definition",
+      "suggested_repair_hint": "Declare a new dedicated predicate for the state of the object being picked up, such as '(picked-up ?ob - object)', and ensure that the action 'pick-up' uses this new predicate correctly in its effects."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pick-up",
+      "raw_log": "VAL Error: Type-checking pick-up x has bad type definition",
+      "suggested_repair_hint": "Declare a new dedicated predicate for the state of the object being picked up, such as '(picked-up ?ob - object)'. Update the 'pick-up' action to assert this new predicate and ensure that it is not conflated with other predicates."
+    }
+  ],
+  "formatted_diagnostic_feedback": "### Diagnostic Failure Analysis Report (Symbolic Oracle Triage):\n\nIssue #1:\n  - [ERROR TYPE]: TYPE_SIGNATURE\n  - [TARGET AST OPERATION]: TYPE_ARITY_ALIGNMENT\n  - [LOCATION / COMPONENT]: pick-up\n  - [DESCRIPTION / RAW TRACE]: VAL Error: Type-checking pick-up x has bad type definition\n  - [SUGGESTION FOR REPAIR]: Declare a new dedicated predicate for the state of the object being picked up, such as '(picked-up ?ob - object)', and ensure that the action 'pick-up' uses this new predicate correctly in its effects.",
+  "plan_summary": {
+    "is_solvable": false,
+    "plan_length": 0,
+    "search_time_seconds": 0.0,
+    "val_plan_valid": false,
+    "plan_steps": []
+  }
+}

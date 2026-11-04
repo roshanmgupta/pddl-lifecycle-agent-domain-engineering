@@ -11,16 +11,16 @@ from config.paths import get_benchmark_dir
 BENCHMARK_ROOT = get_benchmark_dir()
 
 # ==============================================================================
-# PDDLLifeCycleBench Dynamic Loader Helpers (Flaws & Evolution)
+# AutoPlanBench Dynamic Loader Helpers (Flaws & Synthesis)
 # ==============================================================================
 
 def list_benchmark_domains() -> List[str]:
-    """Returns sorted list of all 24 canonical domains available in PDDLLifeCycleBench."""
+    """Returns sorted list of all valid domains available in the canonical benchmark directory."""
     if not BENCHMARK_ROOT.exists():
         return []
     domains = [
         d.name for d in BENCHMARK_ROOT.iterdir()
-        if d.is_dir() and not d.name.startswith((".", "__"))
+        if d.is_dir() and not d.name.startswith((".", "__")) and (d / "domain.pddl").exists()
     ]
     return sorted(domains)
 
@@ -143,52 +143,6 @@ def load_flaw_task(domain_name: str, flaw_name: str, problem_instance: Optional[
         ground_truth_problem_pddl=prob_pddl
     )
 
-def list_domain_evolutions(domain_name: str) -> List[str]:
-    """Lists available Continuous Domain Evolution task folders for a domain."""
-    evo_dir = BENCHMARK_ROOT / domain_name / "evolution"
-    if not evo_dir.exists():
-        return []
-    evos = [e.name for e in evo_dir.iterdir() if e.is_dir()]
-    return sorted(evos)
-
-def load_evolution_task(domain_name: str, evo_name: str) -> Optional[BenchmarkTask]:
-    """
-    Loads a single Category C continuous domain evolution task from
-    PDDLLifeCycleBench/<domain>/evolution/<evo_name>.
-    """
-    evo_dir = BENCHMARK_ROOT / domain_name / "evolution" / evo_name
-    if not evo_dir.exists():
-        return None
-
-    meta = json.loads((evo_dir / "evolution_metadata.json").read_text(encoding="utf-8-sig"))
-    spec = (evo_dir / "feature_request_specification.txt").read_text(encoding="utf-8-sig")
-    base_dom = (BENCHMARK_ROOT / domain_name / "domain.pddl").read_text(encoding="utf-8-sig")
-    gt_evolved_file = evo_dir / "ground_truth_evolved_domain.pddl"
-    gt_dom = gt_evolved_file.read_text(encoding="utf-8-sig") if gt_evolved_file.exists() else None
-    target_prob = (evo_dir / "target_problem.pddl").read_text(encoding="utf-8-sig")
-
-    base_probs = []
-    base_probs_dir = evo_dir / "baseline_benchmark_problems"
-    if base_probs_dir.exists():
-        for rf in sorted(base_probs_dir.glob("*.pddl")):
-            base_probs.append(rf.read_text(encoding="utf-8-sig"))
-
-    cat = meta.get("evolution_category", "DOMAIN_EVOLUTION")
-    return BenchmarkTask(
-        task_id=f"{domain_name}_{evo_name}",
-        domain_family=domain_name,
-        task_type=LifecycleTaskType.DOMAIN_EVOLUTION,
-        title=f"{domain_name.upper()} Evolution: {cat}",
-        natural_language_requirements=spec,
-        initial_domain_pddl=base_dom,
-        initial_problem_pddl=target_prob,
-        evolution_target_problem_pddl=target_prob,
-        baseline_benchmark_problems=base_probs,
-        expected_repair_behavior=meta.get("solvability_preservation_requirement") or meta.get("gatekeeper_requirement"),
-        ground_truth_domain_pddl=gt_dom,
-        ground_truth_problem_pddl=target_prob
-    )
-
 # ==============================================================================
 # Selected Benchmark Domains Suite (Focused Evaluation Scope)
 # ==============================================================================
@@ -239,8 +193,7 @@ def load_selected_evaluation_tasks() -> List[BenchmarkTask]:
     Curates the focused evaluation suite for the 10 selected benchmark domains:
     - 10 Category A Elicitation Tasks (1 per domain)
     - 20 Category B Synthetic Fault Repair Tasks (2 per domain: arity & precondition flaws)
-    - 2 Category C Continuous Evolution Tasks (Blocksworld & Logistics demonstration)
-    Total: 32 tasks.
+    Total: 30 tasks.
     """
     suite = []
     # 1. Category A: 10 Elicitation Tasks
@@ -257,29 +210,15 @@ def load_selected_evaluation_tasks() -> List[BenchmarkTask]:
             if t_flaw:
                 suite.append(t_flaw)
 
-    # 3. Category C: 2 Domain Evolution Demonstrations
-    t_evo_bw = load_evolution_task("blocksworld", "evolution_01_feature_addition")
-    if t_evo_bw:
-        suite.append(t_evo_bw)
-    t_evo_log = load_evolution_task("logistics", "evolution_01_feature_addition")
-    if t_evo_log:
-        suite.append(t_evo_log)
-
     return suite
 
-# Alias for backwards compatibility
-load_canonical_10_evaluation_tasks = load_selected_evaluation_tasks
 
 def load_all_lifecycle_bench_tasks() -> List[BenchmarkTask]:
-    """Dynamically compiles all flaws and evolutions from PDDLLifeCycleBench into BenchmarkTasks."""
+    """Dynamically compiles all flaw tasks from the benchmark directory into BenchmarkTasks."""
     tasks = []
     for domain in list_benchmark_domains():
         for flaw in list_domain_flaws(domain):
             t = load_flaw_task(domain, flaw)
-            if t:
-                tasks.append(t)
-        for evo in list_domain_evolutions(domain):
-            t = load_evolution_task(domain, evo)
             if t:
                 tasks.append(t)
     return tasks
@@ -294,7 +233,7 @@ def load_benchmark_tasks(
 ) -> List[BenchmarkTask]:
     """
     Loads benchmark evaluation tasks from both baseline BENCHMARK_TASKS
-    and PDDLLifeCycleBench. Supports filtering by domain_family or task_type.
+    and the canonical benchmark directory. Supports filtering by domain_family or task_type.
     """
     tasks = list(BENCHMARK_TASKS)
     
@@ -318,20 +257,18 @@ def get_benchmark_task_by_id(task_id: str) -> Optional[BenchmarkTask]:
         if task.task_id == task_id:
             return task
             
-    # Check dynamic PDDLLifeCycleBench
+    # Check dynamic flaws
     if "_" in task_id:
         parts = task_id.split("_", 1)
         domain = parts[0]
         subtask = parts[1]
         if subtask.startswith("flaw_"):
             return load_flaw_task(domain, subtask)
-        elif subtask.startswith("evolution_"):
-            return load_evolution_task(domain, subtask)
             
     return None
 
 def list_benchmark_summary() -> Dict[str, Any]:
-    """Returns summary metadata statistics for PDDLLifeCycleBench."""
+    """Returns summary metadata statistics for the benchmark suite."""
     all_tasks = load_benchmark_tasks()
     summary = {
         "total_tasks": len(all_tasks),
@@ -349,3 +286,60 @@ def list_benchmark_summary() -> Dict[str, Any]:
         summary["task_counts_by_type"][ttype] = summary["task_counts_by_type"].get(ttype, 0) + 1
 
     return summary
+
+
+# ==============================================================================
+# AutoPlanBench Loader Integration
+# ==============================================================================
+
+def list_autoplanbench_domains() -> List[str]:
+    """Returns sorted list of pure STRIPS AutoPlanBench domains."""
+    from benchmark.pure_strips_benchmarks import AUTOPLANBENCH_PURE_STRIPS_DOMAINS
+    return list(AUTOPLANBENCH_PURE_STRIPS_DOMAINS)
+
+
+def load_autoplanbench_synthesis_task(domain_name: str, instance_name: Optional[str] = None) -> Optional[BenchmarkTask]:
+    """Loads a synthesis task from AutoPlanBench dataset."""
+    from benchmark.pure_strips_benchmarks import (
+        load_autoplanbench_original_domain_data,
+        get_autoplanbench_domain_folder,
+        list_autoplanbench_problem_files
+    )
+    try:
+        unified_prompt, dom_desc, prob_desc, ref_dom, ref_inst, prob_files = load_autoplanbench_original_domain_data(domain_name, instance_name)
+    except Exception as e:
+        print(f"[AutoPlanBench Loader Error]: {e}")
+        return None
+
+    if not ref_dom or not ref_inst:
+        return None
+
+    inst_stem = Path(instance_name).stem if instance_name else (Path(prob_files[0]).stem if prob_files else "instance-1")
+    d_folder = get_autoplanbench_domain_folder(domain_name)
+    probs_dir = d_folder / "orig_problems"
+    if not probs_dir.exists():
+        probs_dir = d_folder / "problems"
+
+    hist_pddls = []
+    if probs_dir.exists():
+        for pf in prob_files[:5]:
+            p_path = probs_dir / pf
+            if p_path.exists():
+                try:
+                    hist_pddls.append(p_path.read_text(encoding="utf-8"))
+                except Exception:
+                    pass
+
+    return BenchmarkTask(
+        task_id=f"apb_{domain_name}_{inst_stem}",
+        domain_family=domain_name,
+        task_type=LifecycleTaskType.ELICITATION,
+        title=f"AutoPlanBench {domain_name.capitalize()} Synthesis ({instance_name or (prob_files[0] if prob_files else 'instance-1.pddl')})",
+        natural_language_requirements=unified_prompt,
+        initial_domain_pddl=None,
+        initial_problem_pddl=ref_inst,
+        ground_truth_domain_pddl=ref_dom,
+        ground_truth_problem_pddl=ref_inst,
+        benchmark_problem_distribution=hist_pddls,
+        baseline_benchmark_problems=hist_pddls
+    )

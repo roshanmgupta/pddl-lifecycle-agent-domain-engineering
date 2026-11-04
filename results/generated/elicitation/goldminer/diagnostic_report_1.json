@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-10-23T03:19:04.960920",
+  "domain_name": "goldminer",
+  "run_index": 1,
+  "verification_status": "PASSED",
+  "repair_iterations_used": 1,
+  "initial_verification_errors": [
+    "VAL Error: Type-checking move_robot\n...action passes type checking.\nType-checking pick_up_laser\nObject with unknown type: laser\n\nErrors: 0, warnings: 3\n\nError: Error in type-checking!"
+  ],
+  "final_verification_errors": [],
+  "diagnostic_issues_count": 6,
+  "diagnostic_reports": [
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pick_up_laser",
+      "raw_log": "Object with unknown type: laser",
+      "suggested_repair_hint": "Symbol 'laser' referenced in domain action 'pick_up_laser' is treated as a constant/object but is not declared in domain 'constants'. In Classical PDDL 2.1, domain action schemas cannot access problem ':objects'. To resolve this, either: 1) Declare 'laser - <type>' in domain 'constants' (and remove 'laser' from problem ':objects' to prevent duplicate object errors), 2) Declare it as an action parameter in 'pick_up_laser', or 3) Model the condition as a state predicate (e.g. unary predicate) without referencing an undeclared constant."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pick_up_bomb",
+      "raw_log": "Object with unknown type: bomb",
+      "suggested_repair_hint": "In domain.types, declare 'bomb - object' to ensure the action 'pick_up_bomb' can accept the bomb object."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pick_gold",
+      "raw_log": "Object with unknown type: gold",
+      "suggested_repair_hint": "In domain.types, declare 'gold - object' to ensure the action 'pick_gold' can accept the gold object."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "has-soft-rock",
+      "raw_log": "Object with unknown type: soft_rock",
+      "suggested_repair_hint": "In domain.types, declare 'soft_rock - object' to ensure the predicate 'has-soft-rock' can accept the soft rock object."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "has-hard-rock",
+      "raw_log": "Object with unknown type: hard_rock",
+      "suggested_repair_hint": "In domain.types, declare 'hard_rock - object' to ensure the predicate 'has-hard-rock' can accept the hard rock object."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "fire_laser",
+      "raw_log": "Predicate 'has-gold' is deleted by ['fire_laser'] without any producing action, permanently disabling actions ['pick_gold']!",
+      "suggested_repair_hint": "In domain.actions.fire_laser, REMOVE the delete effect '(not (has-gold ?l2))' to prevent permanently disabling the ability to pick gold."
+    }
+  ],
+  "formatted_diagnostic_feedback": "",
+  "plan_summary": {
+    "is_solvable": true,
+    "plan_length": 5,
+    "search_time_seconds": 0.000119,
+    "val_plan_valid": true,
+    "plan_steps": [
+      "(move_robot robot1 f0-0f f1-0f)",
+      "(pick_up_bomb robot1 f1-0f)",
+      "(detonate_bomb robot1 f1-0f f1-1f)",
+      "(move_robot robot1 f1-0f f1-1f)",
+      "(pick_gold robot1 f1-1f)"
+    ]
+  }
+}

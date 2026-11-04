@@ -1,17 +1,14 @@
 import json
 import re
 import time
-from schemas.pddl_blueprint import DomainBlueprint
+from nodes.schemas.pddl_blueprint import DomainBlueprint
 from config.model_config import get_phase_model, invoke_structured_llm_with_telemetry
 from config.pddl_standards import STANDARD_CLASSICAL_PDDL_RULES
-from tools.blueprint_parser import extract_pddl_problem_metadata
+from nodes.pddl_to_ast_parser import extract_pddl_problem_metadata
 
 
 def run_elicitation_node(state: dict) -> dict:
-    """
-    Phase 1.2 / 2.1 Node: Parses natural language requirements and the fixed target problem
-    contract (P_gold) into a formal PDDL DomainBlueprint (D_gen).
-    """
+    """Parses requirements into a DomainBlueprint."""
     requirements_text = state.get("requirements", "")
     formatted_feedback = state.get("formatted_diagnostic_feedback", "")
     verification_errors = state.get("verification_errors", [])
@@ -19,7 +16,7 @@ def run_elicitation_node(state: dict) -> dict:
     problem_pddl = state.get("initial_problem_pddl") or state.get("generated_problem_pddl") or ""
     prob_meta = extract_pddl_problem_metadata(problem_pddl) if problem_pddl else {}
 
-    # Preserve pre-loaded faulty blueprint for synthetic fault repair tasks
+    # Preserve pre-loaded faulty blueprint if present
     if existing_domain_bp and verification_errors and not formatted_feedback:
         print("[Elicitation Node]: Pre-loaded faulty domain blueprint detected for synthetic repair task. Preserving blueprint for validation & repair loop.")
         return {
@@ -33,27 +30,16 @@ def run_elicitation_node(state: dict) -> dict:
     elif verification_errors:
         feedback_context = f"\nPrevious Diagnostic Feedback / Verification Errors to resolve:\n{verification_errors}\n"
         print("Feedback Context for LLM:\n", feedback_context)
-    elif existing_domain_bp and existing_domain_bp.get("actions"):
-        feedback_context = (
-            f"\nBaseline / Reference Domain Blueprint to evolve or extend:\n```json\n"
-            f"{json.dumps(existing_domain_bp, indent=2)}\n```\n"
-            f"Extend the domain to satisfy the new requirements while preserving backward compatibility with the existing actions, types, and predicates.\n"
-        )
-        print("[Elicitation Node]: Baseline domain blueprint provided for domain evolution.")
 
     target_dname = prob_meta.get("domain_name", "generated_domain")
 
-    # ==============================================================================
-    # H1 Formulation: Ground-Truth Types, Predicates, and Action Signatures Provided
-    # Constrains LLM generation strictly to :preconditions and :effects schemas
-    # (Directly addresses professor's mandate to make generated and GT domains comparable)
-    # ==============================================================================
+    # Generate preconditions and effects using reference signatures if provided
     ref_dom_pddl = state.get("reference_domain_pddl") or state.get("ground_truth_domain_pddl")
     use_fixed_signatures = bool(ref_dom_pddl and ref_dom_pddl.strip())
 
     if use_fixed_signatures:
-        from tools.blueprint_parser import parse_pddl_domain_to_blueprint
-        from schemas.pddl_blueprint import DomainActionSemantics, PddlActionSchema
+        from nodes.pddl_to_ast_parser import parse_pddl_domain_to_blueprint
+        from nodes.schemas.pddl_blueprint import DomainActionSemantics, PddlActionSchema
 
         ref_bp = parse_pddl_domain_to_blueprint(ref_dom_pddl)
         target_dname = ref_bp.get("domain_name") or target_dname
@@ -122,8 +108,8 @@ def run_elicitation_node(state: dict) -> dict:
         )
         elapsed = time.time() - start_t
 
-        # Merge generated preconditions and effects into the complete DomainBlueprint
-        from tools.blueprint_parser import clean_blueprint_expression, alpha_convert_action_variables
+        # Merge action semantics into DomainBlueprint
+        from nodes.pddl_to_ast_parser import clean_blueprint_expression, alpha_convert_action_variables
         def _norm_token(s: str) -> str:
             clean = re.sub(r"^(domain\.)?(actions?|predicates?|types?)\.", "", str(s).strip("'\"` "), flags=re.IGNORECASE)
             return clean.lower().replace("-", "").replace("_", "")
@@ -137,7 +123,7 @@ def run_elicitation_node(state: dict) -> dict:
             gen_sem = gen_actions_map.get(_norm_token(aname))
             raw_pre = [clean_blueprint_expression(p) for p in (gen_sem.preconditions if gen_sem else []) if clean_blueprint_expression(p)]
             raw_eff = [clean_blueprint_expression(p) for p in (gen_sem.effects if gen_sem else []) if clean_blueprint_expression(p)]
-            # Universal Alpha-Conversion to align dummy variables to declared action parameters
+            # Align variables to declared action parameters
             conv_pre, conv_eff = alpha_convert_action_variables(
                 aname,
                 fa["parameters"],
@@ -166,10 +152,7 @@ def run_elicitation_node(state: dict) -> dict:
         state["fixed_signatures"] = True
 
     else:
-        # ==============================================================================
-        # [PRESERVED OLD LOGIC]: Full Domain Elicitation from Scratch (Unconstrained)
-        # Retained for backward-compatibility when no reference domain is provided.
-        # ==============================================================================
+        # Full domain elicitation when no reference domain is provided
         prompt = f"""
     You are an expert PDDL Knowledge Engineer. Your task is to analyze the following requirements text and construct a single, valid JSON object that strictly conforms to the DomainBlueprint schema (D_gen).
     You only need to generate the PDDL Domain model ("domain_name", "requirements", "types", "constants", "predicates", "actions").
@@ -252,7 +235,7 @@ def run_elicitation_node(state: dict) -> dict:
             dom_dict["domain_name"] = prob_meta["domain_name"]
         state["pddl_domain_blueprint"] = dom_dict
 
-    # Update Telemetry Metrics
+    # Update telemetry
     state["total_prompt_tokens"] = state.get("total_prompt_tokens", 0) + usage.get("prompt_tokens", 0)
     state["total_completion_tokens"] = state.get("total_completion_tokens", 0) + usage.get("completion_tokens", 0)
     state["total_tokens"] = state.get("total_tokens", 0) + usage.get("total_tokens", 0)

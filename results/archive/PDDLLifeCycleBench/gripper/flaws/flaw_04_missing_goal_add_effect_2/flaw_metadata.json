@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_04_missing_goal_add_effect_2",
+  "domain": "gripper",
+  "flaw_category": "ACTION_EFFECT_DELETION",
+  "mutation_operator": "OPERATOR_2_REMOVE_GOAL_ADD_EFFECT",
+  "target_action": "drop",
+  "description": "Removed required goal add effect '(at ?obj ?room)' from action 'drop'",
+  "ground_truth_fix": "Restore add effect '(at ?obj ?room)' in action 'drop' effects.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

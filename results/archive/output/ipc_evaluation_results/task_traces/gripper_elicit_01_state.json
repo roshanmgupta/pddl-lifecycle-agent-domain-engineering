@@ -1,0 +1,11 @@
+{
+  "task_id": "gripper_elicit_01",
+  "domain_family": "gripper",
+  "task_type": "ELICITATION",
+  "iteration_count": 1,
+  "total_tokens": 2191,
+  "estimated_cost_usd": 0.000392,
+  "execution_time_seconds": 40.76,
+  "diagnostic_reports": [],
+  "verification_errors": []
+}

@@ -12,7 +12,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from tools.causal_fault_analyzer import run_causal_fault_analysis
-from nodes.generation import compile_pddl_programmatically
+from nodes.ast_to_pddl_compiler import compile_pddl_programmatically
 from nodes.fault_localization import parse_fast_downward_log, RepairOperationType
 
 

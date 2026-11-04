@@ -1,8 +1,0 @@
-{
-    "flaw_category":  "STATE_REACHABILITY_COLLAPSE",
-    "target_action":  "UNLOAD-TRUCK",
-    "injected_restriction":  "(specialized_mode_enabled)",
-    "description":  "Modified action 'UNLOAD-TRUCK' to require an over-constrained precondition collapsing forward state reachability.",
-    "ground_truth_fix":  "Eliminate over-constrained precondition from action 'UNLOAD-TRUCK' to restore reachability to the goal state.",
-    "expected_oracle_signal":  "Fast Downward forward search halts with infinity heuristic; goal is unreachable from initial state."
-}

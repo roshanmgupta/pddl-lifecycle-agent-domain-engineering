@@ -1,0 +1,2 @@
+1: (push-unitary-pipe s13 b2 a1 a2 b5 gasoleo oca1)
+2: (push-unitary-pipe s13 b3 a1 a3 b2 rat-a gasoleo)

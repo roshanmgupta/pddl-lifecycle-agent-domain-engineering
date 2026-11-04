@@ -1,0 +1,2 @@
+domain,agent_type,is_syntax_valid,is_solvable,planner_timeout,executability_valid,feasibility_valid,interpretability_valid,semantic_soundness,e2e_success,plan_length,plan_cost,search_time_sec,semantic_verdict
+gripper,CLOSED_LOOP_AST_AGENT,True,True,False,True,True,True,True,True,5,5,0.000143,SOUND_AND_CONVERSANT

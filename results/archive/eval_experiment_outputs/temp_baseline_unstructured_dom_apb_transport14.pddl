@@ -1,0 +1,52 @@
+(define (domain transport)
+  (:requirements :typing)
+  (:types location target locatable vehicle - locatable package - locatable capacity-number)
+  (:predicates
+    (road ?l1 ?l2 - location)
+    (at ?x - locatable ?v - location)
+    (in ?x - package ?v - vehicle)
+    (capacity ?v - vehicle ?s1 - capacity-number)
+    (capacity-predecessor ?s1 ?s2 - capacity-number)
+  )
+  (:action drive
+    :parameters (?v - vehicle ?l1 - location ?l2 - location)
+    :precondition (and
+      (at ?v ?l1)
+      (road ?l1 ?l2)
+    )
+    :effect (and
+      (at ?v ?l2)
+      (not (at ?v ?l1))
+    )
+  )
+  (:action pick-up
+    :parameters (?v - vehicle ?l - location ?p - package ?s1 - capacity-number ?s2 - capacity-number)
+    :precondition (and
+      (at ?v ?l)
+      (at ?p ?l)
+      (capacity-predecessor ?s2 ?s1)
+      (capacity ?v ?s1)
+    )
+    :effect (and
+      (in ?p ?v)
+      (capacity ?v ?s2)
+      (not (at ?p ?l))
+      (not (capacity ?v ?s1))
+    )
+  )
+  (:action drop
+    :parameters (?v - vehicle ?l - location ?p - package ?s1 - capacity-number ?s2 - capacity-number)
+    :precondition (and
+      (at ?v ?l)
+      (in ?p ?v)
+      (capacity-predecessor ?s1 ?s2)
+      (capacity ?v ?s1)
+    )
+    :effect (and
+      (at ?p ?l)
+      (capacity ?v ?s2)
+      (not (in ?p ?v))
+      (not (capacity ?v ?s1))
+    )
+  )
+)

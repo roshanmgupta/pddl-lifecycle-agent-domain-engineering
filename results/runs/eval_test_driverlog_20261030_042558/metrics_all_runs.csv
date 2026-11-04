@@ -1,0 +1,4 @@
+task_id,domain,task_type,agent,run_idx,init_syntax_ok,is_syntax_valid,is_solvable,soundness_valid,completeness_valid,e2e_success,iterations_used,prompt_tokens,completion_tokens,total_tokens,estimated_cost_usd,execution_time_sec,behavioral_code,defect_class,error_summary
+driverlog02-bfs_elicit,driverlog02-bfs,ELICITATION,CLOSED_LOOP_AST_AGENT,1,True,True,True,True,True,True,1,2054,602,2656,0.000669,31.96,A.1: First-Attempt Direct Success,NONE,
+driverlog02-bfs_elicit,driverlog02-bfs,ELICITATION,ABLATION_NO_AST,1,True,True,True,True,True,True,1,1189,661,1850,0.000575,35.88,A.1: First-Attempt Direct Success,NONE,
+driverlog02-bfs_elicit,driverlog02-bfs,ELICITATION,ZERO_SHOT,1,True,True,True,True,True,True,1,1189,661,1850,0.000575,34.63,A.1: First-Attempt Direct Success,NONE,

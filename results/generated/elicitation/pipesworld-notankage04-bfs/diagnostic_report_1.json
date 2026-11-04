@@ -1,0 +1,305 @@
+{
+  "timestamp": "2026-10-23T03:28:08.556978",
+  "domain_name": "pipesworld-notankage04-bfs",
+  "run_index": 1,
+  "verification_status": "PASSED",
+  "repair_iterations_used": 5,
+  "initial_verification_errors": [
+    "VAL Error: Type-checking push-start-pipe\n...action passes type checking.\nType-checking push-end-pipe\n...action passes type checking.\nType-checking pop-start-pipe\n...action passes type checking.\nType-checking pop-end-pipe\n...action passes type checking.\nType-checking push-unitary-pipe\n...action passes type checking.\nType-checking pop-unitary-pipe\n...action passes type checking.\nType problem with proposition (may-interface lco gasoleo) - parameter 1 is incorrectly typed\nType-checking initial state failed\n\nType problem in problem specification!"
+  ],
+  "final_verification_errors": [],
+  "diagnostic_issues_count": 40,
+  "diagnostic_reports": [
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "may-interface",
+      "raw_log": "Type problem with proposition (may-interface lco gasoleo) - parameter 1 is incorrectly typed",
+      "suggested_repair_hint": "Type mismatch on proposition '(may-interface lco ...)': Object/parameter 'lco' has declared type 'object', but predicate 'may-interface' was declared too narrowly expecting subtype 'product' (which already inherits from 'object'). In domain 'predicates', generalize parameter 1 of predicate 'may-interface' to supertype 'object' (e.g. '(may-interface ... ?x - object ...)'). Alternatively, if problem requirements designate that 'lco' is a specialized 'product', declare 'lco - product' in problem ':objects'. Do NOT invert domain 'types' by declaring 'object' as a subtype of 'product'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Undeclared predicate in problem initial_state: Atom '(product B0 oc1b)' uses predicate symbol 'product', which is NOT declared in domain 'predicates'.",
+      "suggested_repair_hint": "Action 'push-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'push-start-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Action 'push-start-pipe': Action 'push-start-pipe' parameter '?a' requires type 'normal-pipe', but problem :objects and domain :constants contain ZERO objects of type 'normal-pipe' (or its subtypes)!",
+      "suggested_repair_hint": "Action 'push-start-pipe' parameter '?a' requires type 'normal-pipe', but problem :objects and domain :constants contain ZERO objects of type 'normal-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'normal-pipe' according to the requirements (e.g. declare them as 'normal-pipe' instead of a broad supertype), or if 'push-start-pipe' should operate on the broader supertype, generalize parameter '?a' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Action 'push-start-pipe': Action 'push-start-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)!",
+      "suggested_repair_hint": "In problem ':objects', declare relevant objects as type 'product' (e.g. 'B1 - product', 'B2 - product', 'B3 - product', 'B4 - product', 'B5 - product')."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Action 'push-start-pipe': Action 'push-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)!",
+      "suggested_repair_hint": "In problem ':objects', declare relevant objects as type 'product' (e.g. 'B1 - product', 'B2 - product', 'B3 - product', 'B4 - product', 'B5 - product')."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-end-pipe",
+      "raw_log": "Action 'push-end-pipe': Action 'push-end-pipe' parameter '?a' requires type 'push-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'push-updated-pipe' (or its subtypes)!",
+      "suggested_repair_hint": "Action 'push-end-pipe' parameter '?a' requires type 'push-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'push-updated-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'push-updated-pipe' according to the requirements (e.g. declare them as 'push-updated-pipe' instead of a broad supertype), or if 'push-end-pipe' should operate on the broader supertype, generalize parameter '?a' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-start-pipe",
+      "raw_log": "Action 'pop-start-pipe': Action 'pop-start-pipe' parameter '?a' requires type 'normal-pipe', but problem :objects and domain :constants contain ZERO objects of type 'normal-pipe' (or its subtypes)!",
+      "suggested_repair_hint": "Action 'pop-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'pop-start-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-end-pipe",
+      "raw_log": "Action 'pop-end-pipe': Action 'pop-end-pipe' parameter '?a' requires type 'pop-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'pop-updated-pipe' (or its subtypes)!",
+      "suggested_repair_hint": "Action 'pop-end-pipe' parameter '?a' requires type 'pop-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'pop-updated-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'pop-updated-pipe' according to the requirements (e.g. declare them as 'pop-updated-pipe' instead of a broad supertype), or if 'pop-end-pipe' should operate on the broader supertype, generalize parameter '?a' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-unitary-pipe",
+      "raw_log": "Action 'push-unitary-pipe': Action 'push-unitary-pipe' parameter '?a' requires type 'unitary-pipe', but problem :objects and domain :constants contain ZERO objects of type 'unitary-pipe' (or its subtypes)!",
+      "suggested_repair_hint": "Action 'push-unitary-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'push-unitary-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-unitary-pipe",
+      "raw_log": "Action 'pop-unitary-pipe': Action 'pop-unitary-pipe' parameter '?a' requires type 'unitary-pipe', but problem :objects and domain :constants contain ZERO objects of type 'unitary-pipe' (or its subtypes)!",
+      "suggested_repair_hint": "Action 'pop-unitary-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'pop-unitary-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "domain.predicates",
+      "raw_log": "Type problem with proposition (product b0 oc1b) - parameter 2 is incorrectly typed",
+      "suggested_repair_hint": "In domain 'predicates', generalize parameter 2 of predicate 'product' to supertype 'object' (e.g., '(product ?b - batch-atom ?x - object)'). This resolves the type mismatch for 'oc1b'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Action 'push-start-pipe': Action 'push-start-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)!",
+      "suggested_repair_hint": "Action 'push-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'push-start-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-start-pipe",
+      "raw_log": "Action 'pop-start-pipe': Action 'pop-start-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)!",
+      "suggested_repair_hint": "Action 'pop-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'pop-start-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "product",
+      "raw_log": "Type problem with proposition (product b0 oc1b) - parameter 2 is incorrectly typed",
+      "suggested_repair_hint": "Type mismatch on proposition '(product oc1b ...)': Object/parameter 'oc1b' has declared type 'object', but predicate 'product' was declared too narrowly expecting subtype 'product' (which already inherits from 'object'). In domain 'predicates', generalize parameter 2 of predicate 'product' to supertype 'object' (e.g. '(product ... ?x - object ...)'). Alternatively, if problem requirements designate that 'oc1b' is a specialized 'product', declare 'oc1b - product' in problem ':objects'. Do NOT invert domain 'types' by declaring 'object' as a subtype of 'product'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Action 'push-start-pipe': Action 'push-start-pipe' parameter '?a' requires type 'normal-pipe', but problem :objects and domain :constants contain ZERO objects of type 'normal-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "Action 'push-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'push-start-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Action 'push-start-pipe': Action 'push-start-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype)."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Action 'push-start-pipe': Action 'push-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype)."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-end-pipe",
+      "raw_log": "Action 'push-end-pipe': Action 'push-end-pipe' parameter '?a' requires type 'push-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'push-updated-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "Action 'push-end-pipe' parameter '?a' requires type 'push-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'push-updated-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'push-updated-pipe' according to the requirements (e.g. declare them as 'push-updated-pipe' instead of a broad supertype), or if 'push-end-pipe' should operate on the broader supertype, generalize parameter '?a' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-start-pipe",
+      "raw_log": "Action 'pop-start-pipe': Action 'pop-start-pipe' parameter '?a' requires type 'normal-pipe', but problem :objects and domain :constants contain ZERO objects of type 'normal-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "Action 'pop-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'pop-start-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-start-pipe",
+      "raw_log": "Action 'pop-start-pipe': Action 'pop-start-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype)."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-start-pipe",
+      "raw_log": "Action 'pop-start-pipe': Action 'pop-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype)."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-end-pipe",
+      "raw_log": "Action 'pop-end-pipe': Action 'pop-end-pipe' parameter '?a' requires type 'pop-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'pop-updated-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "Action 'pop-end-pipe' parameter '?a' requires type 'pop-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'pop-updated-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'pop-updated-pipe' according to the requirements (e.g. declare them as 'pop-updated-pipe' instead of a broad supertype), or if 'pop-end-pipe' should operate on the broader supertype, generalize parameter '?a' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-unitary-pipe",
+      "raw_log": "Action 'push-unitary-pipe': Action 'push-unitary-pipe' parameter '?a' requires type 'unitary-pipe', but problem :objects and domain :constants contain ZERO objects of type 'unitary-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "Action 'push-unitary-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'push-unitary-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-unitary-pipe",
+      "raw_log": "Action 'push-unitary-pipe': Action 'push-unitary-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype)."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-unitary-pipe",
+      "raw_log": "Action 'push-unitary-pipe': Action 'push-unitary-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype)."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-unitary-pipe",
+      "raw_log": "Action 'pop-unitary-pipe': Action 'pop-unitary-pipe' parameter '?a' requires type 'unitary-pipe', but problem :objects and domain :constants contain ZERO objects of type 'unitary-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "Action 'pop-unitary-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'pop-unitary-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-unitary-pipe",
+      "raw_log": "Action 'pop-unitary-pipe': Action 'pop-unitary-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype)."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-unitary-pipe",
+      "raw_log": "Action 'pop-unitary-pipe': Action 'pop-unitary-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype)."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Action 'push-start-pipe': Action 'push-start-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "Action 'push-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'push-start-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_INSERTION",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Action 'push-start-pipe': Action 'push-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, ADD object 'gasoleo' as type 'product' to ensure the action 'push-start-pipe' can be grounded."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-start-pipe",
+      "raw_log": "Action 'pop-start-pipe': Action 'pop-start-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "Action 'pop-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'pop-start-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_INSERTION",
+      "faulty_element": "pop-start-pipe",
+      "raw_log": "Action 'pop-start-pipe': Action 'pop-start-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, ADD object 'oca1' as type 'product' to ensure the action 'pop-start-pipe' can be grounded."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-unitary-pipe",
+      "raw_log": "Action 'push-unitary-pipe': Action 'push-unitary-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "Action 'push-unitary-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'push-unitary-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_INSERTION",
+      "faulty_element": "push-unitary-pipe",
+      "raw_log": "Action 'push-unitary-pipe': Action 'push-unitary-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, ADD object 'B2' as type 'product' to ensure the action 'push-unitary-pipe' can be grounded."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-unitary-pipe",
+      "raw_log": "Action 'pop-unitary-pipe': Action 'pop-unitary-pipe' parameter '?f' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "Action 'pop-unitary-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'product' according to the requirements (e.g. declare them as 'product' instead of a broad supertype), or if 'pop-unitary-pipe' should operate on the broader supertype, generalize parameter '?g' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_INSERTION",
+      "faulty_element": "pop-unitary-pipe",
+      "raw_log": "Action 'pop-unitary-pipe': Action 'pop-unitary-pipe' parameter '?g' requires type 'product', but problem :objects and domain :constants contain ZERO objects of type 'product' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable.",
+      "suggested_repair_hint": "In problem.objects, ADD object 'B4' as type 'product' to ensure the action 'pop-unitary-pipe' can be grounded."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "push-end-pipe",
+      "raw_log": "Action 'push-end-pipe' parameter '?a' requires type 'push-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'push-updated-pipe' (or its subtypes)!",
+      "suggested_repair_hint": "Action 'push-end-pipe' parameter '?a' requires type 'push-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'push-updated-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'push-updated-pipe' according to the requirements (e.g. declare them as 'push-updated-pipe' instead of a broad supertype), or if 'push-end-pipe' should operate on the broader supertype, generalize parameter '?a' in domain 'actions'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "pop-end-pipe",
+      "raw_log": "Action 'pop-end-pipe' parameter '?a' requires type 'pop-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'pop-updated-pipe' (or its subtypes)!",
+      "suggested_repair_hint": "Action 'pop-end-pipe' parameter '?a' requires type 'pop-updated-pipe', but problem :objects and domain :constants contain ZERO objects of type 'pop-updated-pipe' (or its subtypes)! This action can NEVER be grounded (0 groundings), making any plan relying on it unreachable. To resolve: In problem ':objects', declare the relevant objects as type 'pop-updated-pipe' according to the requirements (e.g. declare them as 'pop-updated-pipe' instead of a broad supertype), or if 'pop-end-pipe' should operate on the broader supertype, generalize parameter '?a' in domain 'actions'."
+    },
+    {
+      "error_category": "SYNTAX_PARSE",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "push-start-pipe",
+      "raw_log": "Causal clash in preconditions: Precondition '(first-in ?e ?a)' is explicitly DELETED by producer 'pop-end-pipe' when establishing '(first-in ?e ?a)'.",
+      "suggested_repair_hint": "In domain.actions.push-start-pipe, ensure that the precondition '(first-in ?e ?a)' does not conflict with effects from 'pop-end-pipe'. Review the action effects to maintain consistency."
+    },
+    {
+      "error_category": "SYNTAX_PARSE",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "pop-start-pipe",
+      "raw_log": "Causal clash in preconditions: Precondition '(normal ?a)' is explicitly DELETED by producer 'push-start-pipe' when establishing '(last-in ?e ?a)'.",
+      "suggested_repair_hint": "In domain.actions.pop-start-pipe, ensure that the precondition '(normal ?a)' does not conflict with effects from 'push-start-pipe'. Review the action effects to maintain consistency."
+    }
+  ],
+  "formatted_diagnostic_feedback": "",
+  "plan_summary": {
+    "is_solvable": true,
+    "plan_length": 2,
+    "search_time_seconds": 6.7e-05,
+    "val_plan_valid": true,
+    "plan_steps": [
+      "(push-unitary-pipe s13 b2 a1 a2 b5 gasoleo oca1)",
+      "(push-unitary-pipe s13 b3 a1 a3 b2 rat-a gasoleo)"
+    ]
+  }
+}

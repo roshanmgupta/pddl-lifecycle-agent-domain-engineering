@@ -1,0 +1,6 @@
+Domain,Architecture,Total Runs,Passed Runs,Majority Success,Mean SVR,Mean Penalized Iterations,Mean Latency (s)
+gripper,ABLATION_NO_AST,1,1,PASS,1.0,1.0,3.43
+gripper,ABLATION_NO_TRIAGE,1,1,PASS,1.0,1.0,2.85
+gripper,CLOSED_LOOP_AST_AGENT,1,1,PASS,1.0,1.0,5.1
+gripper,UNSTRUCTURED_RETRY,1,1,PASS,1.0,1.0,3.04
+gripper,ZERO_SHOT,1,1,PASS,1.0,1.0,3.27

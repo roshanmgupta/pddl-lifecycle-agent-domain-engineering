@@ -1,0 +1,4 @@
+task_id,domain,agent,runs_evaluated,runs_succeeded,task_succeeds,mean_iterations_penalized,svr_rate,mean_prompt_tokens,mean_completion_tokens,mean_total_tokens,mean_latency_sec
+driverlog02-bfs_elicit,driverlog02-bfs,CLOSED_LOOP_AST_AGENT,1,1,True,1.0,1.0,2054.0,602.0,2656.0,31.96
+driverlog02-bfs_elicit,driverlog02-bfs,ABLATION_NO_AST,1,1,True,1.0,1.0,1189.0,661.0,1850.0,35.88
+driverlog02-bfs_elicit,driverlog02-bfs,ZERO_SHOT,1,1,True,1.0,1.0,1189.0,661.0,1850.0,34.63

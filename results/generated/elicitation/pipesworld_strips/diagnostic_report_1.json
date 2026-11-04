@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-11-02T03:09:54.980544",
+  "domain_name": "pipesworld_strips",
+  "run_index": 1,
+  "verification_status": "FAILED",
+  "repair_iterations_used": 5,
+  "initial_verification_errors": [
+    "VAL Error: Problem in domain definition!"
+  ],
+  "final_verification_errors": [
+    "VAL Error: Problem in domain definition!"
+  ],
+  "diagnostic_issues_count": 5,
+  "diagnostic_reports": [
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "PUSH-START",
+      "raw_log": "Parameter '?product-batch-atom-in - product' in action 'PUSH-START' has ZERO objects in the problem matching type 'product'.",
+      "suggested_repair_hint": "Parameter '?product-batch-atom-in - product' in action 'PUSH-START' has ZERO objects in the problem matching type 'product'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "PUSH-START",
+      "raw_log": "Parameter '?product-first-batch - product' in action 'PUSH-START' has ZERO objects in the problem matching type 'product'.",
+      "suggested_repair_hint": "Parameter '?product-first-batch - product' in action 'PUSH-START' has ZERO objects in the problem matching type 'product'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "PUSH-END",
+      "raw_log": "Parameter '?product-last-batch - product' in action 'PUSH-END' has ZERO objects in the problem matching type 'product'.",
+      "suggested_repair_hint": "Parameter '?product-last-batch - product' in action 'PUSH-END' has ZERO objects in the problem matching type 'product'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "POP-START",
+      "raw_log": "Parameter '?product-batch-atom-in - product' in action 'POP-START' has ZERO objects in the problem matching type 'product'.",
+      "suggested_repair_hint": "Parameter '?product-batch-atom-in - product' in action 'POP-START' has ZERO objects in the problem matching type 'product'."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "POP-START",
+      "raw_log": "Parameter '?product-last-batch - product' in action 'POP-START' has ZERO objects in the problem matching type 'product'.",
+      "suggested_repair_hint": "Parameter '?product-last-batch - product' in action 'POP-START' has ZERO objects in the problem matching type 'product'."
+    }
+  ],
+  "formatted_diagnostic_feedback": "### Diagnostic Failure Analysis Report (Layered Fault Localization Priority: Tier 4 (Precondition & Effect Refinements)):\nCRITICAL GUIDANCE: Focus repairs strictly on resolving these top-priority causal blockers before modifying unrelated actions.\n\n\nIssue #1:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: TYPE_ARITY_ALIGNMENT\n  - [LOCATION / COMPONENT]: PUSH-START\n  - [DESCRIPTION / RAW TRACE]: Parameter '?product-batch-atom-in - product' in action 'PUSH-START' has ZERO objects in the problem matching type 'product'.\n  - [SUGGESTION FOR REPAIR]: Parameter '?product-batch-atom-in - product' in action 'PUSH-START' has ZERO objects in the problem matching type 'product'.\n\nIssue #2:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: TYPE_ARITY_ALIGNMENT\n  - [LOCATION / COMPONENT]: PUSH-START\n  - [DESCRIPTION / RAW TRACE]: Parameter '?product-first-batch - product' in action 'PUSH-START' has ZERO objects in the problem matching type 'product'.\n  - [SUGGESTION FOR REPAIR]: Parameter '?product-first-batch - product' in action 'PUSH-START' has ZERO objects in the problem matching type 'product'.\n\nIssue #3:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: TYPE_ARITY_ALIGNMENT\n  - [LOCATION / COMPONENT]: PUSH-END\n  - [DESCRIPTION / RAW TRACE]: Parameter '?product-last-batch - product' in action 'PUSH-END' has ZERO objects in the problem matching type 'product'.\n  - [SUGGESTION FOR REPAIR]: Parameter '?product-last-batch - product' in action 'PUSH-END' has ZERO objects in the problem matching type 'product'.\n\nIssue #4:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: TYPE_ARITY_ALIGNMENT\n  - [LOCATION / COMPONENT]: POP-START\n  - [DESCRIPTION / RAW TRACE]: Parameter '?product-batch-atom-in - product' in action 'POP-START' has ZERO objects in the problem matching type 'product'.\n  - [SUGGESTION FOR REPAIR]: Parameter '?product-batch-atom-in - product' in action 'POP-START' has ZERO objects in the problem matching type 'product'.\n\nIssue #5:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: TYPE_ARITY_ALIGNMENT\n  - [LOCATION / COMPONENT]: POP-START\n  - [DESCRIPTION / RAW TRACE]: Parameter '?product-last-batch - product' in action 'POP-START' has ZERO objects in the problem matching type 'product'.\n  - [SUGGESTION FOR REPAIR]: Parameter '?product-last-batch - product' in action 'POP-START' has ZERO objects in the problem matching type 'product'."
+}

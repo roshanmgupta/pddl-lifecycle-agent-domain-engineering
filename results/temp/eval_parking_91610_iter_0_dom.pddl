@@ -1,0 +1,40 @@
+(define (domain parking)
+  (:requirements :strips :typing)
+
+  (:types
+    car curb - object
+  )
+
+  (:predicates
+    (at-curb ?car - object)
+    (at-curb-num ?car - object ?curb - object)
+    (behind-car ?car - object ?front-car - object)
+    (car-clear ?car - object)
+    (curb-clear ?curb - object)
+  )
+
+  (:action move-curb-to-curb
+    :parameters (?car - car ?curbsrc - curb ?curbdest - curb)
+    :precondition (and (car-clear ?car) (curb-clear ?curbdest) (at-curb-num ?car ?curbsrc))
+    :effect (and (curb-clear ?curbsrc) (at-curb-num ?car ?curbdest) (not (curb-clear ?curbdest)) (not (at-curb-num ?car ?curbsrc)))
+  )
+
+  (:action move-curb-to-car
+    :parameters (?car - car ?curbsrc - curb ?cardest - car)
+    :precondition (and (car-clear ?car) (car-clear ?cardest) (at-curb-num ?car ?curbsrc) (at-curb ?cardest))
+    :effect (and (curb-clear ?curbsrc) (behind-car ?car ?cardest) (not (car-clear ?cardest)) (not (at-curb-num ?car ?curbsrc)) (not (at-curb ?car)))
+  )
+
+  (:action move-car-to-curb
+    :parameters (?car - car ?carsrc - car ?curbdest - curb)
+    :precondition (and (car-clear ?car) (curb-clear ?curbdest) (behind-car ?car ?carsrc))
+    :effect (and (car-clear ?carsrc) (at-curb-num ?car ?curbdest) (at-curb ?car) (not (curb-clear ?curbdest)) (not (behind-car ?car ?carsrc)))
+  )
+
+  (:action move-car-to-car
+    :parameters (?car - car ?carsrc - car ?cardest - car)
+    :precondition (and (car-clear ?car) (car-clear ?cardest) (behind-car ?car ?carsrc) (at-curb ?cardest))
+    :effect (and (car-clear ?carsrc) (behind-car ?car ?cardest) (not (car-clear ?cardest)) (not (behind-car ?car ?carsrc)))
+  )
+
+)

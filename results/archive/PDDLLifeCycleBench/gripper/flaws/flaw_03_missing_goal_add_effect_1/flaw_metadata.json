@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_03_missing_goal_add_effect_1",
+  "domain": "gripper",
+  "flaw_category": "ACTION_EFFECT_DELETION",
+  "mutation_operator": "OPERATOR_2_REMOVE_GOAL_ADD_EFFECT",
+  "target_action": "pick",
+  "description": "Removed required add effect '(carry ?r ?obj ?g)' from action 'pick'",
+  "ground_truth_fix": "Restore add effect '(carry ?r ?obj ?g)' in action 'pick' effects.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

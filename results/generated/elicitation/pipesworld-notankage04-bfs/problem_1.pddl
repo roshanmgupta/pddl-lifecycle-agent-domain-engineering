@@ -1,0 +1,56 @@
+(define (problem instance-1)
+  (:domain pipesworld-notankage04-bfs)
+
+  (:objects
+    B0 B1 B2 B3 B4 B5 - batch-atom
+    A1 A2 A3 - area
+    S12 - normal-pipe
+    S13 - unitary-pipe
+    gasoleo oca1 lco rat-a oc1b - product
+  )
+
+  (:init
+    (normal S12)
+    (normal S13)
+    (may-interface lco gasoleo)
+    (may-interface rat-a rat-a)
+    (may-interface oca1 oca1)
+    (may-interface oc1b oc1b)
+    (may-interface lco gasoleo)
+    (may-interface gasoleo lco)
+    (may-interface lco oca1)
+    (may-interface oca1 lco)
+    (may-interface lco oc1b)
+    (may-interface oc1b lco)
+    (may-interface lco rat-a)
+    (may-interface rat-a lco)
+    (may-interface gasoleo rat-a)
+    (may-interface rat-a gasoleo)
+    (may-interface gasoleo oca1)
+    (may-interface oca1 gasoleo)
+    (may-interface gasoleo oc1b)
+    (may-interface oc1b gasoleo)
+    (may-interface oca1 oc1b)
+    (may-interface oc1b oca1)
+    (connected A1 A2)
+    (connected A1 A3)
+    (product B0 oc1b)
+    (product B1 lco)
+    (product B2 gasoleo)
+    (product B3 rat-a)
+    (product B4 lco)
+    (product B5 oca1)
+    (on B0 A1)
+    (on B1 A3)
+    (on B2 A1)
+    (on B3 A1)
+    (first-in B4 S12)
+    (last-in B4 S12)
+    (first-in B5 S13)
+    (last-in B5 S13)
+    (unitary S12)
+    (unitary S13)
+  )
+
+  (:goal (and (on B2 A3) (on B5 A2)))
+)

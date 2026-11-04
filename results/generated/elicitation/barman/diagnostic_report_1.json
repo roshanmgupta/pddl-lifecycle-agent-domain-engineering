@@ -1,0 +1,136 @@
+{
+  "timestamp": "2026-11-02T02:38:39.898046",
+  "domain_name": "barman",
+  "run_index": 1,
+  "verification_status": "FAILED",
+  "repair_iterations_used": 5,
+  "initial_verification_errors": [
+    "Planner Error: Could not find a plan. INFO     planner time limit: None\nINFO     planner memory limit: None\n\nINFO     Running translator.\nINFO     translator stdin: None\nINFO     translator time limit: None\nINFO     translator memory limit: None\nINFO     translator command line string: 'C:\\Users\\Srushti\\miniconda3\\envs\\agent_env\\python.exe' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\translate\\translate.py' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_barman_79997_iter_0_dom.pddl' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_barman_79997_iter_0_prob.pddl' --sas-file output.sas\nWarning! SIGXCPU is not available on your platform. This means that the planner cannot be gracefully terminated when using a time limit, which, however, is probably supported on your platform anyway.\nParsing...\nParsing: [0.016s CPU, 0.004s wall-clock]\nNormalizing task... [0.000s CPU, 0.000s wall-clock]\nInstantiating...\nGenerating Datalog program... [0.000s CPU, 0.001s wall-clock]\nNormalizing Datalog program...\nNormalizing Datalog program: [0.000s CPU, 0.007s wall-clock]\nPreparing model... [0.000s CPU, 0.001s wall-clock]\nGenerated 115 rules.\nComputing model... [0.000s CPU, 0.005s wall-clock]\n593 relevant atoms\n673 auxiliary atoms\n1266 final queue length\n2072 total queue pushes\nCompleting instantiation... [0.016s CPU, 0.009s wall-clock]\nInstantiating: [0.016s CPU, 0.022s wall-clock]\nComputing fact groups...\nFinding invariants...\n24 initial candidates\nFinding invariants: [0.000s CPU, 0.004s wall-clock]\nChecking invariant weight... [0.000s CPU, 0.000s wall-clock]\nInstantiating groups... [0.000s CPU, 0.000s wall-clock]\nCollecting mutex groups... [0.000s CPU, 0.000s wall-clock]\nChoosing groups...\n59 uncovered facts\nChoosing groups: [0.000s CPU, 0.000s wall-clock]\nBuilding translation key... [0.000s CPU, 0.000s wall-clock]\nComputing fact groups: [0.000s CPU, 0.005s wall-clock]\nBuilding STRIPS to SAS dictionary... [0.000s CPU, 0.000s wall-clock]\nBuilding dictionary for full mutex groups... [0.000s CPU, 0.000s wall-clock]\nBuilding mutex information...\nBuilding mutex information: [0.000s CPU, 0.000s wall-clock]\nTranslating task...\nProcessing axioms...\nSimplifying axioms... [0.000s CPU, 0.000s wall-clock]\nTranslator axioms removed by simplifying: 0\nProcessing axioms: [0.000s CPU, 0.001s wall-clock]\nTranslating task: [0.016s CPU, 0.014s wall-clock]\n592 effect conditions simplified\n0 implied preconditions added\nDetecting unreachable propositions...\n0 operators removed\n0 axioms removed\n3 propositions removed\nDetecting unreachable propositions: [0.016s CPU, 0.005s wall-clock]\nReordering and filtering variables...\n62 of 62 variables necessary.\n5 of 8 mutex groups necessary.\n358 of 358 operators necessary.\n0 of 0 axiom rules necessary.\nReordering and filtering variables: [0.000s CPU, 0.004s wall-clock]\nTranslator variables: 62\nTranslator derived variables: 0\nTranslator facts: 133\nTranslator goal facts: 3\nTranslator mutex groups: 5\nTranslator total mutex groups size: 15\nTranslator operators: 358\nTranslator axioms: 0\nTranslator task size: 3439\nwarning: could not determine peak memory\nWriting output... [0.000s CPU, 0.009s wall-clock]\nDone! [0.062s CPU, 0.065s wall-clock]\ntranslate exit code: 0\n\nINFO     Running search (release).\nINFO     search stdin: output.sas\nINFO     search time limit: None\nINFO     search memory limit: None\nINFO     search command line string: 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\downward.exe' --search 'lazy_greedy([ff()])' --internal-plan-file 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_barman_79997_iter_0_plan.txt' < output.sas\n[t=0.000118s, 820 KB] reading input...\n[t=0.002134s, 1000 KB] done reading input!\n[t=0.004174s, 1388 KB] Simplifying 1338 unary operators... done! [1114 unary operators]\n[t=0.004732s, 1388 KB] time to simplify: 0.000563s\n[t=0.004802s, 1388 KB] Initializing additive heuristic...\n[t=0.004806s, 1388 KB] Initializing FF heuristic...\n[t=0.004837s, 1388 KB] Building successor generator...done!\n[t=0.004980s, 1388 KB] peak memory difference for successor generator creation: 0 KB\n[t=0.004984s, 1388 KB] time for successor generation creation: 0.000135s\n[t=0.004996s, 1388 KB] Variables: 62\n[t=0.005001s, 1388 KB] FactPairs: 133\n[t=0.005004s, 1388 KB] Bytes per state: 12\n[t=0.005021s, 1388 KB] Conducting lazy best first search, (real) bound = 2147483647\n[t=0.005045s, 1388 KB] New best heuristic value for ff: 14\n[t=0.005049s, 1388 KB] g=0, 1 evaluated, 0 expanded\n[t=0.005058s, 1388 KB] Initial heuristic value for ff: 14\n[t=0.005717s, 1388 KB] New best heuristic value for ff: 13\n[t=0.005724s, 1388 KB] g=3, 62 evaluated, 61 expanded\n[t=0.005778s, 1388 KB] New best heuristic value for ff: 12\n[t=0.005782s, 1388 KB] g=4, 67 evaluated, 66 expanded\n[t=0.006263s, 1388 KB] New best heuristic value for ff: 11\n[t=0.006269s, 1388 KB] g=7, 115 evaluated, 114 expanded\n[t=0.006345s, 1388 KB] New best heuristic value for ff: 10\n[t=0.006350s, 1388 KB] g=8, 122 evaluated, 121 expanded\n[t=0.006363s, 1388 KB] New best heuristic value for ff: 9\n[t=0.006366s, 1388 KB] g=9, 123 evaluated, 122 expanded\n[t=10.338549s, 64500 KB] Completely explored state space -- no solution!\n[t=10.338573s, 64500 KB] Actual search time: 10.333551s\n[t=10.338580s, 64500 KB] Expanded 818741 state(s).\n[t=10.338580s, 64500 KB] Reopened 0 state(s).\n[t=10.338580s, 64500 KB] Evaluated 858137 state(s).\n[t=10.338580s, 64500 KB] Evaluations: 858137\n[t=10.338580s, 64500 KB] Generated 3626196 state(s).\n[t=10.338580s, 64500 KB] Dead ends: 39396 state(s).\n[t=10.338580s, 64500 KB] Number of registered states: 858137\n[t=10.338580s, 64500 KB] Int hash set load factor: 858137/1048576 = 0.818383\n[t=10.338580s, 64500 KB] Int hash set resizes: 20\n[t=10.338580s, 64500 KB] Search time: 10.333559s\n[t=10.338580s, 64500 KB] Total time: 10.338580s\nSearch stopped without finding a solution.\nRemove intermediate file output.sas\nsearch exit code: 12\n\nDriver aborting after search\n\n"
+  ],
+  "final_verification_errors": [
+    "Planner Error: Could not find a plan. INFO     planner time limit: None\nINFO     planner memory limit: None\n\nINFO     Running translator.\nINFO     translator stdin: None\nINFO     translator time limit: None\nINFO     translator memory limit: None\nINFO     translator command line string: 'C:\\Users\\Srushti\\miniconda3\\envs\\agent_env\\python.exe' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\translate\\translate.py' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_barman_79997_iter_5_dom.pddl' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_barman_79997_iter_5_prob.pddl' --sas-file output.sas\nWarning! SIGXCPU is not available on your platform. This means that the planner cannot be gracefully terminated when using a time limit, which, however, is probably supported on your platform anyway.\nParsing...\nParsing: [0.000s CPU, 0.004s wall-clock]\nNormalizing task... [0.000s CPU, 0.000s wall-clock]\nInstantiating...\nGenerating Datalog program... [0.000s CPU, 0.000s wall-clock]\nNormalizing Datalog program...\nNormalizing Datalog program: [0.016s CPU, 0.006s wall-clock]\nPreparing model... [0.000s CPU, 0.001s wall-clock]\nGenerated 114 rules.\nComputing model... [0.000s CPU, 0.005s wall-clock]\n593 relevant atoms\n667 auxiliary atoms\n1260 final queue length\n2114 total queue pushes\nCompleting instantiation... [0.016s CPU, 0.007s wall-clock]\nInstantiating: [0.031s CPU, 0.020s wall-clock]\nComputing fact groups...\nFinding invariants...\n24 initial candidates\nFinding invariants: [0.000s CPU, 0.004s wall-clock]\nChecking invariant weight... [0.000s CPU, 0.000s wall-clock]\nInstantiating groups... [0.000s CPU, 0.000s wall-clock]\nCollecting mutex groups... [0.000s CPU, 0.000s wall-clock]\nChoosing groups...\n59 uncovered facts\nChoosing groups: [0.000s CPU, 0.000s wall-clock]\nBuilding translation key... [0.000s CPU, 0.000s wall-clock]\nComputing fact groups: [0.000s CPU, 0.004s wall-clock]\nBuilding STRIPS to SAS dictionary... [0.000s CPU, 0.000s wall-clock]\nBuilding dictionary for full mutex groups... [0.000s CPU, 0.000s wall-clock]\nBuilding mutex information...\nBuilding mutex information: [0.000s CPU, 0.000s wall-clock]\nTranslating task...\nProcessing axioms...\nSimplifying axioms... [0.000s CPU, 0.000s wall-clock]\nTranslator axioms removed by simplifying: 0\nProcessing axioms: [0.000s CPU, 0.001s wall-clock]\nTranslating task: [0.000s CPU, 0.011s wall-clock]\n490 effect conditions simplified\n0 implied preconditions added\nDetecting unreachable propositions...\n0 operators removed\n0 axioms removed\n3 propositions removed\nDetecting unreachable propositions: [0.000s CPU, 0.005s wall-clock]\nReordering and filtering variables...\n62 of 62 variables necessary.\n5 of 8 mutex groups necessary.\n358 of 358 operators necessary.\n0 of 0 axiom rules necessary.\nReordering and filtering variables: [0.000s CPU, 0.003s wall-clock]\nTranslator variables: 62\nTranslator derived variables: 0\nTranslator facts: 133\nTranslator goal facts: 3\nTranslator mutex groups: 5\nTranslator total mutex groups size: 15\nTranslator operators: 358\nTranslator axioms: 0\nTranslator task size: 3235\nwarning: could not determine peak memory\nWriting output... [0.016s CPU, 0.009s wall-clock]\nDone! [0.047s CPU, 0.056s wall-clock]\ntranslate exit code: 0\n\nINFO     Running search (release).\nINFO     search stdin: output.sas\nINFO     search time limit: None\nINFO     search memory limit: None\nINFO     search command line string: 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\downward.exe' --search 'lazy_greedy([ff()])' --internal-plan-file 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_barman_79997_iter_5_plan.txt' < output.sas\n[t=0.000124s, 824 KB] reading input...\n[t=0.002038s, 1000 KB] done reading input!\n[t=0.003374s, 1372 KB] Simplifying 1236 unary operators... done! [1012 unary operators]\n[t=0.003976s, 1372 KB] time to simplify: 0.000605s\n[t=0.004032s, 1372 KB] Initializing additive heuristic...\n[t=0.004037s, 1372 KB] Initializing FF heuristic...\n[t=0.004069s, 1372 KB] Building successor generator...done!\n[t=0.004226s, 1372 KB] peak memory difference for successor generator creation: 0 KB\n[t=0.004230s, 1372 KB] time for successor generation creation: 0.000149s\n[t=0.004235s, 1372 KB] Variables: 62\n[t=0.004240s, 1372 KB] FactPairs: 133\n[t=0.004243s, 1372 KB] Bytes per state: 12\n[t=0.004261s, 1372 KB] Conducting lazy best first search, (real) bound = 2147483647\n[t=0.004282s, 1372 KB] New best heuristic value for ff: 14\n[t=0.004287s, 1372 KB] g=0, 1 evaluated, 0 expanded\n[t=0.004296s, 1372 KB] Initial heuristic value for ff: 14\n[t=0.004869s, 1376 KB] New best heuristic value for ff: 13\n[t=0.004877s, 1376 KB] g=3, 62 evaluated, 61 expanded\n[t=0.004926s, 1376 KB] New best heuristic value for ff: 12\n[t=0.004930s, 1376 KB] g=4, 67 evaluated, 66 expanded\n[t=0.005461s, 1376 KB] New best heuristic value for ff: 11\n[t=0.005482s, 1376 KB] g=7, 115 evaluated, 114 expanded\n[t=0.005551s, 1376 KB] New best heuristic value for ff: 10\n[t=0.005556s, 1376 KB] g=8, 122 evaluated, 121 expanded\n[t=0.005569s, 1376 KB] New best heuristic value for ff: 9\n[t=0.005573s, 1376 KB] g=9, 123 evaluated, 122 expanded\n[t=25.055152s, 189328 KB] Completely explored state space -- no solution!\n[t=25.055180s, 189328 KB] Actual search time: 25.050917s\n[t=25.055184s, 189328 KB] Expanded 2232930 state(s).\n[t=25.055184s, 189328 KB] Reopened 0 state(s).\n[t=25.055184s, 189328 KB] Evaluated 2351118 state(s).\n[t=25.055184s, 189328 KB] Evaluations: 2351118\n[t=25.055184s, 189328 KB] Generated 10197390 state(s).\n[t=25.055184s, 189328 KB] Dead ends: 118188 state(s).\n[t=25.055184s, 189328 KB] Number of registered states: 2351118\n[t=25.055184s, 189328 KB] Int hash set load factor: 2351118/4194304 = 0.560550\n[t=25.055184s, 189328 KB] Int hash set resizes: 22\n[t=25.055184s, 189328 KB] Search time: 25.050924s\n[t=25.055184s, 189328 KB] Total time: 25.055184s\nSearch stopped without finding a solution.\nRemove intermediate file output.sas\nsearch exit code: 12\n\nDriver aborting after search\n\n"
+  ],
+  "diagnostic_issues_count": 17,
+  "diagnostic_reports": [
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "pour-shaker-to-shot",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'pour-shaker-to-shot' does not produce the goal state 'contains shot1 cocktail3'. Ensure that the effect '(contains ?d ?b)' is correctly aligned with the goal predicates in the problem instance."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_RELAXATION",
+      "faulty_element": "shake",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'shake' has restrictive preconditions that may prevent the planner from reaching the goal state. Consider relaxing the preconditions '(contains ?s ?d1)' and '(contains ?s ?d2)' to allow more flexible state transitions."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "pour-shot-to-clean-shaker",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'pour-shot-to-clean-shaker' does not produce the necessary intermediate state for the goal 'contains shot2 cocktail1'. Ensure that the effect '(contains ?d ?i)' correctly aligns with the goal predicates."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "pour-shaker-to-shot",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'pour-shaker-to-shot' does not produce the goal state 'contains shot1 cocktail3'. Modify the action to ensure it correctly produces the goal state by adding the effect '(contains ?d ?b)' when pouring from the shaker to the shot."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_RELAXATION",
+      "faulty_element": "shake",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'shake' has overly restrictive preconditions. Relax the preconditions to allow shaking a cocktail with ingredients that are part of the cocktail, ensuring the shaker is unshaken and contains the required ingredients."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "pour-shot-to-used-shaker",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'pour-shot-to-used-shaker' does not correctly update the state of the shaker. Ensure the effect '(contains ?d ?i)' is added when pouring from the shot to the shaker, and update the shaker level appropriately."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "pour-shaker-to-shot",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'pour-shaker-to-shot' does not produce the goal state. Ensure that the effect '(contains ?d ?b)' is correctly aligned with the goal predicates in the problem instance."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_RELAXATION",
+      "faulty_element": "shake",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'shake' has restrictive preconditions that may prevent it from being executed. Consider relaxing the preconditions to allow more states to be reachable."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "empty-shaker",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'empty-shaker' does not produce the goal state. Ensure that the effect '(empty ?s)' is correctly aligned with the goal predicates in the problem instance."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "shake",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'shake' action does not produce the 'contains' effect for cocktails in the shaker. Modify the 'shake' action to include '(contains ?s ?b)' in its effects to ensure that the shaker contains the cocktail after shaking."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_RELAXATION",
+      "faulty_element": "pour-shaker-to-shot",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'pour-shaker-to-shot' action requires the shot to be clean and empty, but these conditions may not be met after previous actions. Relax the preconditions to allow pouring into a used shot if necessary."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "pour-shot-to-used-shaker",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'pour-shot-to-used-shaker' action does not update the 'unshaked' status of the shaker. Add '(not (unshaked ?d))' to the effects to ensure the shaker is marked as used after pouring."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "pour-shaker-to-shot",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'pour-shaker-to-shot' does not produce the goal state 'contains shot1 cocktail3'. Add the effect '(contains ?d ?b)' to the action 'pour-shaker-to-shot' to ensure the shot contains the beverage after pouring."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_RELAXATION",
+      "faulty_element": "shake",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'shake' requires both ingredients to be in the shaker before shaking. Relax the preconditions to allow shaking even if only one ingredient is present, or ensure that both ingredients are added to the shaker before shaking."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "pour-shot-to-used-shaker",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'pour-shot-to-used-shaker' does not update the state of the shaker correctly. Add the effect '(unshaked ?d)' to ensure the shaker is marked as unshaken after pouring."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "shake",
+      "raw_log": "Search stopped without finding a solution.",
+      "suggested_repair_hint": "The 'shake' action does not produce the 'contains' effect for cocktails in the shaker. Modify the 'shake' action to include '(contains ?s ?b)' in its effects to ensure that shaking a cocktail results in the shaker containing the cocktail."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_RELAXATION",
+      "faulty_element": "pour-shaker-to-shot",
+      "raw_log": "Search stopped without finding a solution.",
+      "suggested_repair_hint": "The 'pour-shaker-to-shot' action requires the shaker to be 'shaked' and the shot to be 'empty' and 'clean'. Relax these preconditions to allow pouring from a shaker that is not shaken and into a shot that is not clean, as long as the shot is empty."
+    }
+  ],
+  "formatted_diagnostic_feedback": "### Diagnostic Failure Analysis Report (Layered Fault Localization Priority: Tier 4 (Precondition & Effect Refinements)):\nCRITICAL GUIDANCE: Focus repairs strictly on resolving these top-priority causal blockers before modifying unrelated actions.\n\n\nIssue #1:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: EFFECT_ALIGNMENT\n  - [LOCATION / COMPONENT]: shake\n  - [DESCRIPTION / RAW TRACE]: Search stopped without finding a solution.\n  - [SUGGESTION FOR REPAIR]: The 'shake' action does not produce the 'contains' effect for cocktails in the shaker. Modify the 'shake' action to include '(contains ?s ?b)' in its effects to ensure that shaking a cocktail results in the shaker containing the cocktail.\n\nIssue #2:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: PRECONDITION_RELAXATION\n  - [LOCATION / COMPONENT]: pour-shaker-to-shot\n  - [DESCRIPTION / RAW TRACE]: Search stopped without finding a solution.\n  - [SUGGESTION FOR REPAIR]: The 'pour-shaker-to-shot' action requires the shaker to be 'shaked' and the shot to be 'empty' and 'clean'. Relax these preconditions to allow pouring from a shaker that is not shaken and into a shot that is not clean, as long as the shot is empty."
+}

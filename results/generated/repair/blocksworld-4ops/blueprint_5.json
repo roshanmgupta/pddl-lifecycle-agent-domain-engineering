@@ -1,0 +1,121 @@
+{
+  "domain_name": "blocksworld-4ops",
+  "run_index": 5,
+  "domain_blueprint": {
+    "domain_name": "blocksworld-4ops",
+    "requirements": [
+      ":strips",
+      ":typing"
+    ],
+    "types": {},
+    "constants": {},
+    "predicates": [
+      "(clear ?x)",
+      "(ontable ?x)",
+      "(handempty)",
+      "(holding ?x)",
+      "(on ?x ?y)",
+      "(ontable-object ?ob - object)",
+      "(picked-up ?ob - object)"
+    ],
+    "actions": [
+      {
+        "action_name": "pick-up",
+        "parameters": {
+          "?ob": "object"
+        },
+        "preconditions": [
+          "(clear ?ob)",
+          "(ontable-object ?ob)",
+          "(handempty)"
+        ],
+        "effects": [
+          "(holding ?ob)",
+          "(not (clear ?ob))",
+          "(not (ontable-object ?ob))",
+          "(not (handempty))",
+          "(picked-up ?ob)"
+        ]
+      },
+      {
+        "action_name": "put-down",
+        "parameters": {
+          "?ob": "object"
+        },
+        "preconditions": [
+          "(holding ?ob)",
+          "(picked-up ?ob)"
+        ],
+        "effects": [
+          "(clear ?ob)",
+          "(handempty)",
+          "(ontable-object ?ob)",
+          "(not (holding ?ob))",
+          "(not (picked-up ?ob))"
+        ]
+      },
+      {
+        "action_name": "stack",
+        "parameters": {
+          "?ob": "object",
+          "?underob": "object"
+        },
+        "preconditions": [
+          "(clear ?underob)",
+          "(holding ?ob)"
+        ],
+        "effects": [
+          "(handempty)",
+          "(clear ?ob)",
+          "(on ?ob ?underob)",
+          "(not (clear ?underob))",
+          "(not (holding ?ob))"
+        ]
+      },
+      {
+        "action_name": "unstack",
+        "parameters": {
+          "?ob": "object",
+          "?underob": "object"
+        },
+        "preconditions": [
+          "(on ?ob ?underob)",
+          "(clear ?ob)",
+          "(handempty)"
+        ],
+        "effects": [
+          "(holding ?ob)",
+          "(clear ?underob)",
+          "(not (on ?ob ?underob))",
+          "(not (clear ?ob))",
+          "(not (handempty))"
+        ]
+      }
+    ]
+  },
+  "problem_blueprint": {
+    "problem_name": "BW-rand-4",
+    "domain_name": "blocksworld-4ops",
+    "objects": {
+      "a": "object",
+      "b": "object",
+      "c": "object",
+      "d": "object"
+    },
+    "initial_state": [
+      "(handempty)",
+      "(ontable-object a)",
+      "(on b c)",
+      "(ontable-object c)",
+      "(ontable-object d)",
+      "(clear a)",
+      "(clear b)",
+      "(clear d)"
+    ],
+    "goal_state": [
+      "(on c b)"
+    ]
+  },
+  "iteration_count": 9,
+  "is_valid": false
+}

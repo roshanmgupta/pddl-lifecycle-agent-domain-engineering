@@ -1,0 +1,1 @@
+domain,agent_type,is_syntax_valid,is_solvable,planner_timeout,executability_valid,feasibility_valid,interpretability_valid,semantic_soundness,e2e_success,plan_length,plan_cost,search_time_sec,semantic_verdict

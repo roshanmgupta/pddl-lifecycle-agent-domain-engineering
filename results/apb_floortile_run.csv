@@ -1,0 +1,5 @@
+Task ID,Domain,Task Type,Architecture,Status,SVR,TPV,Executability,Feasibility,Interpretability,Macro F1,Plan Length,Iterations (k),Latency (s),Cost ($),Error Summary
+apb_floortile_instance-1,floortile,ELICITATION,CLOSED_LOOP_AST_AGENT,Unverified ⚠️,1.0,FAIL,FAIL,FAIL,FAIL,N/A,0,5,337.09,$0.00871,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Ru"

@@ -1,0 +1,33 @@
+(define (domain TPP-Propositional)
+  (:requirements :strips :typing)
+  (:types place locatable level depot - place market - place truck - locatable goods - locatable)
+  (:predicates
+    (loaded ?g - goods ?t - truck ?l - level)
+    (ready-to-load ?g - goods ?m - market ?l - level)
+    (stored ?g - goods ?l - level)
+    (on-sale ?g - goods ?m - market ?l - level)
+    (next ?l1 ?l2 - level)
+    (at ?t - truck ?p - place)
+    (connected ?p1 ?p2 - place)
+  )
+  (:action drive
+    :parameters (?t - truck ?from - place ?to - place)
+    :precondition (and (at ?t ?from) (connected ?from ?to))
+    :effect (and (at ?t ?to) (not (at ?t ?from)))
+  )
+  (:action load
+    :parameters (?g - goods ?t - truck ?m - market ?l1 - level ?l2 - level ?l3 - level ?l4 - level)
+    :precondition (and (at ?t ?m) (loaded ?g ?t ?l4) (ready-to-load ?g ?m ?l1) (next ?l1 ?l2) (next ?l3 ?l4))
+    :effect (and (loaded ?g ?t ?l3) (ready-to-load ?g ?m ?l2) (not (loaded ?g ?t ?l4)) (not (ready-to-load ?g ?m ?l1)))
+  )
+  (:action unload
+    :parameters (?g - goods ?t - truck ?d - depot ?l1 - level ?l2 - level ?l3 - level ?l4 - level)
+    :precondition (and (at ?t ?d) (loaded ?g ?t ?l1) (stored ?g ?l4) (next ?l1 ?l2) (next ?l3 ?l4))
+    :effect (and (loaded ?g ?t ?l2) (stored ?g ?l3) (not (loaded ?g ?t ?l1)) (not (stored ?g ?l4)))
+  )
+  (:action buy
+    :parameters (?t - truck ?g - goods ?m - market ?l1 - level ?l2 - level ?l3 - level ?l4 - level)
+    :precondition (and (at ?t ?m) (on-sale ?g ?m ?l1) (ready-to-load ?g ?m ?l4) (next ?l1 ?l2) (next ?l3 ?l4))
+    :effect (and (on-sale ?g ?m ?l2) (ready-to-load ?g ?m ?l3) (not (on-sale ?g ?m ?l1)) (not (ready-to-load ?g ?m ?l4)))
+  )
+)

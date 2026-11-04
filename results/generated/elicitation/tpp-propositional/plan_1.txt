@@ -1,0 +1,5 @@
+1: (drive truck1 depot1 market1)
+2: (buy truck1 goods1 market1 level1 level0 level1 level0)
+3: (load goods1 truck1 market1 level1 level0 level1 level0)
+4: (drive truck1 market1 depot1)
+5: (unload goods1 truck1 depot1 level1 level0 level1 level0)

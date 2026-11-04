@@ -1,0 +1,69 @@
+{
+  "domain_name": "visitall",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "visitall",
+    "requirements": [
+      ":strips",
+      ":typing"
+    ],
+    "types": {
+      "place": "object"
+    },
+    "constants": {},
+    "predicates": [
+      "(at ?r - place ?loc - place)",
+      "(visited ?loc - place)",
+      "(connected ?loc1 - place ?loc2 - place)"
+    ],
+    "actions": [
+      {
+        "action_name": "move_robot",
+        "parameters": {
+          "?r": "place",
+          "?from": "place",
+          "?to": "place"
+        },
+        "preconditions": [
+          "(at ?r ?from)",
+          "(connected ?from ?to)"
+        ],
+        "effects": [
+          "(at ?r ?to)",
+          "(visited ?to)",
+          "(not (at ?r ?from))"
+        ]
+      }
+    ]
+  },
+  "problem_blueprint": {
+    "problem_name": "instance-1.pddl",
+    "domain_name": "visitall",
+    "objects": {
+      "loc-x0-y0": "place",
+      "loc-x0-y1": "place",
+      "loc-x1-y0": "place",
+      "loc-x1-y1": "place"
+    },
+    "initial_state": [
+      "(at loc-x1-y0 loc-x1-y0)",
+      "(visited loc-x1-y0)",
+      "(connected loc-x0-y0 loc-x1-y0)",
+      "(connected loc-x0-y0 loc-x0-y1)",
+      "(connected loc-x0-y1 loc-x1-y1)",
+      "(connected loc-x0-y1 loc-x0-y0)",
+      "(connected loc-x1-y0 loc-x0-y0)",
+      "(connected loc-x1-y0 loc-x1-y1)",
+      "(connected loc-x1-y1 loc-x0-y1)",
+      "(connected loc-x1-y1 loc-x1-y0)"
+    ],
+    "goal_state": [
+      "(visited loc-x0-y0)",
+      "(visited loc-x0-y1)",
+      "(visited loc-x1-y0)",
+      "(visited loc-x1-y1)"
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

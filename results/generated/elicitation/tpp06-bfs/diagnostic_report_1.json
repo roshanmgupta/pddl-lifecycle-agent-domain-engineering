@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-10-23T03:36:12.910735",
+  "domain_name": "tpp06-bfs",
+  "run_index": 1,
+  "verification_status": "FAILED",
+  "repair_iterations_used": 5,
+  "initial_verification_errors": [
+    "Planner Error: Could not find a plan. INFO     planner time limit: None\nINFO     planner memory limit: None\n\nINFO     Running translator.\nINFO     translator stdin: None\nINFO     translator time limit: None\nINFO     translator memory limit: None\nINFO     translator command line string: 'C:\\Users\\Srushti\\miniconda3\\envs\\agent_env\\python.exe' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\translate\\translate.py' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\temp_domain.pddl' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\temp_problem.pddl' --sas-file output.sas\nWarning! SIGXCPU is not available on your platform. This means that the planner cannot be gracefully terminated when using a time limit, which, however, is probably supported on your platform anyway.\nParsing...\nParsing: [0.000s CPU, 0.005s wall-clock]\nNormalizing task... [0.000s CPU, 0.000s wall-clock]\nInstantiating...\nGenerating Datalog program... [0.000s CPU, 0.000s wall-clock]\nNormalizing Datalog program...\nNormalizing Datalog program: [0.000s CPU, 0.006s wall-clock]\nPreparing model... [0.016s CPU, 0.005s wall-clock]\nGenerated 44 rules.\nComputing model... [0.000s CPU, 0.001s wall-clock]\n38 relevant atoms\n51 auxiliary atoms\n89 final queue length\n91 total queue pushes\nCompleting instantiation... [0.000s CPU, 0.000s wall-clock]\nInstantiating: [0.016s CPU, 0.013s wall-clock]\nNo relaxed solution! Generating unsolvable task...\nTranslator variables: 1\nTranslator derived variables: 0\nTranslator facts: 2\nTranslator goal facts: 1\nTranslator mutex groups: 0\nTranslator total mutex groups size: 0\nTranslator operators: 0\nTranslator axioms: 0\nTranslator task size: 4\nwarning: could not determine peak memory\nWriting output... [0.000s CPU, 0.021s wall-clock]\nDone! [0.016s CPU, 0.039s wall-clock]\ntranslate exit code: 0\n\nINFO     Running search (release).\nINFO     search stdin: output.sas\nINFO     search time limit: None\nINFO     search memory limit: None\nINFO     search command line string: 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\downward.exe' --search 'lazy_greedy([ff()])' --internal-plan-file sas_plan < output.sas\n[t=0.000250s, 836 KB] reading input...\n[t=0.000549s, 840 KB] done reading input!\n[t=0.003663s, 1256 KB] Simplifying 0 unary operators... done! [0 unary operators]\n[t=0.003708s, 1256 KB] time to simplify: 0.000053s\n[t=0.003720s, 1256 KB] Initializing additive heuristic...\n[t=0.003725s, 1256 KB] Initializing FF heuristic...\n[t=0.003795s, 1256 KB] Building successor generator...done!\n[t=0.003822s, 1256 KB] peak memory difference for successor generator creation: 0 KB\n[t=0.003835s, 1256 KB] time for successor generation creation: 0.000006s\n[t=0.003845s, 1256 KB] Variables: 1\n[t=0.003855s, 1256 KB] FactPairs: 2\n[t=0.003862s, 1256 KB] Bytes per state: 4\n[t=0.003926s, 1256 KB] Conducting lazy best first search, (real) bound = 2147483647\n[t=0.003948s, 1256 KB] Initial heuristic value for ff: infinity\n[t=0.003960s, 1256 KB] Completely explored state space -- no solution!\n[t=0.003966s, 1256 KB] Actual search time: 0.000032s\n[t=0.003973s, 1256 KB] Expanded 0 state(s).\n[t=0.003973s, 1256 KB] Reopened 0 state(s).\n[t=0.003973s, 1256 KB] Evaluated 1 state(s).\n[t=0.003973s, 1256 KB] Evaluations: 1\n[t=0.003973s, 1256 KB] Generated 0 state(s).\n[t=0.003973s, 1256 KB] Dead ends: 1 state(s).\n[t=0.003973s, 1256 KB] Number of registered states: 1\n[t=0.003973s, 1256 KB] Int hash set load factor: 1/1 = 1.000000\n[t=0.003973s, 1256 KB] Int hash set resizes: 0\n[t=0.003973s, 1256 KB] Search time: 0.000047s\n[t=0.003973s, 1256 KB] Total time: 0.003973s\nSearch stopped without finding a solution.\nRemove intermediate file output.sas\nsearch exit code: 12\n\nDriver aborting after search\n\n"
+  ],
+  "final_verification_errors": [
+    "Planner Error: Could not find a plan. INFO     planner time limit: None\nINFO     planner memory limit: None\n\nINFO     Running translator.\nINFO     translator stdin: None\nINFO     translator time limit: None\nINFO     translator memory limit: None\nINFO     translator command line string: 'C:\\Users\\Srushti\\miniconda3\\envs\\agent_env\\python.exe' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\translate\\translate.py' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\temp_domain.pddl' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\temp_problem.pddl' --sas-file output.sas\nWarning! SIGXCPU is not available on your platform. This means that the planner cannot be gracefully terminated when using a time limit, which, however, is probably supported on your platform anyway.\nParsing...\nParsing: [0.000s CPU, 0.005s wall-clock]\nNormalizing task... [0.000s CPU, 0.000s wall-clock]\nInstantiating...\nGenerating Datalog program... [0.000s CPU, 0.000s wall-clock]\nNormalizing Datalog program...\nNormalizing Datalog program: [0.000s CPU, 0.005s wall-clock]\nPreparing model... [0.016s CPU, 0.004s wall-clock]\nGenerated 46 rules.\nComputing model... [0.000s CPU, 0.001s wall-clock]\n38 relevant atoms\n53 auxiliary atoms\n91 final queue length\n93 total queue pushes\nCompleting instantiation... [0.000s CPU, 0.000s wall-clock]\nInstantiating: [0.016s CPU, 0.011s wall-clock]\nNo relaxed solution! Generating unsolvable task...\nTranslator variables: 1\nTranslator derived variables: 0\nTranslator facts: 2\nTranslator goal facts: 1\nTranslator mutex groups: 0\nTranslator total mutex groups size: 0\nTranslator operators: 0\nTranslator axioms: 0\nTranslator task size: 4\nwarning: could not determine peak memory\nWriting output... [0.000s CPU, 0.001s wall-clock]\nDone! [0.016s CPU, 0.017s wall-clock]\ntranslate exit code: 0\n\nINFO     Running search (release).\nINFO     search stdin: output.sas\nINFO     search time limit: None\nINFO     search memory limit: None\nINFO     search command line string: 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\downward.exe' --search 'lazy_greedy([ff()])' --internal-plan-file sas_plan < output.sas\n[t=0.000612s, 820 KB] reading input...\n[t=0.000824s, 824 KB] done reading input!\n[t=0.003022s, 1224 KB] Simplifying 0 unary operators... done! [0 unary operators]\n[t=0.003060s, 1224 KB] time to simplify: 0.000044s\n[t=0.003069s, 1224 KB] Initializing additive heuristic...\n[t=0.003072s, 1224 KB] Initializing FF heuristic...\n[t=0.003120s, 1224 KB] Building successor generator...done!\n[t=0.003131s, 1224 KB] peak memory difference for successor generator creation: 0 KB\n[t=0.003135s, 1224 KB] time for successor generation creation: 0.000005s\n[t=0.003178s, 1224 KB] Variables: 1\n[t=0.003184s, 1224 KB] FactPairs: 2\n[t=0.003190s, 1224 KB] Bytes per state: 4\n[t=0.003223s, 1224 KB] Conducting lazy best first search, (real) bound = 2147483647\n[t=0.003239s, 1224 KB] Initial heuristic value for ff: infinity\n[t=0.003247s, 1224 KB] Completely explored state space -- no solution!\n[t=0.003251s, 1224 KB] Actual search time: 0.000022s\n[t=0.003255s, 1224 KB] Expanded 0 state(s).\n[t=0.003255s, 1224 KB] Reopened 0 state(s).\n[t=0.003255s, 1224 KB] Evaluated 1 state(s).\n[t=0.003255s, 1224 KB] Evaluations: 1\n[t=0.003255s, 1224 KB] Generated 0 state(s).\n[t=0.003255s, 1224 KB] Dead ends: 1 state(s).\n[t=0.003255s, 1224 KB] Number of registered states: 1\n[t=0.003255s, 1224 KB] Int hash set load factor: 1/1 = 1.000000\n[t=0.003255s, 1224 KB] Int hash set resizes: 0\n[t=0.003255s, 1224 KB] Search time: 0.000032s\n[t=0.003255s, 1224 KB] Total time: 0.003255s\nSearch stopped without finding a solution.\nRemove intermediate file output.sas\nsearch exit code: 12\n\nDriver aborting after search\n\n"
+  ],
+  "diagnostic_issues_count": 8,
+  "diagnostic_reports": [
+    {
+      "error_category": "SYNTAX_PARSE",
+      "repair_operation_type": "GENERAL_AST_REPAIR",
+      "faulty_element": null,
+      "raw_log": "Undeclared predicate in problem initial_state: Atom '(next-to level1 level0)' uses predicate symbol 'next-to', which is NOT declared in domain 'predicates'.",
+      "suggested_repair_hint": "ADD predicate '(next-to ?x - level ?y - level)' to domain.predicates to declare the spatial relationship between levels."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_RELAXATION",
+      "faulty_element": "unload_goods",
+      "raw_log": "Variable conflation on parameter '?g_next': Static preconditions '(next-to ?e ?g_next)' and '(next-to ?g_next ?f)' share parameter '?g_next', but their valid groundings in problem :init are completely disjoint.",
+      "suggested_repair_hint": "REPLACE precondition '(next-to ?g_next ?f)' with '(next-to ?g_next ?f)' where ?g_next is a distinct parameter for the unloading action to avoid conflation."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "unload_goods",
+      "raw_log": "Goal atom '(stored goods1 level1)' cannot be produced: In action 'unload_goods', effect parameter '?f' in '(stored ?g ?f)' is bound to static precondition '(next-to ?g_next ?f)' where ?g_next - level.",
+      "suggested_repair_hint": "ADD a dedicated parameter for the target level in 'unload_goods' action schema to ensure the goal state can be achieved."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_INSERTION",
+      "faulty_element": "unload_goods",
+      "raw_log": "Dead ungroundable precondition: Variable conflation on parameter '?g_next': Static preconditions '(next-to ?e ?g_next)' and '(next-to ?g_next ?f)' share parameter '?g_next', but their valid groundings in problem :init are completely disjoint (['level0'] vs ['level1']).",
+      "suggested_repair_hint": "Modify domain.actions.unload_goods: ADD precondition '(next-to ?g_next ?f)' with a valid grounding for '?g_next' to ensure it can be satisfied in the initial state."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_INSERTION",
+      "faulty_element": "unload_goods",
+      "raw_log": "Dead ungroundable precondition: Variable conflation on parameter '?g_next': Static preconditions '(next-to ?e ?g_next)' and '(next-to ?g_next ?f)' share parameter '?g_next', but their valid groundings in problem :init are completely disjoint (['level0'] vs ['level1']).",
+      "suggested_repair_hint": "Modify domain.actions.unload_goods: Replace precondition '(next-to ?e ?g_next)' with '(next-to ?g_next ?e)' to ensure valid groundings for '?g_next' in the context of the initial state."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_INSERTION",
+      "faulty_element": "unload_goods",
+      "raw_log": "Dead ungroundable precondition: Variable conflation on parameter '?g_next': Static preconditions '(next-to ?g_next ?f)' and '(next-to ?e ?g_next)' share parameter '?g_next', but their valid groundings in problem :init are completely disjoint (['level1'] vs ['level0']).",
+      "suggested_repair_hint": "Modify domain.actions.unload_goods: ADD precondition '(next-to ?g_next ?e)' to ensure that both predicates can be satisfied simultaneously."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_INSERTION",
+      "faulty_element": "unload_goods",
+      "raw_log": "Dead ungroundable precondition: Variable conflation on parameter '?g_next': Static preconditions '(next-to ?g_next ?f)' and '(next-to ?e ?g_next)' share parameter '?g_next', but their valid groundings in problem :init are completely disjoint (['level1'] vs ['level0']).",
+      "suggested_repair_hint": "Modify 'domain.actions.unload_goods' to ensure that the parameter '?g_next' does not conflate distinct physical entities. Specifically, adjust the preconditions to ensure that the levels referenced are consistent with the initial state facts."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_INSERTION",
+      "faulty_element": "unload_goods",
+      "raw_log": "Dead ungroundable precondition: Variable conflation on parameter '?g_next': Static preconditions '(next-to ?g_next ?f)' and '(next-to ?e ?g_next)' share parameter '?g_next', but their valid groundings in problem :init are completely disjoint (['level1'] vs ['level0']).",
+      "suggested_repair_hint": "Modify domain.actions.unload_goods: Replace precondition '(next-to ?g_next ?f)' with '(next-to ?g_next ?e)' to ensure valid groundings for '?g_next' are consistent with the initial state."
+    }
+  ],
+  "formatted_diagnostic_feedback": "### Diagnostic Failure Analysis Report (Symbolic Oracle Triage):\n\nIssue #1:\n  - [ERROR TYPE]: GROUNDING_UNSOLVABILITY\n  - [TARGET AST OPERATION]: PRECONDITION_INSERTION\n  - [LOCATION / COMPONENT]: unload_goods\n  - [DESCRIPTION / RAW TRACE]: Dead ungroundable precondition: Variable conflation on parameter '?g_next': Static preconditions '(next-to ?g_next ?f)' and '(next-to ?e ?g_next)' share parameter '?g_next', but their valid groundings in problem :init are completely disjoint (['level1'] vs ['level0']).\n  - [SUGGESTION FOR REPAIR]: Modify domain.actions.unload_goods: Replace precondition '(next-to ?g_next ?f)' with '(next-to ?g_next ?e)' to ensure valid groundings for '?g_next' are consistent with the initial state.",
+  "plan_summary": {
+    "is_solvable": false,
+    "plan_length": 0,
+    "search_time_seconds": 3.2e-05,
+    "val_plan_valid": false,
+    "plan_steps": []
+  }
+}

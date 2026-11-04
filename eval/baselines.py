@@ -3,7 +3,7 @@ import os
 import re
 import time
 from pathlib import Path
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, Optional, Callable
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -13,6 +13,33 @@ from benchmark.schema import BenchmarkTask, LifecycleTaskType
 from config.model_config import invoke_raw_llm_with_telemetry
 from tools.symbolic_oracles import run_val_validator, run_fast_downward_with_plan
 from config.paths import get_eval_output_dir
+
+
+def _emit(on_event: Optional[Callable[[Dict[str, Any]], None]], **event: Any) -> None:
+    """Forwards an observability event to an optional callback. Never alters baseline behavior."""
+    if on_event is None:
+        return
+    try:
+        on_event(event)
+    except Exception as cb_err:
+        print(f"[Baseline Trace Callback Warning]: {cb_err}")
+
+
+def _emit_oracle_check(on_event, iteration: int, is_valid: bool, val_log: str, fd_res: Optional[Dict[str, Any]]) -> None:
+    """Emits a standardized VAL / Fast Downward oracle event."""
+    _emit(
+        on_event,
+        phase="validate",
+        iteration=iteration,
+        val_ok=bool(is_valid),
+        val_log=val_log,
+        fd_ran=fd_res is not None,
+        fd_ok=bool(fd_res.get("is_solvable")) if fd_res else None,
+        fd_timed_out=bool(fd_res.get("timed_out")) if fd_res else False,
+        fd_log=fd_res.get("raw_fd_log", "") if fd_res else "",
+        plan_steps=list(fd_res.get("plan_steps", [])) if fd_res else [],
+        executability_valid=fd_res.get("executability_valid") if fd_res else None,
+    )
 
 def extract_pddl_blocks(raw_text: str) -> Tuple[str, str]:
     """Extracts domain.pddl and problem.pddl code blocks from raw LLM output text."""
@@ -40,14 +67,11 @@ def extract_pddl_blocks(raw_text: str) -> Tuple[str, str]:
 
 
 def build_fixed_signature_prompt(task: BenchmarkTask) -> Optional[str]:
-    """
-    Builds prompt giving ground-truth types, predicates, and action signatures (H1 formulation).
-    Constrains the LLM to generate only preconditions and effects within the fixed domain skeleton.
-    """
+    """Builds prompt giving reference types, predicates, and action signatures."""
     gt_dom = getattr(task, "ground_truth_domain_pddl", "")
     if not gt_dom or not gt_dom.strip():
         return None
-    from tools.blueprint_parser import parse_pddl_domain_to_blueprint
+    from nodes.pddl_to_ast_parser import parse_pddl_domain_to_blueprint
     ref_bp = parse_pddl_domain_to_blueprint(gt_dom)
     action_headers = []
     for a in ref_bp.get("actions", []):
@@ -82,7 +106,7 @@ Respond ONLY with the PDDL domain code block.
 """
     return prompt
 
-def run_zero_shot_baseline(task: BenchmarkTask) -> Dict[str, Any]:
+def run_zero_shot_baseline(task: BenchmarkTask, on_event: Optional[Callable[[Dict[str, Any]], None]] = None) -> Dict[str, Any]:
     """
     Baseline 1: Zero-Shot Direct LLM Generation / Single-Pass Repair.
     Requests raw PDDL domain code (D_gen) directly from natural language prompt without Pydantic AST or validation loops,
@@ -107,12 +131,12 @@ Format your output using a markdown code fence:
 Respond ONLY with the repaired PDDL domain code block.
 """
     else:
-        # H1 Formulation: Use fixed signatures when ground-truth domain is available
+        # Use fixed signatures when reference domain is available
         fixed_prompt = build_fixed_signature_prompt(task)
         if fixed_prompt:
             prompt = fixed_prompt
         else:
-            # [PRESERVED OLD LOGIC]: Unconstrained zero-shot prompt
+            # Unconstrained zero-shot prompt
             prompt = f"""You are an automated PDDL domain model generator.
 Domain Requirements:
 {task.natural_language_requirements}
@@ -145,6 +169,9 @@ Respond ONLY with the PDDL domain code block.
     if not domain_pddl and "(define (domain" in raw_response.lower():
         domain_pddl = raw_response
     problem_pddl = task.ground_truth_problem_pddl
+    _emit(on_event, phase="llm_generation", iteration=0, prompt=prompt,
+          raw_response=raw_response, output_domain=domain_pddl,
+          note="Single LLM call. No oracle feedback is returned to the model.")
 
     return {
         "generated_domain_pddl": domain_pddl,
@@ -157,7 +184,7 @@ Respond ONLY with the PDDL domain code block.
         "raw_response": raw_response
     }
 
-def run_unstructured_retry_baseline(task: BenchmarkTask, max_retries: int = 5) -> Dict[str, Any]:
+def run_unstructured_retry_baseline(task: BenchmarkTask, max_retries: int = 5, on_event: Optional[Callable[[Dict[str, Any]], None]] = None) -> Dict[str, Any]:
     """
     Baseline 2: Direct LLM Generation + Raw Unstructured Error Feedback Retry.
     Passes raw validator compiler logs directly back to the LLM without Pydantic AST,
@@ -181,12 +208,12 @@ def run_unstructured_retry_baseline(task: BenchmarkTask, max_retries: int = 5) -
 
     # If domain formulation task with no starting domain, generate initial domain
     if not last_domain:
-        # H1 Formulation: Fixed signatures when ground-truth is available
+        # Fixed signatures when reference domain is available
         fixed_p = build_fixed_signature_prompt(task)
         if fixed_p:
             base_prompt = fixed_p
         else:
-            # [PRESERVED OLD LOGIC]: Unconstrained base prompt
+            # Unconstrained base prompt
             base_prompt = f"""You are an automated PDDL domain model generator.
 Domain Requirements:
 {task.natural_language_requirements}
@@ -209,6 +236,8 @@ Respond ONLY with the PDDL domain code block.
             if not d_pddl and "(define (domain" in raw_response.lower():
                 d_pddl = raw_response
             last_domain = d_pddl
+            _emit(on_event, phase="llm_generation", iteration=0, prompt=base_prompt,
+                  raw_response=raw_response, output_domain=d_pddl)
         except Exception as e:
             print(f"[Baseline Unstructured Retry Error]: Initial LLM call failed: {e}")
             return {
@@ -233,9 +262,11 @@ Respond ONLY with the PDDL domain code block.
             f.write(last_problem)
 
         is_valid, val_log = run_val_validator(dom_file, prob_file)
+        fd_res = None
         if is_valid:
             # Check solvability
             fd_res = run_fast_downward_with_plan(dom_file, prob_file)
+            _emit_oracle_check(on_event, iteration=iteration, is_valid=is_valid, val_log=val_log, fd_res=fd_res)
             if fd_res["is_solvable"]:
                 return {
                     "generated_domain_pddl": last_domain,
@@ -255,6 +286,7 @@ Respond ONLY with the PDDL domain code block.
             # If syntax valid but unsolvable, pass raw Fast Downward output
             raw_error = fd_res.get("raw_fd_log", "Fast Downward found no plan.")
         else:
+            _emit_oracle_check(on_event, iteration=iteration, is_valid=is_valid, val_log=val_log, fd_res=None)
             raw_error = val_log
 
         repair_attempts += 1
@@ -285,6 +317,16 @@ Format your output using a markdown code fence:
 ```
 Respond ONLY with the PDDL domain code block.
 """
+        _emit(
+            on_event,
+            phase="fault_feedback_passed_to_llm",
+            iteration=iteration,
+            feedback_type="raw_oracle_trace",
+            feedback_payload=clean_err,
+            prompt=retry_prompt,
+            model_target="pddl_text",
+            note="Unstructured retry passes raw unparsed compiler/solver logs back to the LLM without AST or triage."
+        )
         try:
             raw_response, telemetry = invoke_raw_llm_with_telemetry(retry_prompt)
             cumulative_prompt_tokens += telemetry.get("prompt_tokens", 0)
@@ -295,6 +337,14 @@ Respond ONLY with the PDDL domain code block.
             d_pddl, _ = extract_pddl_blocks(raw_response)
             if d_pddl:
                 last_domain = d_pddl
+            _emit(
+                on_event,
+                phase="repair_response",
+                iteration=iteration,
+                raw_response=raw_response,
+                output_domain=d_pddl,
+                telemetry=telemetry
+            )
         except Exception as e:
             print(f"[Baseline Unstructured Retry Error]: LLM call failed on iter {iteration}: {e}")
             break
@@ -314,13 +364,8 @@ Respond ONLY with the PDDL domain code block.
     }
 
 
-def run_no_ast_ablation(task: BenchmarkTask, max_retries: int = 5) -> Dict[str, Any]:
-    """
-    Ablation 1 (Tests H1): Direct PDDL Text Repair + Layered Model-Based Fault Localization.
-    The agent receives structured diagnostic reports from Layered Model-Based Fault Localization (error categories, faulty elements, actionable hints),
-    but must repair and output concrete PDDL text directly WITHOUT an AST Blueprint or Python compiler.
-    Isolates the effect of AST Blueprint decoupling on syntax validity and plan reachability.
-    """
+def run_no_ast_ablation(task: BenchmarkTask, max_retries: int = 5, on_event: Optional[Callable[[Dict[str, Any]], None]] = None) -> Dict[str, Any]:
+    """Ablation 1: Direct PDDL text repair with fault localization."""
     from nodes.fault_localization import FaultLocalizationNode
 
     base_prompt = f"""You are an automated PDDL domain model generator.
@@ -351,8 +396,9 @@ Respond ONLY with the PDDL domain code block.
 
     # Initial generation if no starting domain provided
     if not last_domain:
+        initial_gen_prompt = build_fixed_signature_prompt(task) or base_prompt
         try:
-            raw_response, telemetry = invoke_raw_llm_with_telemetry(base_prompt)
+            raw_response, telemetry = invoke_raw_llm_with_telemetry(initial_gen_prompt)
             cumulative_prompt_tokens += telemetry.get("prompt_tokens", 0)
             cumulative_completion_tokens += telemetry.get("completion_tokens", 0)
             cumulative_tokens += telemetry.get("total_tokens", 0)
@@ -362,6 +408,8 @@ Respond ONLY with the PDDL domain code block.
             if not d_pddl and "(define (domain" in raw_response.lower():
                 d_pddl = raw_response
             last_domain = d_pddl
+            _emit(on_event, phase="llm_generation", iteration=0, prompt=initial_gen_prompt,
+                  raw_response=raw_response, output_domain=d_pddl)
         except Exception as e:
             print(f"[Ablation No-AST Error]: Initial LLM call failed: {e}")
             return {
@@ -386,8 +434,10 @@ Respond ONLY with the PDDL domain code block.
             f.write(last_problem)
 
         is_valid, val_log = run_val_validator(dom_file, prob_file)
+        fd_res = None
         if is_valid:
             fd_res = run_fast_downward_with_plan(dom_file, prob_file)
+            _emit_oracle_check(on_event, iteration=iteration, is_valid=is_valid, val_log=val_log, fd_res=fd_res)
             if fd_res["is_solvable"]:
                 return {
                     "generated_domain_pddl": last_domain,
@@ -406,11 +456,12 @@ Respond ONLY with the PDDL domain code block.
                 }
             raw_error = fd_res.get("raw_fd_log", "Planner Error: Fast Downward found no plan.")
         else:
+            _emit_oracle_check(on_event, iteration=iteration, is_valid=is_valid, val_log=val_log, fd_res=None)
             raw_error = "VAL Error: " + val_log
 
         repair_attempts += 1
 
-        # Invoke Layered Model-Based Fault Localization Node on raw error
+        # Run fault localization on raw error
         fault_loc_state = {
             "requirements": task.natural_language_requirements,
             "generated_domain_pddl": last_domain,
@@ -429,7 +480,7 @@ Respond ONLY with the PDDL domain code block.
 
         error_history.append(f"[Iter {iteration} Fault Localization Feedback]: {diag_feedback[:300]}")
 
-        # Construct repair prompt with Layered Model-Based Fault Localization, targeting raw PDDL code output
+        # Construct repair prompt targeting PDDL code output
         repair_prompt = f"""You are an expert PDDL Knowledge Engineer specializing in formal domain model repair.
 Your task is to repair the existing PDDL Domain (D_gen) to resolve the diagnostic errors reported by symbolic oracles.
 You must ONLY repair and output the PDDL domain definition.
@@ -447,6 +498,17 @@ LAYERED MODEL-BASED FAULT LOCALIZATION FEEDBACK:
 
 Produce ONLY the updated valid PDDL domain file (define (domain ...) ...) enclosed in a ```pddl ... ``` markdown code block.
 """
+        _emit(
+            on_event,
+            phase="fault_feedback_passed_to_llm",
+            iteration=iteration,
+            feedback_type="model_based_fault_localization",
+            feedback_payload=diag_feedback,
+            diagnostic_reports=diagnostic_reports,
+            prompt=repair_prompt,
+            model_target="pddl_text",
+            note="Ablation No-AST passes structured fault localization triage to direct PDDL text repair without Pydantic AST."
+        )
         try:
             raw_response, telemetry = invoke_raw_llm_with_telemetry(repair_prompt)
             cumulative_prompt_tokens += telemetry.get("prompt_tokens", 0)
@@ -457,6 +519,14 @@ Produce ONLY the updated valid PDDL domain file (define (domain ...) ...) enclos
             d_pddl, _ = extract_pddl_blocks(raw_response)
             if d_pddl:
                 last_domain = d_pddl
+            _emit(
+                on_event,
+                phase="repair_response",
+                iteration=iteration,
+                raw_response=raw_response,
+                output_domain=d_pddl,
+                telemetry=telemetry
+            )
         except Exception as e:
             print(f"[Ablation No-AST Error]: Repair LLM call failed on iter {iteration}: {e}")
             break
@@ -702,7 +772,7 @@ Retain all baseline predicates and actions. Respond ONLY with the complete evolv
         else:
             raw_error = val_log
 
-        # Invoke Layered Fault Localization
+        # Run fault localization
         fault_loc_state = {
             "requirements": task.natural_language_requirements,
             "generated_domain_pddl": last_domain,

@@ -5,18 +5,30 @@
     "python.analysis.extraPaths": [
         "C:\\Users\\Srushti\\miniconda3\\envs\\agent_env\\Lib\\site-packages"
     ],
+    "texPreview.engine": "latexmk",
+    "texPreview.latexmkEngine": "lualatex",
+    "texPreview.outDir": ".texbuild",
     "latex-workshop.latex.recipes": [
         {
-            "name": "pdflatex",
+            "name": "latexmk",
             "tools": [
-                "pdflatex"
+                "latexmk"
             ]
-        }
+        },
+        // {
+        //     "name": "lualatex -> biber -> lualatex x2",
+        //     "tools": [
+        //         "lualatex",
+        //         "biber",
+        //         "lualatex",
+        //         "lualatex"
+        //     ]
+        // }
     ],
     "latex-workshop.latex.tools": [
         {
-            "name": "pdflatex",
-            "command": "pdflatex",
+            "name": "latexmk",
+            "command": "latexmk",
             "args": [
                 "-synctex=1",
                 "-interaction=nonstopmode",
@@ -24,7 +36,28 @@
                 "%DOC%"
             ],
             "env": {}
+        },
+        // {
+        //     "name": "lualatex",
+        //     "command": "lualatex",
+        //     "args": [
+        //         "-synctex=1",
+        //         "-interaction=nonstopmode",
+        //         "-file-line-error",
+        //         "-shell-escape",
+        //         "%DOC%"
+        //     ],
+        //     "env": {}
+        // },
+        {
+            "name": "biber",
+            "command": "biber",
+            "args": [
+                "%DOCFILE%"
+            ],
+            "env": {}
         }
     ],
+    "latex-workshop.latex.outDir": "%DIR%",
     "latex-workshop.latex.recipe.default": "first"
 }

@@ -1,19 +1,4 @@
-"""
-run_autoplanbench_pure21_experiments.py
-Autonomous Empirical Benchmark Runner for the 17 Verified AutoPlanBench PDDL 2.1 Pure Domains.
-
-Measures all thesis metrics across 4 experimental conditions:
-1. CLOSED_LOOP_AST_AGENT (Full Proposed UPDEAgent with AST + Layered Model-Based Fault Localization + Oracles)
-2. ABLATION_NO_TRIAGE (AST Blueprint + Raw Unguided Logs, Tests H2)
-3. ABLATION_NO_AST (Raw PDDL text iterative retry, Tests H1)
-4. ZERO_SHOT (Direct one-shot generation baseline, Tests MRQ 1)
-
-Generates:
-- metrics.csv: All primary, representation, repair, regression, and LLM metrics.
-- semantic_verification.csv: Mathematical proof of semantic equivalence to standard domain.
-- diagnostic_reports.csv: Comprehensive fault localization, diagnostic traces, and repair history.
-- summary.csv: Statistical aggregations answering MRQ 1, SRQ 1, SRQ 2, SRQ 3, SRQ 4, H1, H2, H3.
-"""
+"""Empirical benchmark runner for AutoPlanBench PDDL 2.1 domains."""
 
 import sys
 import os
@@ -34,12 +19,11 @@ from benchmark.pure_strips_benchmarks import (
     load_autoplanbench_original_domain_data,
     get_autoplanbench_domain_folder
 )
-from config.paths import create_run_directory
+from config.paths import create_run_directory, get_temp_dir
 from benchmark.schema import BenchmarkTask, LifecycleTaskType
 from eval.baselines import run_zero_shot_baseline, run_unstructured_retry_baseline
 from eval.verification_pipeline import (
     calculate_llm_cost,
-    classify_behavioral_outcome,
     verify_pddl_candidate,
     extract_hmgfl_diagnostics
 )
@@ -100,38 +84,34 @@ def main():
     master_fields = [
         "domain", "agent_type", "task_type", "e2e_success",
         "is_syntax_valid", "is_solvable", "is_plan_valid", "executability_valid",
-        "feasibility_valid", "interpretability_valid", "svr_init", "iterations_used",
-        "is_repaired", "repair_iterations",
-        "macro_structural_f1", "action_f1", "top1_element",
-        "top1_repair_op", "parameter_arity_match", "precondition_f1", "add_effect_f1", "delete_effect_f1",
-        "semantic_soundness", "planner_timeout",
+        "feasibility_valid", "interpretability_valid", "semantic_soundness", "planner_timeout",
+        "svr_init", "iterations_used", "is_repaired", "repair_iterations",
+        "top1_element", "top1_repair_op",
         "rpr_regression_pass_rate", "reference_instances_passed", "reference_instances_total",
         "candidate_rejections_count", "evolution_iteration_overhead",
         "plan_length", "plan_cost", "search_time_sec", "execution_time_sec",
         "prompt_tokens", "completion_tokens", "total_tokens", "estimated_cost_usd",
-        "behavioral_code", "defect_class", "error_summary"
+        "error_summary"
     ]
 
     # Semantic Verification CSV Header (Tri-Criteria: Executability, Feasibility, Interpretability)
     verification_fields = [
-        "domain", "agent_type", "gold_operator_count", "generated_operator_count",
-        "matched_operator_count", "macro_structural_f1", "action_f1", "top1_element",
-        "top1_repair_op", "parameter_arity_match", "precondition_f1",
-        "add_effect_f1", "delete_effect_f1",
+        "domain", "agent_type",
         "is_syntax_valid", "is_solvable", "planner_timeout",
         "executability_valid", "feasibility_valid", "interpretability_valid",
         "semantic_soundness", "e2e_success",
-        "semantic_verdict", "action_bijection_mapping"
+        "plan_length", "plan_cost", "search_time_sec",
+        "semantic_verdict"
     ]
 
     # Diagnostic Report CSV Header (Comprehensive Fault Localization & Repair Trace)
     diagnostic_fields = [
-        "domain", "agent_type", "behavioral_code", "why_failed_verdict",
+        "domain", "agent_type", "why_failed_verdict",
         "iterations_used", "is_repaired", "diagnostic_report_count",
         "error_categories", "repair_operation_types", "faulty_elements",
         "initial_oracle_error", "fault_localization_hints",
         "causal_graph_diagnostics", "val_syntax_summary", "planner_summary",
-        "feasibility_summary", "interpretability_summary", "macro_structural_f1"
+        "feasibility_summary", "interpretability_summary"
     ]
 
     # Initialize CSV files
@@ -168,16 +148,16 @@ def main():
                 continue
 
             # Save reference ground-truth files (D_gold, P_gold) to disk for VAL oracle verification
-            gold_dom_file = f"Streamlit_output_file/gold_dom_{domain_name}.pddl"
-            gold_prob_file = f"Streamlit_output_file/gold_prob_{domain_name}.pddl"
+            gold_dom_file = str(get_temp_dir() / f"gold_dom_{domain_name}.pddl")
+            gold_prob_file = str(get_temp_dir() / f"gold_prob_{domain_name}.pddl")
             with open(gold_dom_file, "w", encoding="utf-8") as f:
                 f.write(ref_dom)
             with open(gold_prob_file, "w", encoding="utf-8") as f:
                 f.write(ref_inst)
 
             # Synthesize and save Gold Reference SAS Plan pi_gold on (D_gold, P_gold) once per domain
-            gold_plan_file = f"Streamlit_output_file/gold_plan_{domain_name}.txt"
-            gold_sas_plan_file = f"Streamlit_output_file/orig_sas_plan_{domain_name}.txt"
+            gold_plan_file = str(get_temp_dir() / f"gold_plan_{domain_name}.txt")
+            gold_sas_plan_file = str(get_temp_dir() / f"orig_sas_plan_{domain_name}.txt")
             gold_fd_res = run_fast_downward_with_plan(gold_dom_file, gold_prob_file, plan_path=gold_plan_file)
             gold_plan_steps = gold_fd_res.get("plan_steps", [])
             gold_plan_len = len(gold_plan_steps)
@@ -338,16 +318,14 @@ def main():
                 tot_tokens = p_tokens + c_tokens
                 cost_usd = calculate_llm_cost(p_tokens, c_tokens)
 
-                # -------------------------------------------------------------
-                # Formal Symbolic Oracles Evaluation via Canonical Pipeline
-                # -------------------------------------------------------------
+                # Evaluate via verification pipeline
                 verif = verify_pddl_candidate(
                     generated_domain_pddl=gen_dom,
                     generated_problem_pddl=ref_inst,
                     ground_truth_domain_pddl=ref_dom,
                     ground_truth_problem_pddl=ref_inst,
                     ground_truth_plan_path=gold_plan_file,
-                    temp_dir=Path("Streamlit_output_file"),
+                    temp_dir=get_temp_dir(),
                     tag=f"{domain_name}_{agent}"
                 )
 
@@ -368,31 +346,10 @@ def main():
                 feasibility_log = verif["feasibility_log"]
                 interpretability_log = verif["interpretability_log"]
 
-                macro_f1 = verif["macro_structural_f1"]
-                pre_f1 = verif["precondition_f1"]
-                add_f1 = verif["add_effect_f1"]
-                del_f1 = verif["delete_effect_f1"]
-                action_f1 = verif["action_f1"]
-                param_arity_match = verif["parameter_arity_match"]
-                action_map = verif["action_mapping"]
-
                 # Repair Metrics
                 is_repaired = (iters > 1 and e2e_success)
                 repair_iters = (iters - 1) if (iters > 1) else 0
                 evolution_overhead = 0
-
-                # Behavioral Outcome Taxonomy (A.1 - F)
-                beh_code, defect_cls = classify_behavioral_outcome(
-                    is_syntax_valid=is_syntax_valid,
-                    is_solvable=is_plan_valid,
-                    executability_valid=executability_valid,
-                    feasibility_valid=feasibility_valid,
-                    interpretability_valid=interpretability_valid,
-                    macro_f1=macro_f1,
-                    iters=iters,
-                    max_retries=max_iters,
-                    planner_timed_out=planner_timed_out
-                )
 
                 # Detailed Why-Failed Verdict for Diagnostic Inspection
                 if e2e_success:
@@ -413,7 +370,7 @@ def main():
                 else:
                     why_verdict = f"FAILURE: {err_summary[:120]}"
 
-                print(f"Done in {elapsed_sec}s | E2E={e2e_success} | Solvable={is_plan_valid} | Exec={executability_valid} | Feas={feasibility_valid} | Interp={interpretability_valid} | F1={macro_f1:.2f} | Code={beh_code[:3]}")
+                print(f"Done in {elapsed_sec}s | E2E={e2e_success} | Solvable={is_plan_valid} | Exec={executability_valid} | Feas={feasibility_valid} | Interp={interpretability_valid} | Steps={plan_len}")
 
                 # Assemble Master Row
                 row_master = {
@@ -433,14 +390,6 @@ def main():
                     "iterations_used": iters,
                     "is_repaired": is_repaired,
                     "repair_iterations": repair_iters,
-                    "macro_structural_f1": macro_f1,
-                    "action_f1": action_f1,
-                    "top1_element": top1_element,
-                    "top1_repair_op": top1_repair_op,
-                    "parameter_arity_match": param_arity_match,
-                    "precondition_f1": pre_f1,
-                    "add_effect_f1": add_f1,
-                    "delete_effect_f1": del_f1,
                     "rpr_regression_pass_rate": 1.0,
                     "reference_instances_passed": 0,
                     "reference_instances_total": 0,
@@ -454,8 +403,6 @@ def main():
                     "completion_tokens": c_tokens,
                     "total_tokens": tot_tokens,
                     "estimated_cost_usd": cost_usd,
-                    "behavioral_code": beh_code,
-                    "defect_class": defect_cls,
                     "error_summary": err_summary
                 }
                 all_master_rows.append(row_master)
@@ -464,17 +411,6 @@ def main():
                 row_verification = {
                     "domain": domain_name,
                     "agent_type": agent,
-                    "gold_operator_count": len(action_map),
-                    "generated_operator_count": len(action_map),
-                    "matched_operator_count": len(action_map),
-                    "macro_structural_f1": macro_f1,
-                    "action_f1": action_f1,
-                    "top1_element": top1_element,
-                    "top1_repair_op": top1_repair_op,
-                    "parameter_arity_match": param_arity_match,
-                    "precondition_f1": pre_f1,
-                    "add_effect_f1": add_f1,
-                    "delete_effect_f1": del_f1,
                     "is_syntax_valid": is_syntax_valid,
                     "is_solvable": is_plan_valid,
                     "planner_timeout": planner_timed_out,
@@ -483,8 +419,10 @@ def main():
                     "interpretability_valid": interpretability_valid,
                     "semantic_soundness": is_semantically_sound,
                     "e2e_success": e2e_success,
+                    "plan_length": plan_len,
+                    "plan_cost": plan_cost,
+                    "search_time_sec": search_t,
                     "semantic_verdict": "SOUND_AND_CONVERSANT" if is_semantically_sound else "PARTIAL_OR_DIVERGENT",
-                    "action_bijection_mapping": json.dumps(action_map)
                 }
 
                 # Assemble Detailed Diagnostic Row
@@ -494,7 +432,6 @@ def main():
                 row_diagnostic = {
                     "domain": domain_name,
                     "agent_type": agent,
-                    "behavioral_code": beh_code,
                     "why_failed_verdict": why_verdict,
                     "iterations_used": iters,
                     "is_repaired": is_repaired,
@@ -508,8 +445,7 @@ def main():
                     "val_syntax_summary": clean_syntax[:400],
                     "planner_summary": f"Solvable={is_plan_valid}, Steps={plan_len}, GoldSteps={gold_plan_len}, Cost={plan_cost}, SearchTime={search_t:.4f}s",
                     "feasibility_summary": clean_feas[:500],
-                    "interpretability_summary": clean_interp[:500],
-                    "macro_structural_f1": macro_f1
+                    "interpretability_summary": clean_interp[:500]
                 }
 
                 # Immediate Disk Flush (Zero Data Loss on Interruption)
@@ -571,7 +507,6 @@ def generate_summary_csv(rows: List[Dict[str, Any]], output_summary_path: str):
         "agent_type", "total_runs", "e2e_sr_pct", "psr_solvability_pct", "timeout_pct",
         "executability_pct", "feasibility_pct", "interpretability_pct", "semantic_soundness_pct",
         "svr_init_pct", "avg_iterations_total",
-        "macro_structural_f1", "action_f1", "mean_arity_match_pct", "precondition_f1", "add_effect_f1", "delete_effect_f1",
         "rsr_repair_success_pct", "avg_repair_iterations",
         "rpr_regression_pass_rate_pct", "total_candidate_rejections",
         "mean_total_tokens", "mean_latency_sec", "total_cost_usd"
@@ -599,13 +534,6 @@ def generate_summary_csv(rows: List[Dict[str, Any]], output_summary_path: str):
             svr = round(sum(1 for r in c_rows if r["svr_init"]) / n * 100, 1)
             avg_it = round(sum(r["iterations_used"] for r in c_rows) / n, 2)
 
-            f1 = round(sum(r["macro_structural_f1"] for r in c_rows) / n, 4)
-            act = round(sum(r.get("action_f1", 0.0) for r in c_rows) / n, 4)
-            arity = round(sum(r.get("parameter_arity_match", 1.0) for r in c_rows) / n * 100, 1)
-            pre = round(sum(r["precondition_f1"] for r in c_rows) / n, 4)
-            add = round(sum(r["add_effect_f1"] for r in c_rows) / n, 4)
-            dele = round(sum(r["delete_effect_f1"] for r in c_rows) / n, 4)
-
             repair_needed = [r for r in c_rows if r["iterations_used"] > 1]
             rsr = round(sum(1 for r in repair_needed if r["is_repaired"]) / len(repair_needed) * 100, 1) if repair_needed else 100.0
             avg_rep_it = round(sum(r["repair_iterations"] for r in repair_needed) / len(repair_needed), 2) if repair_needed else 0.0
@@ -630,12 +558,6 @@ def generate_summary_csv(rows: List[Dict[str, Any]], output_summary_path: str):
                 "semantic_soundness_pct": sound_pct,
                 "svr_init_pct": svr,
                 "avg_iterations_total": avg_it,
-                "macro_structural_f1": f1,
-                "action_f1": act,
-                "mean_arity_match_pct": arity,
-                "precondition_f1": pre,
-                "add_effect_f1": add,
-                "delete_effect_f1": dele,
                 "rsr_repair_success_pct": rsr,
                 "avg_repair_iterations": avg_rep_it,
                 "rpr_regression_pass_rate_pct": rpr,

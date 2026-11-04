@@ -1,0 +1,90 @@
+{
+  "domain_name": "transport",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "transport",
+    "requirements": [
+      ":typing"
+    ],
+    "types": {
+      "location": "object",
+      "target": "object",
+      "locatable": "object",
+      "vehicle": "locatable",
+      "package": "locatable",
+      "capacity-number": "object"
+    },
+    "constants": {},
+    "predicates": [
+      "(road ?l1 ?l2)",
+      "(at ?x ?v)",
+      "(in ?x ?v)",
+      "(capacity ?v ?s1)",
+      "(capacity-predecessor ?s1 ?s2)"
+    ],
+    "actions": [
+      {
+        "action_name": "drive",
+        "parameters": {
+          "?v": "vehicle",
+          "?l1": "location",
+          "?l2": "location"
+        },
+        "preconditions": [
+          "(at ?v ?l1)",
+          "(road ?l1 ?l2)"
+        ],
+        "effects": [
+          "(at ?v ?l2)",
+          "(not (at ?v ?l1))"
+        ]
+      },
+      {
+        "action_name": "pick-up",
+        "parameters": {
+          "?v": "vehicle",
+          "?l": "location",
+          "?p": "package",
+          "?s1": "capacity-number",
+          "?s2": "capacity-number"
+        },
+        "preconditions": [
+          "(at ?v ?l)",
+          "(at ?p ?l)",
+          "(capacity-predecessor ?s2 ?s1)",
+          "(capacity ?v ?s1)"
+        ],
+        "effects": [
+          "(in ?p ?v)",
+          "(capacity ?v ?s2)",
+          "(not (at ?p ?l))",
+          "(not (capacity ?v ?s1))"
+        ]
+      },
+      {
+        "action_name": "drop",
+        "parameters": {
+          "?v": "vehicle",
+          "?l": "location",
+          "?p": "package",
+          "?s1": "capacity-number",
+          "?s2": "capacity-number"
+        },
+        "preconditions": [
+          "(at ?v ?l)",
+          "(in ?p ?v)",
+          "(capacity-predecessor ?s1 ?s2)",
+          "(capacity ?v ?s1)"
+        ],
+        "effects": [
+          "(at ?p ?l)",
+          "(capacity ?v ?s2)",
+          "(not (in ?p ?v))",
+          "(not (capacity ?v ?s1))"
+        ]
+      }
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

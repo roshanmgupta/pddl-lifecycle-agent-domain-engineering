@@ -1,0 +1,6 @@
+(drive_truck truck1 depot1 market1)
+(buy_goods goods1 truck1 market1 level1 level0 level1 level0 level1)
+(load_goods goods1 truck1 market1 level1 level1 level0 level0)
+(drive_truck truck1 market1 depot1)
+(unload_goods goods1 truck1 depot1 level1 level0 level1 level0 level1)
+; cost = 5 (unit cost)

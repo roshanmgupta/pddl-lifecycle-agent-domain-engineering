@@ -1,0 +1,143 @@
+{
+  "domain_name": "logistics-strips",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "logistics-strips",
+    "requirements": [
+      ":strips"
+    ],
+    "types": {},
+    "constants": {},
+    "predicates": [
+      "(OBJ ?obj)",
+      "(TRUCK ?truck)",
+      "(LOCATION ?loc)",
+      "(AIRPLANE ?airplane)",
+      "(CITY ?city)",
+      "(AIRPORT ?airport)",
+      "(at ?obj ?loc)",
+      "(in ?obj1 ?obj2)",
+      "(in-city ?obj ?city)"
+    ],
+    "actions": [
+      {
+        "action_name": "LOAD-TRUCK",
+        "parameters": {
+          "?obj": "object",
+          "?truck": "object",
+          "?loc": "object"
+        },
+        "preconditions": [
+          "(OBJ ?obj)",
+          "(TRUCK ?truck)",
+          "(LOCATION ?loc)",
+          "(at ?truck ?loc)",
+          "(at ?obj ?loc)"
+        ],
+        "effects": [
+          "(in ?obj ?truck)",
+          "(not (at ?obj ?loc))"
+        ]
+      },
+      {
+        "action_name": "LOAD-AIRPLANE",
+        "parameters": {
+          "?obj": "object",
+          "?airplane": "object",
+          "?loc": "object"
+        },
+        "preconditions": [
+          "(OBJ ?obj)",
+          "(AIRPLANE ?airplane)",
+          "(LOCATION ?loc)",
+          "(at ?airplane ?loc)",
+          "(at ?obj ?loc)"
+        ],
+        "effects": [
+          "(in ?obj ?airplane)",
+          "(not (at ?obj ?loc))"
+        ]
+      },
+      {
+        "action_name": "UNLOAD-TRUCK",
+        "parameters": {
+          "?obj": "object",
+          "?truck": "object",
+          "?loc": "object"
+        },
+        "preconditions": [
+          "(OBJ ?obj)",
+          "(TRUCK ?truck)",
+          "(LOCATION ?loc)",
+          "(at ?truck ?loc)",
+          "(in ?obj ?truck)"
+        ],
+        "effects": [
+          "(at ?obj ?loc)",
+          "(not (in ?obj ?truck))"
+        ]
+      },
+      {
+        "action_name": "UNLOAD-AIRPLANE",
+        "parameters": {
+          "?obj": "object",
+          "?airplane": "object",
+          "?loc": "object"
+        },
+        "preconditions": [
+          "(OBJ ?obj)",
+          "(AIRPLANE ?airplane)",
+          "(LOCATION ?loc)",
+          "(at ?airplane ?loc)",
+          "(in ?obj ?airplane)"
+        ],
+        "effects": [
+          "(at ?obj ?loc)",
+          "(not (in ?obj ?airplane))"
+        ]
+      },
+      {
+        "action_name": "DRIVE-TRUCK",
+        "parameters": {
+          "?truck": "object",
+          "?loc-from": "object",
+          "?loc-to": "object",
+          "?city": "object"
+        },
+        "preconditions": [
+          "(TRUCK ?truck)",
+          "(LOCATION ?loc-from)",
+          "(LOCATION ?loc-to)",
+          "(CITY ?city)",
+          "(at ?truck ?loc-from)",
+          "(in-city ?loc-from ?city)",
+          "(in-city ?loc-to ?city)"
+        ],
+        "effects": [
+          "(at ?truck ?loc-to)",
+          "(not (at ?truck ?loc-from))"
+        ]
+      },
+      {
+        "action_name": "FLY-AIRPLANE",
+        "parameters": {
+          "?airplane": "object",
+          "?loc-from": "object",
+          "?loc-to": "object"
+        },
+        "preconditions": [
+          "(AIRPLANE ?airplane)",
+          "(AIRPORT ?loc-from)",
+          "(AIRPORT ?loc-to)",
+          "(at ?airplane ?loc-from)"
+        ],
+        "effects": [
+          "(at ?airplane ?loc-to)",
+          "(not (at ?airplane ?loc-from))"
+        ]
+      }
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

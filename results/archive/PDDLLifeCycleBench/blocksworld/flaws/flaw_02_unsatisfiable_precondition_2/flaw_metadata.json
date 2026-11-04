@@ -1,0 +1,10 @@
+{
+  "flaw_id": "flaw_02_unsatisfiable_precondition_2",
+  "domain": "blocksworld",
+  "flaw_category": "PRECONDITION_UNSATISFIABLE",
+  "mutation_operator": "OPERATOR_1_UNSATISFIABLE_PRECONDITION",
+  "target_action": "unstack",
+  "description": "Added unsatisfiable precondition '(unreachable_precondition)' to action 'unstack'",
+  "ground_truth_fix": "Remove '(unreachable_precondition)' from action 'unstack' preconditions.",
+  "expected_oracle_signal": "Fast Downward reports unsolvable (goal unreachable from initial state)."
+}

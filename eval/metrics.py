@@ -2,16 +2,7 @@ from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 class EvaluationMetrics(BaseModel):
-    """
-    Standardized metrics recorded during a single benchmark task evaluation pass.
-    Derives from Classical PDDL 2.1 Formal Semantics & Symbolic Oracles (VAL + Fast Downward).
-    Literature Grounding:
-      - SVR: Fox & Long (2003), VAL Parser
-      - TPV: Howey, Long, & Fox (2004), VAL Plan Validator
-      - Cov_ref: Helmert (2006), IPC Reference Problem Solvability Coverage
-      - Macro Structural F1 & ARE: Oswald et al. (ICAPS 2024)
-      - STRIPS Component F1: Aineto, Jiménez, & Onaindia (JAIR 2022)
-    """
+    """Standardized metrics recorded during benchmark evaluation."""
     task_id: str = Field(
         description="Unique ID of the benchmark task evaluated"
     )
@@ -19,7 +10,7 @@ class EvaluationMetrics(BaseModel):
         description="IPC domain family, e.g., 'blocksworld', 'logistics', 'rovers'"
     )
     task_type: str = Field(
-        description="Lifecycle task category: 'ELICITATION', 'SYNTHETIC_FAULT_REPAIR', 'DOMAIN_EVOLUTION'"
+        description="Lifecycle task category: 'ELICITATION', 'SYNTHETIC_FAULT_REPAIR'"
     )
     agent_type: str = Field(
         description="Evaluated agent architecture: 'ZERO_SHOT', 'UNSTRUCTURED_RETRY', 'CLOSED_LOOP_AST_AGENT', etc."
@@ -78,7 +69,7 @@ class EvaluationMetrics(BaseModel):
     )
 
     # -------------------------------------------------------------
-    # 2. Structural Reconstruction Metrics (Oswald 2024 / Aineto 2022)
+    # 2. Structural Reconstruction Metrics
     # -------------------------------------------------------------
     macro_structural_f1: Optional[float] = Field(
         default=None,
@@ -106,20 +97,8 @@ class EvaluationMetrics(BaseModel):
     )
 
     # -------------------------------------------------------------
-    # 2b. Hierarchical Multi-Granular Fault Localization (H-MGFL) Metrics
+    # 2b. Hierarchical Multi-Granular Fault Localization (H-MGFL) Elements
     # -------------------------------------------------------------
-    fla_top1: Optional[bool] = Field(
-        default=None,
-        description="Level 1: Top-1 Fault Localization Accuracy against gold fault element"
-    )
-    fla_top3: Optional[bool] = Field(
-        default=None,
-        description="Level 1: Top-3 Fault Localization Accuracy against gold fault element"
-    )
-    fla_mrr: Optional[float] = Field(
-        default=None,
-        description="Level 1: Mean Reciprocal Rank (MRR) of gold fault element"
-    )
     top1_element: Optional[str] = Field(
         default=None,
         description="Level 1: Top-1 diagnosed AST element (Action Schema, 'types', or 'predicates')"
@@ -183,10 +162,18 @@ class EvaluationMetrics(BaseModel):
 
     @property
     def e2e_success(self) -> bool:
-        if self.e2e_gate_success:
-            if self.cov_ref_coverage_rate is not None:
-                return self.cov_ref_coverage_rate >= 100.0
-            return True
+        """
+        Canonical Tri-Criteria End-to-End Success Gate:
+        True ONLY if:
+          1. SVR syntax validation passes
+          2. Planner solvability passes (Fast Downward found plan)
+          3. Executability passes (VAL certifies generated plan on generated domain)
+          4. Feasibility passes (VAL certifies generated plan on ground-truth domain)
+          5. Interpretability passes (VAL certifies ground-truth plan on generated domain)
+          6. Reference suite coverage (cov_ref) is 100% (for evolution tasks)
+        """
+        if not self.e2e_gate_success:
+            return False
         if self.cov_ref_coverage_rate is not None:
-            return self.tpv_target_plan_valid and (self.cov_ref_coverage_rate >= 100.0)
-        return self.tpv_target_plan_valid
+            return self.cov_ref_coverage_rate >= 100.0
+        return True

@@ -1,0 +1,10 @@
+task_id,domain,agent,runs_evaluated,runs_succeeded,task_succeeds,mean_iterations_penalized,svr_rate,mean_prompt_tokens,mean_completion_tokens,mean_total_tokens,mean_latency_sec
+parking11_elicit,parking11,CLOSED_LOOP_AST_AGENT,3,3,True,1.0,1.0,1821.0,499.7,2320.7,30.69
+visitall_elicit,visitall,CLOSED_LOOP_AST_AGENT,3,3,True,1.0,1.0,1135.0,84.3,1219.3,6825.95
+driverlog02-bfs_elicit,driverlog02-bfs,CLOSED_LOOP_AST_AGENT,3,3,True,1.0,1.0,2054.0,602.0,2656.0,31.86
+parking11_elicit,parking11,ABLATION_NO_AST,3,3,True,1.0,1.0,1009.0,586.0,1595.0,29.33
+visitall_elicit,visitall,ABLATION_NO_AST,3,3,True,1.0,1.0,371.0,138.0,509.0,8.36
+driverlog02-bfs_elicit,driverlog02-bfs,ABLATION_NO_AST,3,3,True,1.0,1.0,1189.0,661.0,1850.0,31.06
+parking11_elicit,parking11,ZERO_SHOT,3,2,True,2.67,1.0,672.7,390.7,1063.3,54.03
+visitall_elicit,visitall,ZERO_SHOT,3,3,True,1.0,1.0,371.0,138.0,509.0,10.96
+driverlog02-bfs_elicit,driverlog02-bfs,ZERO_SHOT,3,3,True,1.0,1.0,1189.0,661.0,1850.0,43.93

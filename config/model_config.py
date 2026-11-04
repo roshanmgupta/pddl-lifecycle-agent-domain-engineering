@@ -9,24 +9,19 @@ from langchain_openai import ChatOpenAI
 
 T = TypeVar("T", bound=BaseModel)
 
-# Dedicated LLM Models per KEPS Lifecycle Phase with dynamic .env resolution
 def get_phase_model(phase: int = 1) -> str:
-    """
-    Dynamically reads the dedicated LLM model configured for each KEPS phase from .env.
-    Enables empirical research and independent model selection per phase:
-    - Phase 1 (Elicitation): Natural language extraction to relational AST schema
-    - Phase 3 (Repair): Targeted repair guided by Layered Model-Based Fault Localization
-    - Phase 4 (Maintenance): Historical regression and backward compatibility verification
-    """
+    """Returns the configured model name for a given phase."""
     load_dotenv(override=True)
+    provider = os.getenv("LLM_PROVIDER", "openrouter").lower().strip()
+    default_model = "gpt-4o" if provider == "openai" else "deepseek/deepseek-chat"
     if phase == 1:
-        val = os.getenv("LLM_PHASE_1", "deepseek/deepseek-chat")
+        val = os.getenv("LLM_PHASE_1", default_model)
     elif phase == 3:
-        val = os.getenv("LLM_PHASE_3", "deepseek/deepseek-chat")
+        val = os.getenv("LLM_PHASE_3", default_model)
     elif phase == 4:
-        val = os.getenv("LLM_PHASE_4", "deepseek/deepseek-chat")
+        val = os.getenv("LLM_PHASE_4", default_model)
     else:
-        val = os.getenv(f"LLM_PHASE_{phase}", "deepseek/deepseek-chat")
+        val = os.getenv(f"LLM_PHASE_{phase}", default_model)
     return str(val).strip().strip('"').strip("'")
 
 LLM_MODEL_PHASE_1_ELICITATION = get_phase_model(1)
@@ -133,13 +128,41 @@ def extract_telemetry_from_response(raw_resp) -> dict:
         completion_tokens = max(50, len(raw_text) // 4)
         total_tokens = prompt_tokens + completion_tokens
 
-    cost = (prompt_tokens * 0.00000010) + (completion_tokens * 0.00000040)
+    # Cost calculation: GPT-4o pricing ($2.50/M input, $10.00/M output)
+    cost = (prompt_tokens * 2.50 / 1_000_000) + (completion_tokens * 10.00 / 1_000_000)
     return {
         "prompt_tokens": prompt_tokens,
         "completion_tokens": completion_tokens,
         "total_tokens": total_tokens,
         "estimated_cost_usd": round(cost, 6)
     }
+
+def _get_llm_client_config(target_model: str = None) -> tuple[str, str, str, Optional[str], int]:
+    """Resolves provider, model name, api_key, api_base, and max_tokens from environment."""
+    load_dotenv(override=True)
+    provider = os.getenv("LLM_PROVIDER", "openrouter").lower().strip()
+    
+    if provider == "openai":
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise RuntimeError("[ALERT] OPENAI_API_KEY is missing from your .env file!")
+        api_base = os.getenv("OPENAI_API_BASE", None)
+        model_name = target_model or get_phase_model(1)
+        max_tokens = int(os.getenv("OPENAI_MAX_TOKENS", os.getenv("OPENROUTER_MAX_TOKENS", "8192")))
+        provider_label = "OpenAI"
+    else:
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            raise RuntimeError("[ALERT] OPENROUTER_API_KEY is missing from your .env file!")
+        api_base = os.getenv("OPENROUTER_API_BASE", "https://openrouter.ai/api/v1")
+        model_name = target_model or get_phase_model(1)
+        max_tokens = int(os.getenv("OPENROUTER_MAX_TOKENS", "8192"))
+        provider_label = "OpenRouter"
+
+    if model_name and model_name.endswith(":batch"):
+        model_name = model_name[:-6]
+
+    return provider_label, model_name, api_key, api_base, max_tokens
 
 def invoke_structured_llm(schema: Type[T], prompt: str, target_model: str = None) -> T:
     """Invokes LLM with structured Pydantic schema validation."""
@@ -148,19 +171,10 @@ def invoke_structured_llm(schema: Type[T], prompt: str, target_model: str = None
 
 def invoke_structured_llm_with_telemetry(schema: Type[T], prompt: str, target_model: str = None) -> tuple[T, dict]:
     """
-    Invokes OpenRouter with structured Pydantic output AND returns usage telemetry dict (tokens & estimated cost).
+    Invokes LLM (OpenAI or OpenRouter) with structured Pydantic output AND returns usage telemetry dict (tokens & estimated cost).
     Strictly invokes only the requested model without switching or falling back to other models.
     """
-    load_dotenv(override=True)
-    openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
-    if not openrouter_api_key:
-        raise RuntimeError("[ALERT] OPENROUTER_API_KEY is missing from your .env file!")
-
-    model_name = target_model or get_phase_model(1)
-    if model_name and model_name.endswith(":batch"):
-        model_name = model_name[:-6]
-
-    openrouter_max_tokens = int(os.getenv("OPENROUTER_MAX_TOKENS", "8192"))
+    provider_label, model_name, api_key, api_base, max_tokens = _get_llm_client_config(target_model)
 
     schema_json_hint = ""
     if hasattr(schema, "model_json_schema"):
@@ -170,16 +184,19 @@ def invoke_structured_llm_with_telemetry(schema: Type[T], prompt: str, target_mo
     max_api_retries = 5
     for attempt in range(max_api_retries):
         try:
-            print(f"[LLM Provider]: Invoking OpenRouter Model '{model_name}' (max_tokens={openrouter_max_tokens})...")
-            llm = ChatOpenAI(
-                model_name=model_name,
-                openai_api_key=openrouter_api_key,
-                openai_api_base="https://openrouter.ai/api/v1",
-                temperature=0.0,
-                max_tokens=openrouter_max_tokens,
-                timeout=120.0,
-                max_retries=1
-            )
+            print(f"[LLM Provider]: Invoking {provider_label} Model '{model_name}' (max_tokens={max_tokens})...")
+            llm_kwargs = {
+                "model_name": model_name,
+                "openai_api_key": api_key,
+                "temperature": 0.0,
+                "max_tokens": max_tokens,
+                "timeout": 120.0,
+                "max_retries": 1
+            }
+            if api_base:
+                llm_kwargs["openai_api_base"] = api_base
+
+            llm = ChatOpenAI(**llm_kwargs)
             import asyncio
             try:
                 loop = asyncio.get_event_loop()
@@ -202,15 +219,15 @@ def invoke_structured_llm_with_telemetry(schema: Type[T], prompt: str, target_mo
                 if ak.get("reasoning_content"):
                     raw_text = ak.get("reasoning_content")
                 elif ak.get("refusal"):
-                    raise RuntimeError(f"OpenRouter model '{model_name}' refused the request: {ak.get('refusal')}")
+                    raise RuntimeError(f"{provider_label} model '{model_name}' refused the request: {ak.get('refusal')}")
                 elif finish_reason == "length":
                     raise RuntimeError(
-                        f"OpenRouter model '{model_name}' exhausted max_tokens ({openrouter_max_tokens}) during internal reasoning. "
-                        f"Please set OPENROUTER_MAX_TOKENS=16384 in your .env file or choose a non-reasoning chat model."
+                        f"{provider_label} model '{model_name}' exhausted max_tokens ({max_tokens}) during internal reasoning. "
+                        f"Please set OPENAI_MAX_TOKENS=16384 (or OPENROUTER_MAX_TOKENS) in your .env file or choose a non-reasoning chat model."
                     )
 
             result = extract_and_parse_json(schema, raw_text)
-            print(f"[LLM Provider]: Successfully obtained response from OpenRouter ('{model_name}').")
+            print(f"[LLM Provider]: Successfully obtained response from {provider_label} ('{model_name}').")
             return result, telemetry
         except Exception as e:
             err_msg = str(e)
@@ -224,40 +241,34 @@ def invoke_structured_llm_with_telemetry(schema: Type[T], prompt: str, target_mo
                 continue
             if is_rate_limit:
                 raise RuntimeError(
-                    f"[ALERT] RATE / QUOTA LIMIT REACHED for model '{model_name}' on OpenRouter! Execution aborted.\n\n"
+                    f"[ALERT] RATE / QUOTA LIMIT REACHED for model '{model_name}' on {provider_label}! Execution aborted.\n\n"
                     f"Details: {err_msg}\n"
-                    f"[FIX]: Check your OpenRouter credits or rate limits, or switch provider in your .env file!"
+                    f"[FIX]: Check your {provider_label} account credits, quota or rate limits, or switch provider in your .env file!"
                 )
             else:
-                raise RuntimeError(f"[ALERT] OpenRouter LLM API Error for Model '{model_name}': {err_msg}")
+                raise RuntimeError(f"[ALERT] {provider_label} LLM API Error for Model '{model_name}': {err_msg}")
 
 def invoke_raw_llm_with_telemetry(prompt: str, target_model: str = None) -> tuple[str, dict]:
     """
-    Invokes OpenRouter for unstructured/raw string output (used by Zero-Shot and Unstructured-Retry baselines)
+    Invokes LLM (OpenAI or OpenRouter) for unstructured/raw string output (used by Zero-Shot and Unstructured-Retry baselines)
     and returns (raw_text, telemetry_dict).
     Strictly invokes only the requested model without switching or falling back to other models.
     """
-    load_dotenv(override=True)
-    openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
-    if not openrouter_api_key:
-        raise RuntimeError("[ALERT] OPENROUTER_API_KEY is missing from your .env file!")
-
-    model_name = target_model or get_phase_model(1)
-    if model_name and model_name.endswith(":batch"):
-        model_name = model_name[:-6]
-
-    openrouter_max_tokens = int(os.getenv("OPENROUTER_MAX_TOKENS", "8192"))
+    provider_label, model_name, api_key, api_base, max_tokens = _get_llm_client_config(target_model)
 
     try:
-        print(f"[LLM Provider]: Invoking OpenRouter Model '{model_name}'...")
-        llm = ChatOpenAI(
-            model_name=model_name,
-            openai_api_key=openrouter_api_key,
-            openai_api_base="https://openrouter.ai/api/v1",
-            temperature=0.0,
-            max_tokens=openrouter_max_tokens,
-            timeout=90.0,
-        )
+        print(f"[LLM Provider]: Invoking {provider_label} Model '{model_name}'...")
+        llm_kwargs = {
+            "model_name": model_name,
+            "openai_api_key": api_key,
+            "temperature": 0.0,
+            "max_tokens": max_tokens,
+            "timeout": 90.0,
+        }
+        if api_base:
+            llm_kwargs["openai_api_base"] = api_base
+
+        llm = ChatOpenAI(**llm_kwargs)
         import asyncio
         try:
             loop = asyncio.get_event_loop()
@@ -273,6 +284,6 @@ def invoke_raw_llm_with_telemetry(prompt: str, target_model: str = None) -> tupl
         raw_text = raw_resp.content if hasattr(raw_resp, "content") else str(raw_resp)
         return raw_text, telemetry
     except Exception as e:
-        raise RuntimeError(f"[ALERT] OpenRouter (Raw) LLM API Error for Model '{model_name}': {str(e)}")
+        raise RuntimeError(f"[ALERT] {provider_label} (Raw) LLM API Error for Model '{model_name}': {str(e)}")
 
 

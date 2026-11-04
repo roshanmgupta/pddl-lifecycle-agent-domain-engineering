@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-10-21T17:24:20.610508",
+  "domain_name": "child-snack",
+  "run_index": 1,
+  "verification_status": "PASSED",
+  "repair_iterations_used": 2,
+  "initial_verification_errors": [
+    "VAL Error: Type-checking make_sandwich_no_gluten\nObject with unknown type: c\n\nErrors: 0, warnings: 0\n\nError: Error in type-checking!"
+  ],
+  "final_verification_errors": [],
+  "diagnostic_issues_count": 2,
+  "diagnostic_reports": [
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "make_sandwich_no_gluten",
+      "raw_log": "VAL Error: Type-checking make_sandwich_no_gluten Object with unknown type: c",
+      "suggested_repair_hint": "Change the parameter type of '?c' in the action 'make_sandwich_no_gluten' from 'object' to 'content-portion' to match the expected type for content."
+    },
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "make_sandwich_no_gluten",
+      "raw_log": "Type problem with proposition (at t p1) - parameter 2 is incorrectly typed Conditions fail type-checking.",
+      "suggested_repair_hint": "The action 'make_sandwich_no_gluten' has a precondition that references the predicate '(at ?t ?p1)' where '?p1' is expected to be of type 'place'. However, the parameter type for '?p1' is not correctly defined in the action's context. Ensure that all parameters in the action's preconditions match the declared types in the predicates. Specifically, check the usage of the predicate 'at' and ensure it is correctly typed for all parameters."
+    }
+  ],
+  "formatted_diagnostic_feedback": "",
+  "plan_summary": {
+    "is_solvable": true,
+    "plan_length": 28,
+    "search_time_seconds": 1.275144,
+    "val_plan_valid": true,
+    "plan_steps": [
+      "(make_sandwich_no_gluten sandw2 bread2 content3)",
+      "(put_on_tray sandw2 tray2)",
+      "(move_tray tray2 kitchen table1)",
+      "(make_sandwich sandw3 bread1 content1)",
+      "(put_on_tray sandw3 tray1)",
+      "(move_tray tray1 kitchen table3)",
+      "(serve_sandwich sandw3 child3 tray1 table3)",
+      "(move_tray tray1 table3 kitchen)",
+      "(make_sandwich_no_gluten sandw4 bread5 content6)",
+      "(put_on_tray sandw4 tray1)",
+      "(move_tray tray1 kitchen table2)",
+      "(serve_sandwich_no_gluten sandw2 child5 tray2 table1)",
+      "(move_tray tray2 table1 kitchen)",
+      "(make_sandwich sandw1 bread3 content2)",
+      "(put_on_tray sandw1 tray2)",
+      "(move_tray tray2 kitchen table1)",
+      "(serve_sandwich sandw1 child2 tray2 table1)",
+      "(move_tray tray2 table1 kitchen)",
+      "(make_sandwich sandw5 bread4 content4)",
+      "(put_on_tray sandw5 tray2)",
+      "(move_tray tray2 kitchen table1)",
+      "(serve_sandwich sandw5 child6 tray2 table1)",
+      "(move_tray tray2 table1 kitchen)",
+      "(make_sandwich sandw6 bread6 content5)",
+      "(put_on_tray sandw6 tray2)",
+      "(move_tray tray2 kitchen table2)",
+      "(serve_sandwich sandw6 child4 tray2 table2)",
+      "(serve_sandwich_no_gluten sandw4 child1 tray1 table2)"
+    ]
+  }
+}

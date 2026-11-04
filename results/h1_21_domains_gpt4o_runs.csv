@@ -1,0 +1,412 @@
+Domain,Architecture,Run,Status,e2e_success,SVR,TPV,Executability,Feasibility,Interpretability,Plan Length,Iterations,Latency (s),Total Tokens,Cost ($),Error Summary
+blocksworld,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,6.22,1896,$0.00715,
+blocksworld,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.27,1896,$0.00715,
+blocksworld,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.18,1896,$0.00715,
+blocksworld,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,4.09,1896,$0.00715,
+blocksworld,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.69,1896,$0.00715,
+blocksworld,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.4,1896,$0.00715,
+blocksworld,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.6,1157,$0.00556,
+blocksworld,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.22,1129,$0.00528,
+blocksworld,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,4.3,1157,$0.00556,
+blocksworld,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.84,1157,$0.00556,
+blocksworld,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.1,1157,$0.00556,
+blocksworld,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.87,1157,$0.00556,
+blocksworld,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,2.93,1129,$0.00528,
+blocksworld,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,2.56,1157,$0.00556,
+blocksworld,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.64,1157,$0.00556,
+gripper,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.4,1941,$0.00664,
+gripper,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,2.91,1941,$0.00664,
+gripper,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,2.92,1941,$0.00664,
+gripper,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,2.88,1941,$0.00664,
+gripper,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.51,1941,$0.00664,
+gripper,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,2.84,1941,$0.00664,
+gripper,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.41,1267,$0.00588,
+gripper,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,2.66,1241,$0.00562,
+gripper,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.04,1241,$0.00562,
+gripper,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.11,1267,$0.00588,
+gripper,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.29,1267,$0.00588,
+gripper,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,2.71,1267,$0.00588,
+gripper,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,2.49,1267,$0.00588,
+gripper,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.49,1267,$0.00588,
+gripper,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,2.63,1267,$0.00588,
+logistics,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,5.03,2759,$0.01110,
+logistics,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,5.25,2759,$0.01110,
+logistics,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,4.69,2759,$0.01110,
+logistics,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,4.24,2759,$0.01110,
+logistics,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,4.57,2759,$0.01110,
+logistics,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,7.28,2759,$0.01110,
+logistics,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,4.24,1970,$0.00949,
+logistics,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.87,1970,$0.00949,
+logistics,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,4.68,1970,$0.00949,
+logistics,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,4.62,1970,$0.00949,
+logistics,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,4.17,1970,$0.00949,
+logistics,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,4.0,1970,$0.00949,
+logistics,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.7,1970,$0.00949,
+logistics,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.91,1970,$0.00949,
+logistics,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,4,1,3.76,1970,$0.00949,
+depot,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,4.14,2784,$0.01034,
+depot,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,3.86,2784,$0.01034,
+depot,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,4.33,2784,$0.01034,
+depot,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,5.15,2784,$0.01034,
+depot,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,4.02,2784,$0.01034,
+depot,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,4.12,2784,$0.01034,
+depot,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,5.37,2080,$0.00950,
+depot,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,4.61,2080,$0.00950,
+depot,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,4.52,2080,$0.00950,
+depot,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,5.09,2080,$0.00950,
+depot,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,4.51,2080,$0.00950,
+depot,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,4.32,2080,$0.00950,
+depot,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,3.65,2080,$0.00950,
+depot,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,3.83,2080,$0.00950,
+depot,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,16,1,4.32,2080,$0.00950,
+rovers,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,7.92,4455,$0.01810,
+rovers,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,6.67,4455,$0.01810,
+rovers,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,6.46,4455,$0.01810,
+rovers,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,9.66,4455,$0.01810,
+rovers,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,12.71,4455,$0.01810,
+rovers,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,6.61,4455,$0.01810,
+rovers,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,7.65,3906,$0.01937,
+rovers,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,8.74,3906,$0.01937,
+rovers,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,8.51,3906,$0.01937,
+rovers,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,7.65,3906,$0.01937,
+rovers,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,7.86,3906,$0.01937,
+rovers,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,7.28,3906,$0.01937,
+rovers,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,8.99,3906,$0.01937,
+rovers,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,7.98,3906,$0.01937,
+rovers,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,7.35,3906,$0.01937,
+satellite,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.64,2263,$0.00835,
+satellite,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.58,2263,$0.00835,
+satellite,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.21,2263,$0.00835,
+satellite,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.52,2263,$0.00835,
+satellite,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.07,2263,$0.00835,
+satellite,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.38,2263,$0.00835,
+satellite,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.7,1580,$0.00756,
+satellite,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.49,1580,$0.00756,
+satellite,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.28,1580,$0.00756,
+satellite,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.79,1580,$0.00756,
+satellite,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.13,1580,$0.00756,
+satellite,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.99,1576,$0.00752,
+satellite,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.86,1580,$0.00756,
+satellite,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.11,1580,$0.00756,
+satellite,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.61,1576,$0.00752,
+elevators08,CLOSED_LOOP_AST_AGENT,1,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,14,3,38.83,47953,$0.15587,"Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference "
+elevators08,CLOSED_LOOP_AST_AGENT,2,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,15,3,39.38,47304,$0.15377,"Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference "
+elevators08,CLOSED_LOOP_AST_AGENT,3,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,43.39,49488,$0.16158,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     tra"
+elevators08,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,15,1,10.8,10100,$0.03680,
+elevators08,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,15,2,19.81,16659,$0.06044,
+elevators08,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,15,2,18.65,16659,$0.06044,
+elevators08,ABLATION_NO_AST,1,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,15,1,5.52,2890,$0.01285,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+elevators08,ABLATION_NO_AST,2,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,15,1,5.18,2890,$0.01285,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+elevators08,ABLATION_NO_AST,3,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,15,1,6.03,2890,$0.01285,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+elevators08,UNSTRUCTURED_RETRY,1,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,15,1,5.37,2890,$0.01285,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+elevators08,UNSTRUCTURED_RETRY,2,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,15,1,5.42,2890,$0.01285,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+elevators08,UNSTRUCTURED_RETRY,3,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,15,1,10.38,2963,$0.01358,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+elevators08,ZERO_SHOT,1,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,15,1,6.37,2890,$0.01285,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+elevators08,ZERO_SHOT,2,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,15,1,5.18,2890,$0.01285,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+elevators08,ZERO_SHOT,3,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,15,1,6.24,2963,$0.01358,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+parking11,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,6.49,2763,$0.01045,
+parking11,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,6.64,2763,$0.01045,
+parking11,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,9.1,2763,$0.01045,
+parking11,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,5.99,2763,$0.01045,
+parking11,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,8.04,2763,$0.01045,
+parking11,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,6.76,2763,$0.01045,
+parking11,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,5.95,2107,$0.00981,
+parking11,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,8.3,2107,$0.00981,
+parking11,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,5.52,2107,$0.00981,
+parking11,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,5.37,2059,$0.00933,
+parking11,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,5.0,2107,$0.00981,
+parking11,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,5.03,2107,$0.00981,
+parking11,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,4.2,2107,$0.00981,
+parking11,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,4.22,2107,$0.00981,
+parking11,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,50,1,3.8,2059,$0.00933,
+goldminer,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.22,2757,$0.01076,
+goldminer,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.04,2757,$0.01076,
+goldminer,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.87,2757,$0.01076,
+goldminer,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.74,2757,$0.01076,
+goldminer,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.68,2757,$0.01076,
+goldminer,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.46,2757,$0.01076,
+goldminer,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.72,2060,$0.00957,
+goldminer,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.71,2060,$0.00957,
+goldminer,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.26,2060,$0.00957,
+goldminer,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.3,2060,$0.00957,
+goldminer,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.94,2060,$0.00957,
+goldminer,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.4,2060,$0.00957,
+goldminer,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.33,2060,$0.00957,
+goldminer,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.51,2060,$0.00957,
+goldminer,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.68,2060,$0.00957,
+scanalyzer08,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,5.1,3718,$0.01394,
+scanalyzer08,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,5.39,3718,$0.01394,
+scanalyzer08,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,4.84,3718,$0.01394,
+scanalyzer08,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,5.71,3718,$0.01394,
+scanalyzer08,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,4.91,3718,$0.01394,
+scanalyzer08,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,5.36,3718,$0.01394,
+scanalyzer08,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,6.49,3132,$0.01424,
+scanalyzer08,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,5.98,3132,$0.01424,
+scanalyzer08,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,6.31,3132,$0.01424,
+scanalyzer08,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,5.91,3132,$0.01424,
+scanalyzer08,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,5.69,3132,$0.01424,
+scanalyzer08,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,6.74,3132,$0.01424,
+scanalyzer08,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,5.88,3132,$0.01424,
+scanalyzer08,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,5.68,3132,$0.01424,
+scanalyzer08,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,6,1,5.65,3132,$0.01424,
+visitall,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,2.72,1438,$0.00425,
+visitall,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,1.85,1438,$0.00425,
+visitall,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,2.06,1438,$0.00425,
+visitall,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,1.78,1438,$0.00425,
+visitall,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,1.91,1438,$0.00425,
+visitall,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,1.7,1438,$0.00425,
+visitall,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,1.93,744,$0.00295,
+visitall,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,1.8,744,$0.00295,
+visitall,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,1.83,744,$0.00295,
+visitall,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,2.04,744,$0.00295,
+visitall,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,2.14,744,$0.00295,
+visitall,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,1.65,744,$0.00295,
+visitall,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,4.22,744,$0.00295,
+visitall,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,1.55,744,$0.00295,
+visitall,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,3,1,1.54,744,$0.00295,
+transport08-bfs,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.36,2328,$0.00800,
+transport08-bfs,CLOSED_LOOP_AST_AGENT,2,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,28.25,31593,$0.09871,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     tra"
+transport08-bfs,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,13.23,12192,$0.03829,
+transport08-bfs,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.4,2328,$0.00800,
+transport08-bfs,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.79,2328,$0.00800,
+transport08-bfs,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.26,2328,$0.00800,
+transport08-bfs,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.23,1681,$0.00756,
+transport08-bfs,ABLATION_NO_AST,2,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,5,1,4.31,1681,$0.00756,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+transport08-bfs,ABLATION_NO_AST,3,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,5,1,4.26,1681,$0.00756,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+transport08-bfs,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.94,1681,$0.00756,
+transport08-bfs,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.34,1681,$0.00756,
+transport08-bfs,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.62,1681,$0.00756,
+transport08-bfs,ZERO_SHOT,1,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,5,1,3.71,1681,$0.00756,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+transport08-bfs,ZERO_SHOT,2,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,5,1,3.39,1681,$0.00756,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+transport08-bfs,ZERO_SHOT,3,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,5,1,3.2,1681,$0.00756,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+floortile,CLOSED_LOOP_AST_AGENT,1,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,38.32,27417,$0.09754,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     tra"
+floortile,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,6.75,3213,$0.01242,
+floortile,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,6.55,3213,$0.01242,
+floortile,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,6.68,3213,$0.01242,
+floortile,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,15.41,9134,$0.03429,
+floortile,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,2,21.62,15006,$0.05605,
+floortile,ABLATION_NO_AST,1,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,8,1,6.95,2532,$0.01175,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+floortile,ABLATION_NO_AST,2,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,8,1,7.48,2532,$0.01175,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+floortile,ABLATION_NO_AST,3,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,8,1,7.0,2532,$0.01175,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+floortile,UNSTRUCTURED_RETRY,1,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,8,1,7.55,2532,$0.01175,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+floortile,UNSTRUCTURED_RETRY,2,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,8,1,6.05,2532,$0.01175,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+floortile,UNSTRUCTURED_RETRY,3,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,8,1,5.67,2532,$0.01175,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+floortile,ZERO_SHOT,1,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,8,1,5.24,2532,$0.01175,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+floortile,ZERO_SHOT,2,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,8,1,4.85,2532,$0.01175,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+floortile,ZERO_SHOT,3,Unverified [FAIL],False,1.0,PASS,Certified,FAIL,FAIL,8,1,5.34,2532,$0.01175,Feasibility Failed: Generated plan failed VAL on ground-truth domain.
+tpp06-bfs,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.49,2867,$0.01066,
+tpp06-bfs,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.31,2867,$0.01066,
+tpp06-bfs,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.34,2867,$0.01066,
+tpp06-bfs,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.98,2867,$0.01066,
+tpp06-bfs,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.54,2867,$0.01066,
+tpp06-bfs,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.25,2867,$0.01066,
+tpp06-bfs,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.58,2216,$0.01046,
+tpp06-bfs,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,6.5,2215,$0.01045,
+tpp06-bfs,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.37,2215,$0.01045,
+tpp06-bfs,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.69,2215,$0.01045,
+tpp06-bfs,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.1,2216,$0.01046,
+tpp06-bfs,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.1,2216,$0.01046,
+tpp06-bfs,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.06,2215,$0.01045,
+tpp06-bfs,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,4.73,2216,$0.01046,
+tpp06-bfs,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.03,2215,$0.01045,
+pegsol08,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,4.86,4529,$0.01376,
+pegsol08,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,3.89,4529,$0.01376,
+pegsol08,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,3.27,4529,$0.01376,
+pegsol08,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,3.98,4529,$0.01376,
+pegsol08,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,3.74,4529,$0.01376,
+pegsol08,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,3.47,4529,$0.01376,
+pegsol08,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,5.59,3852,$0.01273,
+pegsol08,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,4.18,3852,$0.01273,
+pegsol08,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,3.92,3852,$0.01273,
+pegsol08,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,6.6,3852,$0.01273,
+pegsol08,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,4.35,3852,$0.01273,
+pegsol08,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,5.05,3852,$0.01273,
+pegsol08,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,5.2,3852,$0.01273,
+pegsol08,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,3.87,3852,$0.01273,
+pegsol08,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,3.89,3852,$0.01273,
+nomystery11-bfs,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,3.73,11555,$0.03087,
+nomystery11-bfs,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,3.32,11555,$0.03087,
+nomystery11-bfs,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,3.97,11555,$0.03087,
+nomystery11-bfs,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,4.4,11555,$0.03087,
+nomystery11-bfs,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,3.25,11555,$0.03087,
+nomystery11-bfs,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,3.98,11555,$0.03087,
+nomystery11-bfs,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,10.5,10897,$0.03027,
+nomystery11-bfs,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,9.96,10897,$0.03027,
+nomystery11-bfs,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,3.96,10897,$0.03027,
+nomystery11-bfs,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,3.86,10897,$0.03027,
+nomystery11-bfs,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,5.29,10897,$0.03027,
+nomystery11-bfs,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,3.43,10897,$0.03027,
+nomystery11-bfs,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,3.73,10897,$0.03027,
+nomystery11-bfs,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,2.95,10897,$0.03027,
+nomystery11-bfs,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,11,1,3.33,10897,$0.03027,
+barman14-bfs,CLOSED_LOOP_AST_AGENT,1,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,360.89,49378,$0.16647,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,CLOSED_LOOP_AST_AGENT,2,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,404.38,58436,$0.20465,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,CLOSED_LOOP_AST_AGENT,3,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,296.17,58438,$0.20465,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,ABLATION_NO_TRIAGE,1,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,202.51,30841,$0.12965,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,ABLATION_NO_TRIAGE,2,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,179.17,30823,$0.12952,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,ABLATION_NO_TRIAGE,3,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,179.59,30823,$0.12952,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,ABLATION_NO_AST,1,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,150.59,21839,$0.09849,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,ABLATION_NO_AST,2,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,145.85,21947,$0.09834,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,ABLATION_NO_AST,3,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,143.33,21856,$0.09837,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,UNSTRUCTURED_RETRY,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,71.38,21232,$0.09699,"VAL Syntax Error: Type-checking grasp
+...action passes type checking.
+Type-checking leave
+...action passes type checking.
+Type-checking fill-shot
+Type"
+barman14-bfs,UNSTRUCTURED_RETRY,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,98.25,21182,$0.09678,"VAL Syntax Error: Type-checking grasp
+...action passes type checking.
+Type-checking leave
+...action passes type checking.
+Type-checking fill-shot
+Type"
+barman14-bfs,UNSTRUCTURED_RETRY,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,77.16,21232,$0.09699,"VAL Syntax Error: Type-checking grasp
+...action passes type checking.
+Type-checking leave
+...action passes type checking.
+Type-checking fill-shot
+Type"
+barman14-bfs,ZERO_SHOT,1,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,1,11.03,4734,$0.02280,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,ZERO_SHOT,2,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,1,10.34,4734,$0.02280,Planner Search Timeout (30s): Unsolvability not proven.
+barman14-bfs,ZERO_SHOT,3,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,1,10.74,4734,$0.02280,Planner Search Timeout (30s): Unsolvability not proven.
+pipesworld-notankage04-bfs,CLOSED_LOOP_AST_AGENT,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,64.0,31182,$0.12770,VAL Error: VAL Parser Crash (exit code 3221225477): Syntax violation detected. Check for undeclared variables or inline type annotations in action exp
+pipesworld-notankage04-bfs,CLOSED_LOOP_AST_AGENT,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,65.81,31182,$0.12770,VAL Error: VAL Parser Crash (exit code 3221225477): Syntax violation detected. Check for undeclared variables or inline type annotations in action exp
+pipesworld-notankage04-bfs,CLOSED_LOOP_AST_AGENT,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,74.66,31170,$0.12757,VAL Error: VAL Parser Crash (exit code 3221225477): Syntax violation detected. Check for undeclared variables or inline type annotations in action exp
+pipesworld-notankage04-bfs,ABLATION_NO_TRIAGE,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,75.29,28460,$0.12029,VAL Error: VAL Parser Crash (exit code 3221225477): Syntax violation detected. Check for undeclared variables or inline type annotations in action exp
+pipesworld-notankage04-bfs,ABLATION_NO_TRIAGE,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,70.87,28416,$0.11985,VAL Error: VAL Parser Crash (exit code 3221225477): Syntax violation detected. Check for undeclared variables or inline type annotations in action exp
+pipesworld-notankage04-bfs,ABLATION_NO_TRIAGE,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,99.09,28416,$0.11985,VAL Error: VAL Parser Crash (exit code 3221225477): Syntax violation detected. Check for undeclared variables or inline type annotations in action exp
+pipesworld-notankage04-bfs,ABLATION_NO_AST,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,76.08,21624,$0.10172,"VAL Syntax Error: Type-checking push-start
+Type problem with proposition (is-product batch-atom-in product-batch-atom-in) - parameter 2 is incorrectly"
+pipesworld-notankage04-bfs,ABLATION_NO_AST,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,65.41,21510,$0.10163,"VAL Syntax Error: Type-checking push-start
+Type problem with proposition (is-product batch-atom-in product-batch-atom-in) - parameter 2 is incorrectly"
+pipesworld-notankage04-bfs,ABLATION_NO_AST,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,67.13,21601,$0.10167,"VAL Syntax Error: Type-checking push-start
+Type problem with proposition (is-product batch-atom-in product-batch-atom-in) - parameter 2 is incorrectly"
+pipesworld-notankage04-bfs,UNSTRUCTURED_RETRY,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,52.75,20342,$0.09838,"VAL Syntax Error: Type-checking push-start
+...action passes type checking.
+Type-checking push-end
+...action passes type checking.
+Type-checking pop-st"
+pipesworld-notankage04-bfs,UNSTRUCTURED_RETRY,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,50.69,20342,$0.09838,"VAL Syntax Error: Type-checking push-start
+...action passes type checking.
+Type-checking push-end
+...action passes type checking.
+Type-checking pop-st"
+pipesworld-notankage04-bfs,UNSTRUCTURED_RETRY,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,54.27,20342,$0.09838,"VAL Syntax Error: Type-checking push-start
+...action passes type checking.
+Type-checking push-end
+...action passes type checking.
+Type-checking pop-st"
+pipesworld-notankage04-bfs,ZERO_SHOT,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,1,30.6,4289,$0.02260,"VAL Syntax Error: Type-checking push-start
+...action passes type checking.
+Type-checking push-end
+...action passes type checking.
+Type-checking pop-st"
+pipesworld-notankage04-bfs,ZERO_SHOT,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,1,15.63,4289,$0.02260,"VAL Syntax Error: Type-checking push-start
+...action passes type checking.
+Type-checking push-end
+...action passes type checking.
+Type-checking pop-st"
+pipesworld-notankage04-bfs,ZERO_SHOT,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,1,14.63,4289,$0.02260,"VAL Syntax Error: Type-checking push-start
+...action passes type checking.
+Type-checking push-end
+...action passes type checking.
+Type-checking pop-st"
+woodworking08,CLOSED_LOOP_AST_AGENT,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,123.39,57189,$0.22321,"VAL Error: Type-checking do-immersion-varnish
+...action passes type checking.
+Type-checking do-spray-varnish
+...action passes type checking.
+Type-chec"
+woodworking08,CLOSED_LOOP_AST_AGENT,2,Unverified [FAIL],False,1.0,FAIL,FAIL,FAIL,FAIL,0,3,96.28,57393,$0.22451,"Planner Error: Could not find a plan. INFO     planner time limit: None
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     tra"
+woodworking08,CLOSED_LOOP_AST_AGENT,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,107.97,57358,$0.22409,"VAL Error: Type-checking do-immersion-varnish
+...action passes type checking.
+Type-checking do-spray-varnish
+...action passes type checking.
+Type-chec"
+woodworking08,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,2,69.04,32155,$0.13646,
+woodworking08,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,37.86,20046,$0.08468,
+woodworking08,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,9,1,39.42,20046,$0.08468,
+woodworking08,ABLATION_NO_AST,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,90.84,35077,$0.15822,"VAL Syntax Error: Type-checking do-immersion-varnish
+Object with unknown type: untreated
+
+Errors: 0, warnings: 9
+
+Error: Error in type-checking!"
+woodworking08,ABLATION_NO_AST,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,83.67,35500,$0.15985,"VAL Syntax Error: Type-checking do-immersion-varnish
+Object with unknown type: untreated
+
+Errors: 0, warnings: 9
+
+Error: Error in type-checking!"
+woodworking08,ABLATION_NO_AST,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,94.13,35500,$0.15985,"VAL Syntax Error: Type-checking do-immersion-varnish
+Object with unknown type: untreated
+
+Errors: 0, warnings: 9
+
+Error: Error in type-checking!"
+woodworking08,UNSTRUCTURED_RETRY,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,115.39,31734,$0.14410,"VAL Syntax Error: Type-checking do-immersion-varnish
+Object with unknown type: untreated
+
+Errors: 0, warnings: 9
+
+Error: Error in type-checking!"
+woodworking08,UNSTRUCTURED_RETRY,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,100.85,33316,$0.15484,"VAL Syntax Error: Type-checking do-immersion-varnish
+Object with unknown type: untreated
+
+Errors: 0, warnings: 9
+
+Error: Error in type-checking!"
+woodworking08,UNSTRUCTURED_RETRY,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,0,3,89.66,31734,$0.14410,"VAL Syntax Error: Type-checking do-immersion-varnish
+Object with unknown type: untreated
+
+Errors: 0, warnings: 9
+
+Error: Error in type-checking!"
+woodworking08,ZERO_SHOT,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,26.37,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+woodworking08,ZERO_SHOT,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.29,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+woodworking08,ZERO_SHOT,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.47,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+zenotravel02,ABLATION_NO_AST,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.22,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+zenotravel02,ABLATION_NO_AST,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.34,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+zenotravel02,ABLATION_NO_AST,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.21,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+zenotravel02,UNSTRUCTURED_RETRY,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.3,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+zenotravel02,UNSTRUCTURED_RETRY,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.49,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+zenotravel02,UNSTRUCTURED_RETRY,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.33,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+zenotravel02,ZERO_SHOT,1,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.36,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+zenotravel02,ZERO_SHOT,2,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.31,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+zenotravel02,ZERO_SHOT,3,Unverified [FAIL],False,0.0,FAIL,FAIL,FAIL,FAIL,N/A,1,1.32,0,$0.00000,Generation Failed: Incomplete or missing domain/problem PDDL output from agent.
+driverlog02-bfs,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,68.57,2992,$0.01176,
+driverlog02-bfs,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,7.38,2992,$0.01176,
+driverlog02-bfs,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,6.83,2992,$0.01176,
+driverlog02-bfs,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,6.34,2992,$0.01176,
+driverlog02-bfs,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,7.02,2992,$0.01176,
+driverlog02-bfs,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,12.18,2992,$0.01176,
+driverlog02-bfs,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,20.26,2197,$0.01010,
+driverlog02-bfs,ABLATION_NO_AST,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,6.32,2197,$0.01010,
+driverlog02-bfs,ABLATION_NO_AST,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,7.13,2197,$0.01010,
+driverlog02-bfs,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,6.45,2197,$0.01010,
+driverlog02-bfs,UNSTRUCTURED_RETRY,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,20.96,2197,$0.01010,
+driverlog02-bfs,UNSTRUCTURED_RETRY,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,6.9,2197,$0.01010,
+driverlog02-bfs,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,6.03,2197,$0.01010,
+driverlog02-bfs,ZERO_SHOT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,7.35,2197,$0.01010,
+driverlog02-bfs,ZERO_SHOT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,8,1,7.8,2197,$0.01010,
+zenotravel02,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,1,1,18.8,8324,$0.03159,
+zenotravel02,CLOSED_LOOP_AST_AGENT,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,1,1,15.1,8324,$0.03159,
+zenotravel02,CLOSED_LOOP_AST_AGENT,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,1,1,15.11,8324,$0.03159,
+zenotravel02,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,1,1,15.42,8337,$0.03166,
+zenotravel02,ABLATION_NO_TRIAGE,2,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,1,1,16.26,8327,$0.03156,
+zenotravel02,ABLATION_NO_TRIAGE,3,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,1,1,16.15,8337,$0.03166,

@@ -1,0 +1,88 @@
+{
+  "domain_name": "pegsolitaire-sequential",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "pegsolitaire-sequential",
+    "requirements": [
+      ":typing"
+    ],
+    "types": {
+      "location": "object"
+    },
+    "constants": {},
+    "predicates": [
+      "(IN-LINE ?x ?y ?z)",
+      "(occupied ?l)",
+      "(free ?l)",
+      "(move-ended)",
+      "(last-visited ?l)"
+    ],
+    "actions": [
+      {
+        "action_name": "jump-new-move",
+        "parameters": {
+          "?from": "location",
+          "?over": "location",
+          "?to": "location"
+        },
+        "preconditions": [
+          "(move-ended)",
+          "(IN-LINE ?from ?over ?to)",
+          "(occupied ?from)",
+          "(occupied ?over)",
+          "(free ?to)"
+        ],
+        "effects": [
+          "(free ?from)",
+          "(free ?over)",
+          "(occupied ?to)",
+          "(last-visited ?to)",
+          "(not (move-ended))",
+          "(not (occupied ?from))",
+          "(not (occupied ?over))",
+          "(not (free ?to))"
+        ]
+      },
+      {
+        "action_name": "jump-continue-move",
+        "parameters": {
+          "?from": "location",
+          "?over": "location",
+          "?to": "location"
+        },
+        "preconditions": [
+          "(last-visited ?from)",
+          "(IN-LINE ?from ?over ?to)",
+          "(occupied ?from)",
+          "(occupied ?over)",
+          "(free ?to)"
+        ],
+        "effects": [
+          "(free ?from)",
+          "(free ?over)",
+          "(occupied ?to)",
+          "(last-visited ?to)",
+          "(not (occupied ?from))",
+          "(not (occupied ?over))",
+          "(not (free ?to))",
+          "(not (last-visited ?from))"
+        ]
+      },
+      {
+        "action_name": "end-move",
+        "parameters": {
+          "?loc": "location"
+        },
+        "preconditions": [
+          "(last-visited ?loc)"
+        ],
+        "effects": [
+          "(move-ended)",
+          "(not (last-visited ?loc))"
+        ]
+      }
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

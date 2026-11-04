@@ -1,0 +1,450 @@
+{
+  "domain_name": "woodworking08",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "woodworking08",
+    "requirements": [
+      ":strips",
+      ":typing"
+    ],
+    "types": {
+      "object": null,
+      "acolour": "object",
+      "awood": "object",
+      "woodobj": "object",
+      "machine": "object",
+      "surface": "object",
+      "treatmentstatus": "object",
+      "aboardsize": "object",
+      "apartsize": "object",
+      "grinder": "machine",
+      "glazer": "machine",
+      "immersion-varnisher": "machine",
+      "planer": "machine",
+      "highspeed-saw": "machine",
+      "spray-varnisher": "machine",
+      "saw": "machine",
+      "part": "woodobj",
+      "board": "woodobj"
+    },
+    "constants": {
+      "untreated": "treatmentstatus",
+      "smooth": "surface",
+      "varnished": "treatmentstatus",
+      "natural": "acolour",
+      "glazed": "treatmentstatus",
+      "verysmooth": "surface",
+      "small": "aboardsize",
+      "medium": "aboardsize",
+      "large": "aboardsize",
+      "rough": "surface"
+    },
+    "predicates": [
+      "(has-colour ?x - machine ?y - acolour)",
+      "(has-wood ?x - woodobj ?y - awood)",
+      "(has-surface ?x - woodobj ?y - object)",
+      "(is-available ?x - woodobj)",
+      "(is-unused ?x - part)",
+      "(is-in ?x - woodobj ?y - highspeed-saw)",
+      "(is-empty ?x - highspeed-saw)",
+      "(is-undergoing ?x - woodobj ?y - treatmentstatus)",
+      "(is-successor ?x - aboardsize ?y - aboardsize)"
+    ],
+    "actions": [
+      {
+        "action_name": "immersion-varnish",
+        "parameters": {
+          "?a": "part",
+          "?b": "immersion-varnisher",
+          "?c": "acolour",
+          "?d": "surface"
+        },
+        "preconditions": [
+          "(is-available ?a)",
+          "(has-colour ?b ?c)",
+          "(has-surface ?a ?d)",
+          "(is-undergoing ?a untreated)",
+          "(is-successor ?d smooth)"
+        ],
+        "effects": [
+          "(is-undergoing ?a varnished)",
+          "(not (is-undergoing ?a untreated))",
+          "(not (has-colour ?a natural))",
+          "(has-colour ?a ?c)"
+        ]
+      },
+      {
+        "action_name": "spray-varnish",
+        "parameters": {
+          "?a": "part",
+          "?b": "spray-varnisher",
+          "?c": "acolour",
+          "?d": "surface"
+        },
+        "preconditions": [
+          "(is-available ?a)",
+          "(has-colour ?b ?c)",
+          "(has-surface ?a ?d)",
+          "(is-undergoing ?a untreated)",
+          "(is-successor ?d smooth)"
+        ],
+        "effects": [
+          "(is-undergoing ?a varnished)",
+          "(not (is-undergoing ?a untreated))",
+          "(not (has-colour ?a natural))",
+          "(has-colour ?a ?c)"
+        ]
+      },
+      {
+        "action_name": "glaze",
+        "parameters": {
+          "?a": "part",
+          "?b": "glazer",
+          "?c": "acolour"
+        },
+        "preconditions": [
+          "(is-available ?a)",
+          "(has-colour ?b ?c)",
+          "(is-undergoing ?a untreated)"
+        ],
+        "effects": [
+          "(is-undergoing ?a glazed)",
+          "(not (is-undergoing ?a untreated))",
+          "(not (has-colour ?a natural))",
+          "(has-colour ?a ?c)"
+        ]
+      },
+      {
+        "action_name": "grind",
+        "parameters": {
+          "?a": "part",
+          "?b": "grinder",
+          "?c": "surface",
+          "?d": "acolour",
+          "?e": "treatmentstatus",
+          "?f": "treatmentstatus"
+        },
+        "preconditions": [
+          "(is-available ?a)",
+          "(has-surface ?a ?c)",
+          "(is-successor ?c smooth)",
+          "(has-colour ?a ?d)",
+          "(is-undergoing ?a ?e)",
+          "(is-successor ?e ?f)"
+        ],
+        "effects": [
+          "(has-surface ?a verysmooth)",
+          "(is-undergoing ?a ?f)",
+          "(has-colour ?a natural)",
+          "(not (has-surface ?a ?c))",
+          "(not (is-undergoing ?a ?e))",
+          "(not (has-colour ?a ?d))"
+        ]
+      },
+      {
+        "action_name": "plane",
+        "parameters": {
+          "?a": "part",
+          "?b": "planer",
+          "?c": "surface",
+          "?d": "acolour"
+        },
+        "preconditions": [
+          "(is-available ?a)",
+          "(has-surface ?a ?c)",
+          "(is-undergoing ?a untreated)",
+          "(has-colour ?a ?d)"
+        ],
+        "effects": [
+          "(has-surface ?a smooth)",
+          "(is-undergoing ?a untreated)",
+          "(has-colour ?a natural)",
+          "(not (has-surface ?a ?c))",
+          "(not (is-undergoing ?a ?e))",
+          "(not (has-colour ?a ?d))"
+        ]
+      },
+      {
+        "action_name": "load-board",
+        "parameters": {
+          "?a": "board",
+          "?b": "highspeed-saw"
+        },
+        "preconditions": [
+          "(is-empty ?b)",
+          "(is-available ?a)"
+        ],
+        "effects": [
+          "(is-in ?a ?b)",
+          "(not (is-available ?a))",
+          "(not (is-empty ?b))"
+        ]
+      },
+      {
+        "action_name": "unload-board",
+        "parameters": {
+          "?a": "board",
+          "?b": "highspeed-saw"
+        },
+        "preconditions": [
+          "(is-in ?a ?b)"
+        ],
+        "effects": [
+          "(is-available ?a)",
+          "(is-empty ?b)",
+          "(not (is-in ?a ?b))"
+        ]
+      },
+      {
+        "action_name": "cut-small",
+        "parameters": {
+          "?a": "board",
+          "?b": "part",
+          "?c": "highspeed-saw",
+          "?d": "awood",
+          "?e": "surface",
+          "?f": "aboardsize",
+          "?g": "aboardsize"
+        },
+        "preconditions": [
+          "(is-unused ?b)",
+          "(is-successor ?g small)",
+          "(is-in ?a ?c)",
+          "(has-wood ?a ?d)",
+          "(has-surface ?a ?e)",
+          "(is-successor ?f ?g)"
+        ],
+        "effects": [
+          "(is-available ?b)",
+          "(has-wood ?b ?d)",
+          "(has-surface ?b ?e)",
+          "(has-colour ?b natural)",
+          "(is-undergoing ?b untreated)",
+          "(is-successor ?f ?g)"
+        ]
+      },
+      {
+        "action_name": "cut-medium",
+        "parameters": {
+          "?a": "board",
+          "?b": "part",
+          "?c": "highspeed-saw",
+          "?d": "awood",
+          "?e": "surface",
+          "?f": "aboardsize",
+          "?g": "aboardsize",
+          "?h": "aboardsize"
+        },
+        "preconditions": [
+          "(is-unused ?b)",
+          "(is-successor ?g medium)",
+          "(is-in ?a ?c)",
+          "(has-wood ?a ?d)",
+          "(has-surface ?a ?e)",
+          "(is-successor ?f ?g)",
+          "(is-successor ?g ?h)"
+        ],
+        "effects": [
+          "(is-available ?b)",
+          "(has-wood ?b ?d)",
+          "(has-surface ?b ?e)",
+          "(has-colour ?b natural)",
+          "(is-undergoing ?b untreated)",
+          "(is-successor ?f ?h)"
+        ]
+      },
+      {
+        "action_name": "cut-large",
+        "parameters": {
+          "?a": "board",
+          "?b": "part",
+          "?c": "highspeed-saw",
+          "?d": "awood",
+          "?e": "surface",
+          "?f": "aboardsize",
+          "?g": "aboardsize",
+          "?h": "aboardsize",
+          "?i": "aboardsize"
+        },
+        "preconditions": [
+          "(is-unused ?b)",
+          "(is-successor ?g large)",
+          "(is-in ?a ?c)",
+          "(has-wood ?a ?d)",
+          "(has-surface ?a ?e)",
+          "(is-successor ?f ?g)",
+          "(is-successor ?g ?h)",
+          "(is-successor ?h ?i)"
+        ],
+        "effects": [
+          "(is-available ?b)",
+          "(has-wood ?b ?d)",
+          "(has-surface ?b ?e)",
+          "(has-colour ?b natural)",
+          "(is-undergoing ?b untreated)",
+          "(is-successor ?f ?i)"
+        ]
+      },
+      {
+        "action_name": "saw-small",
+        "parameters": {
+          "?a": "board",
+          "?b": "part",
+          "?c": "saw",
+          "?d": "awood",
+          "?e": "surface",
+          "?f": "aboardsize",
+          "?g": "aboardsize"
+        },
+        "preconditions": [
+          "(is-unused ?b)",
+          "(is-successor ?g small)",
+          "(is-available ?a)",
+          "(has-wood ?a ?d)",
+          "(has-surface ?a ?e)",
+          "(is-successor ?f ?g)"
+        ],
+        "effects": [
+          "(is-available ?b)",
+          "(has-wood ?b ?d)",
+          "(has-surface ?b ?e)",
+          "(has-colour ?b natural)",
+          "(is-undergoing ?b untreated)",
+          "(is-successor ?f ?g)"
+        ]
+      },
+      {
+        "action_name": "saw-medium",
+        "parameters": {
+          "?a": "board",
+          "?b": "part",
+          "?c": "saw",
+          "?d": "awood",
+          "?e": "surface",
+          "?f": "aboardsize",
+          "?g": "aboardsize",
+          "?h": "aboardsize"
+        },
+        "preconditions": [
+          "(is-unused ?b)",
+          "(is-successor ?g medium)",
+          "(is-available ?a)",
+          "(has-wood ?a ?d)",
+          "(has-surface ?a ?e)",
+          "(is-successor ?f ?g)",
+          "(is-successor ?g ?h)"
+        ],
+        "effects": [
+          "(is-available ?b)",
+          "(has-wood ?b ?d)",
+          "(has-surface ?b ?e)",
+          "(has-colour ?b natural)",
+          "(is-undergoing ?b untreated)",
+          "(is-successor ?f ?h)"
+        ]
+      },
+      {
+        "action_name": "saw-large",
+        "parameters": {
+          "?a": "board",
+          "?b": "part",
+          "?c": "saw",
+          "?d": "awood",
+          "?e": "surface",
+          "?f": "aboardsize",
+          "?g": "aboardsize",
+          "?h": "aboardsize",
+          "?i": "aboardsize"
+        },
+        "preconditions": [
+          "(is-unused ?b)",
+          "(is-successor ?g large)",
+          "(is-available ?a)",
+          "(has-wood ?a ?d)",
+          "(has-surface ?a ?e)",
+          "(is-successor ?f ?g)",
+          "(is-successor ?g ?h)",
+          "(is-successor ?h ?i)"
+        ],
+        "effects": [
+          "(is-available ?b)",
+          "(has-wood ?b ?d)",
+          "(has-surface ?b ?e)",
+          "(has-colour ?b natural)",
+          "(is-undergoing ?b untreated)",
+          "(is-successor ?f ?i)"
+        ]
+      }
+    ]
+  },
+  "problem_blueprint": {
+    "problem_name": "instance-1.pddl",
+    "domain_name": "woodworking08",
+    "objects": {
+      "grinder0": "grinder",
+      "glazer0": "glazer",
+      "immersion-varnisher0": "immersion-varnisher",
+      "planer0": "planer",
+      "highspeed-saw0": "highspeed-saw",
+      "spray-varnisher0": "spray-varnisher",
+      "saw0": "saw",
+      "green": "acolour",
+      "mauve": "acolour",
+      "cherry": "awood",
+      "beech": "awood",
+      "p0": "part",
+      "p1": "part",
+      "p2": "part",
+      "b0": "board",
+      "b1": "board",
+      "s0": "aboardsize",
+      "s1": "aboardsize",
+      "s2": "aboardsize",
+      "s3": "aboardsize"
+    },
+    "initial_state": [
+      "(is-successor s0 s1)",
+      "(is-successor s1 s2)",
+      "(is-successor s2 s3)",
+      "(has-colour glazer0 mauve)",
+      "(has-colour glazer0 green)",
+      "(has-colour immersion-varnisher0 mauve)",
+      "(is-empty highspeed-saw0)",
+      "(has-colour spray-varnisher0 mauve)",
+      "(is-unused p0)",
+      "(is-successor p0 medium)",
+      "(is-unused p1)",
+      "(is-successor p1 medium)",
+      "(is-available p2)",
+      "(has-colour p2 natural)",
+      "(has-wood p2 beech)",
+      "(has-surface p2 verysmooth)",
+      "(is-undergoing p2 colourfragments)",
+      "(is-successor p2 small)",
+      "(has-wood b0 beech)",
+      "(has-surface b0 rough)",
+      "(is-available b0)",
+      "(is-successor b0 s3)",
+      "(has-wood b1 cherry)",
+      "(has-surface b1 rough)",
+      "(is-available b1)"
+    ],
+    "goal_state": [
+      "(is-available p0)",
+      "(has-colour p0 mauve)",
+      "(has-wood p0 beech)",
+      "(has-surface p0 verysmooth)",
+      "(is-undergoing p0 varnished)",
+      "(is-available p1)",
+      "(has-colour p1 green)",
+      "(has-wood p1 cherry)",
+      "(has-surface p1 smooth)",
+      "(is-undergoing p1 glazed)",
+      "(is-available p2)",
+      "(has-colour p2 mauve)",
+      "(has-wood p2 beech)"
+    ]
+  },
+  "iteration_count": 5,
+  "is_valid": false
+}

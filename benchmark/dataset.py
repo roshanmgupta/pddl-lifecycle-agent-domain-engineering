@@ -96,22 +96,6 @@ BENCHMARK_TASKS: List[BenchmarkTask] = [
         )
     ),
 
-    # 1.3 Domain Evolution Task (Dual Hoist Capacity)
-    BenchmarkTask(
-        task_id="depots_evolve_01",
-        domain_family="depots",
-        task_type=LifecycleTaskType.DOMAIN_EVOLUTION,
-        title="Depots Evolution: Dual Hoist Operational Capacity",
-        natural_language_requirements="""
-        Extend Depots domain to manage multiple independent hoists at each depot simultaneously.
-        Ensure backward compatibility with single-hoist historical problems.
-        """,
-        initial_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/depots-strips-automatic/domain.pddl"),
-        initial_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/depots-strips-automatic/instances/instance-2.pddl"),
-        ground_truth_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/depots-strips-automatic/domain.pddl"),
-        ground_truth_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/depots-strips-automatic/instances/instance-2.pddl")
-    ),
-
     # =========================================================================
     # 2. DRIVERLOG DOMAIN FAMILY (IPC-2002 Typed)
     # =========================================================================
@@ -207,22 +191,6 @@ BENCHMARK_TASKS: List[BenchmarkTask] = [
         )
     ),
 
-    # 2.3 Domain Evolution Task (Multi-Trailer Logistics Extension)
-    BenchmarkTask(
-        task_id="driverlog_evolve_01",
-        domain_family="driverlog",
-        task_type=LifecycleTaskType.DOMAIN_EVOLUTION,
-        title="DriverLog Evolution: Express Road Transit",
-        natural_language_requirements="""
-        Extend DriverLog domain to support high-throughput express delivery between distribution centers.
-        Ensure backward compatibility with standard historical driver logistics problems.
-        """,
-        initial_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/driverlog-strips-automatic/domain.pddl"),
-        initial_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/driverlog-strips-automatic/instances/instance-2.pddl"),
-        ground_truth_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/driverlog-strips-automatic/domain.pddl"),
-        ground_truth_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/driverlog-strips-automatic/instances/instance-2.pddl")
-    ),
-
     # =========================================================================
     # 3. ZENOTRAVEL DOMAIN FAMILY (IPC-2002 Typed)
     # =========================================================================
@@ -302,22 +270,6 @@ BENCHMARK_TASKS: List[BenchmarkTask] = [
         ground_truth_problem_pddl=load_pddl_file(
             "pddl_benchmark_instances/ipc-2002/domains/zenotravel-strips-automatic/instances/instance-1.pddl"
         )
-    ),
-
-    # 3.3 Domain Evolution Task (Inter-City Flight Scheduling)
-    BenchmarkTask(
-        task_id="zenotravel_evolve_01",
-        domain_family="zenotravel",
-        task_type=LifecycleTaskType.DOMAIN_EVOLUTION,
-        title="ZenoTravel Evolution: Multi-Leg Long-Haul Flight Routes",
-        natural_language_requirements="""
-        Extend ZenoTravel domain to handle multi-leg cross-country transit with strict fuel conservation.
-        Ensure backward compatibility with regional historical flight instances.
-        """,
-        initial_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/zenotravel-strips-automatic/domain.pddl"),
-        initial_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/zenotravel-strips-automatic/instances/instance-2.pddl"),
-        ground_truth_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/zenotravel-strips-automatic/domain.pddl"),
-        ground_truth_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/zenotravel-strips-automatic/instances/instance-2.pddl")
     ),
 
     # =========================================================================
@@ -400,22 +352,6 @@ BENCHMARK_TASKS: List[BenchmarkTask] = [
         )
     ),
 
-    # 4.3 Domain Evolution Task (Adding Infrared Imaging Mode)
-    BenchmarkTask(
-        task_id="satellite_evolve_01",
-        domain_family="satellite",
-        task_type=LifecycleTaskType.DOMAIN_EVOLUTION,
-        title="Satellite Evolution: Dual Imaging Modes",
-        natural_language_requirements="""
-        Extend existing Satellite domain to support dual imaging modes (spectrograph and infrared).
-        Ensure reachability preservation across reference single-mode problems.
-        """,
-        initial_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/satellite-strips-automatic/domain.pddl"),
-        initial_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/satellite-strips-automatic/instances/instance-2.pddl"),
-        ground_truth_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/satellite-strips-automatic/domain.pddl"),
-        ground_truth_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/satellite-strips-automatic/instances/instance-2.pddl")
-    ),
-
     # =========================================================================
     # 5. ROVERS DOMAIN FAMILY (IPC-2002 Typed)
     # =========================================================================
@@ -469,22 +405,6 @@ BENCHMARK_TASKS: List[BenchmarkTask] = [
         )
     ),
 
-    # 5.3 Domain Evolution Task (Enhanced Direct Uplink)
-    BenchmarkTask(
-        task_id="rovers_evolve_01",
-        domain_family="rovers",
-        task_type=LifecycleTaskType.DOMAIN_EVOLUTION,
-        title="Rovers Evolution: High-Gain Direct Satellite Uplink",
-        natural_language_requirements="""
-        Extend Rovers domain to support direct satellite uplink communication channels.
-        Ensure backward compatibility with historical lander communication instances.
-        """,
-        initial_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/rovers-strips-automatic/domain.pddl"),
-        initial_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/rovers-strips-automatic/instances/instance-2.pddl"),
-        ground_truth_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/rovers-strips-automatic/domain.pddl"),
-        ground_truth_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/rovers-strips-automatic/instances/instance-2.pddl")
-    ),
-
     # =========================================================================
     # 6. FREECELL DOMAIN FAMILY (IPC-2002 Typed)
     # =========================================================================
@@ -533,21 +453,5 @@ BENCHMARK_TASKS: List[BenchmarkTask] = [
         ground_truth_problem_pddl=load_pddl_file(
             "pddl_benchmark_instances/ipc-2002/domains/freecell-strips-automatic/instances/instance-1.pddl"
         )
-    ),
-
-    # 6.3 Domain Evolution Task (Multi-Card Column Move Extension)
-    BenchmarkTask(
-        task_id="freecell_evolve_01",
-        domain_family="freecell",
-        task_type=LifecycleTaskType.DOMAIN_EVOLUTION,
-        title="FreeCell Evolution: Multi-Card Sequence Moves",
-        natural_language_requirements="""
-        Extend FreeCell domain to support multi-card sequence moves between columns.
-        Ensure backward compatibility with single-card moves and historical game instances.
-        """,
-        initial_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/freecell-strips-automatic/domain.pddl"),
-        initial_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/freecell-strips-automatic/instances/instance-2.pddl"),
-        ground_truth_domain_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/freecell-strips-automatic/domain.pddl"),
-        ground_truth_problem_pddl=load_pddl_file("pddl_benchmark_instances/ipc-2002/domains/freecell-strips-automatic/instances/instance-2.pddl")
     )
 ]

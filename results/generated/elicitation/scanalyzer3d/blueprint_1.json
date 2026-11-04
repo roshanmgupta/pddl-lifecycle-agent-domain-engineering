@@ -1,0 +1,129 @@
+{
+  "domain_name": "scanalyzer3d",
+  "run_index": 1,
+  "domain_blueprint": {
+    "domain_name": "scanalyzer3d",
+    "requirements": [
+      ":typing"
+    ],
+    "types": {
+      "segment": "object",
+      "car": "object"
+    },
+    "constants": {},
+    "predicates": [
+      "(on ?c ?s)",
+      "(analyzed ?c)",
+      "(CYCLE-2 ?s1 ?s2)",
+      "(CYCLE-4 ?s1 ?s2 ?s3 ?s4)",
+      "(CYCLE-2-WITH-ANALYSIS ?s1 ?s2)",
+      "(CYCLE-4-WITH-ANALYSIS ?s1 ?s2 ?s3 ?s4)"
+    ],
+    "actions": [
+      {
+        "action_name": "analyze-2",
+        "parameters": {
+          "?s1": "segment",
+          "?s2": "segment",
+          "?c1": "car",
+          "?c2": "car"
+        },
+        "preconditions": [
+          "(CYCLE-2-WITH-ANALYSIS ?s1 ?s2)",
+          "(on ?c1 ?s1)",
+          "(on ?c2 ?s2)"
+        ],
+        "effects": [
+          "(on ?c1 ?s2)",
+          "(on ?c2 ?s1)",
+          "(analyzed ?c1)",
+          "(not (on ?c1 ?s1))",
+          "(not (on ?c2 ?s2))"
+        ]
+      },
+      {
+        "action_name": "analyze-4",
+        "parameters": {
+          "?s1": "segment",
+          "?s2": "segment",
+          "?s3": "segment",
+          "?s4": "segment",
+          "?c1": "car",
+          "?c2": "car",
+          "?c3": "car",
+          "?c4": "car"
+        },
+        "preconditions": [
+          "(CYCLE-4-WITH-ANALYSIS ?s1 ?s2 ?s3 ?s4)",
+          "(on ?c1 ?s1)",
+          "(on ?c2 ?s2)",
+          "(on ?c3 ?s3)",
+          "(on ?c4 ?s4)"
+        ],
+        "effects": [
+          "(on ?c1 ?s4)",
+          "(on ?c2 ?s1)",
+          "(on ?c3 ?s2)",
+          "(on ?c4 ?s3)",
+          "(analyzed ?c1)",
+          "(not (on ?c1 ?s1))",
+          "(not (on ?c2 ?s2))",
+          "(not (on ?c3 ?s3))",
+          "(not (on ?c4 ?s4))"
+        ]
+      },
+      {
+        "action_name": "rotate-2",
+        "parameters": {
+          "?s1": "segment",
+          "?s2": "segment",
+          "?c1": "car",
+          "?c2": "car"
+        },
+        "preconditions": [
+          "(CYCLE-2 ?s1 ?s2)",
+          "(on ?c1 ?s1)",
+          "(on ?c2 ?s2)"
+        ],
+        "effects": [
+          "(on ?c1 ?s2)",
+          "(on ?c2 ?s1)",
+          "(not (on ?c1 ?s1))",
+          "(not (on ?c2 ?s2))"
+        ]
+      },
+      {
+        "action_name": "rotate-4",
+        "parameters": {
+          "?s1": "segment",
+          "?s2": "segment",
+          "?s3": "segment",
+          "?s4": "segment",
+          "?c1": "car",
+          "?c2": "car",
+          "?c3": "car",
+          "?c4": "car"
+        },
+        "preconditions": [
+          "(CYCLE-4 ?s1 ?s2 ?s3 ?s4)",
+          "(on ?c1 ?s1)",
+          "(on ?c2 ?s2)",
+          "(on ?c3 ?s3)",
+          "(on ?c4 ?s4)"
+        ],
+        "effects": [
+          "(on ?c1 ?s4)",
+          "(on ?c2 ?s1)",
+          "(on ?c3 ?s2)",
+          "(on ?c4 ?s3)",
+          "(not (on ?c1 ?s1))",
+          "(not (on ?c2 ?s2))",
+          "(not (on ?c3 ?s3))",
+          "(not (on ?c4 ?s4))"
+        ]
+      }
+    ]
+  },
+  "iteration_count": 0,
+  "is_valid": true
+}

@@ -1,0 +1,6 @@
+Domain,Architecture,Run,Status,e2e_success,SVR,TPV,Executability,Feasibility,Interpretability,Plan Length,Iterations,Latency (s),Total Tokens,Cost ($),Error Summary
+gripper,CLOSED_LOOP_AST_AGENT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,5.1,1941,$0.00664,
+gripper,ABLATION_NO_TRIAGE,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,2.85,1941,$0.00664,
+gripper,ABLATION_NO_AST,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.43,1267,$0.00588,
+gripper,UNSTRUCTURED_RETRY,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.04,1267,$0.00588,
+gripper,ZERO_SHOT,1,Verified [PASS],True,1.0,PASS,Certified,PASS,PASS,5,1,3.27,1267,$0.00588,
