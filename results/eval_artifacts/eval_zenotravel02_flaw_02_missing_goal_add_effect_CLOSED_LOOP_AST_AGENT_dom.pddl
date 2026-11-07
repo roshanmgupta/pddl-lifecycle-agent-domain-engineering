@@ -26,19 +26,19 @@
 
   (:action fly
     :parameters (?a ?c1 ?c2 ?l1 ?l2)
-    :precondition (and (aircraft ?a) (city ?c1) (city ?c2) (flevel ?l1) (flevel ?l2) (at ?a ?c1) (fuel-level ?a ?l1) (next ?l1 ?l2))
+    :precondition (and (aircraft ?a) (city ?c1) (city ?c2) (flevel ?l1) (flevel ?l2) (at ?a ?c1) (fuel-level ?a ?l1))
     :effect (and (at ?a ?c2) (fuel-level ?a ?l2) (not (at ?a ?c1)) (not (fuel-level ?a ?l1)))
   )
 
   (:action zoom
     :parameters (?a ?c1 ?c2 ?l1 ?l2 ?l3)
-    :precondition (and (aircraft ?a) (city ?c1) (city ?c2) (flevel ?l1) (flevel ?l2) (flevel ?l3) (at ?a ?c1) (fuel-level ?a ?l1) (next ?l1 ?l2) (next ?l2 ?l3))
+    :precondition (and (aircraft ?a) (city ?c1) (city ?c2) (flevel ?l1) (flevel ?l2) (flevel ?l3) (at ?a ?c1) (fuel-level ?a ?l1))
     :effect (and (at ?a ?c2) (fuel-level ?a ?l3) (not (at ?a ?c1)) (not (fuel-level ?a ?l1)))
   )
 
   (:action refuel
     :parameters (?a ?c ?l ?l1)
-    :precondition (and (aircraft ?a) (city ?c) (flevel ?l) (flevel ?l1) (fuel-level ?a ?l) (next ?l ?l1) (at ?a ?c))
+    :precondition (and (aircraft ?a) (city ?c) (flevel ?l) (flevel ?l1) (fuel-level ?a ?l) (at ?a ?c))
     :effect (and (fuel-level ?a ?l1) (not (fuel-level ?a ?l)))
   )
 

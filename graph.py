@@ -18,8 +18,8 @@ from nodes.repair import run_repair_node
 # 1. Shared Memory AgentState Contract
 class AgentState(TypedDict, total=False):
     requirements: str
-    pddl_domain_blueprint: dict
-    initial_pddl_domain_blueprint: dict
+    pddl_domain_representation: dict
+    initial_pddl_domain_representation: dict
     oracle_trace: dict
     repair_feedback_log: List[dict]
     generated_domain_pddl: str
@@ -27,6 +27,9 @@ class AgentState(TypedDict, total=False):
     initial_domain_pddl: str
     initial_problem_pddl: str
     reference_domain_pddl: str
+    reference_problems: List[str]
+    reference_gold_plans: List[str]
+    reference_problem_names: List[str]
     gold_reference_plan_file: str
     is_synthetic_repair: bool
     skip_elicitation: bool
@@ -112,7 +115,7 @@ def route_initial_entry(state: AgentState) -> str:
             state.get("generated_domain_pddl")
             and (state.get("verification_errors") or not state.get("requirements"))
         )
-        or (state.get("generated_domain_pddl") and state.get("pddl_domain_blueprint"))
+        or (state.get("generated_domain_pddl") and state.get("pddl_domain_representation"))
     ):
         print("[GRAPH ROUTER]: Pre-loaded domain detected for Repair. Bypassing Phase 1 Elicitation -> Starting at Validation.", flush=True)
         return "validate"

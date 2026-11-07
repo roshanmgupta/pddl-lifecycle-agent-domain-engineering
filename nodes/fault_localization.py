@@ -3,8 +3,8 @@ import re
 import time
 from typing import List, Dict, Any, Optional, Tuple
 from pydantic import BaseModel, Field
-from nodes.schemas.pddl_blueprint import DiagnosticReport, ErrorCategory, RepairOperationType
-from config.pddl_standards import STANDARD_CLASSICAL_PDDL_RULES, STANDARD_DIAGNOSTIC_RULES
+from nodes.schemas.pddl_representation import DiagnosticReport, ErrorCategory, RepairOperationType
+from nodes.schemas.pddl_standards import STANDARD_CLASSICAL_PDDL_RULES, STANDARD_DIAGNOSTIC_RULES
 from config.model_config import get_phase_model, invoke_structured_llm_with_telemetry
 from tools.causal_fault_analyzer import run_causal_fault_analysis
 from nodes.pddl_to_ast_parser import extract_pddl_problem_metadata
@@ -46,34 +46,72 @@ def check_system_oracle_binary_availability(raw_log: str, oracle_name: str) -> O
 
 
 def compute_layered_fault_priority(report: DiagnosticReport) -> Tuple[int, int]:
-    """Computes tier level and rank for a diagnostic report."""
+    """Computes five-tier priority (Tier 0..4) and sub-rank for a diagnostic report."""
     raw = (str(report.raw_log) + " " + str(report.suggested_repair_hint)).lower()
     cat = str(report.error_category).lower()
     elem = str(report.faulty_element).lower()
 
-    if "syntax" in cat or "type_signature" in cat or "unknown type" in raw or "arity mismatch" in raw or elem in ("types", "predicates") or "not found" in raw or "missing" in raw:
+    # Tier 0: Syntax, AST Well-Formedness, and Typing Consistency
+    if (
+        "syntax" in cat
+        or "type_signature" in cat
+        or elem in ("types", "predicates")
+        or "unknown type" in raw
+        or "arity mismatch" in raw
+        or "bad type definition" in raw
+        or "incorrectly typed" in raw
+        or ("predicate " in raw and " not found" in raw)
+    ):
         return (0, 0)
 
-    if "absorbing deadlock" in raw or "permanently depletes" in raw:
-        return (0, 1)
-
-    if "empty parameter domain" in raw or "zero matching facts in p_gold :init" in raw or "ungroundable" in raw:
+    # Tier 1: Initial-State Groundability and Precondition Reachability
+    if (
+        "empty parameter domain" in raw
+        or "zero objects in the problem" in raw
+        or "zero matching facts in :init" in raw
+        or "zero matching facts in p_gold :init" in raw
+        or "zero valid groundings in :init" in raw
+        or "ungroundable" in raw
+    ):
         return (1, 0)
 
-    if "plan failed" in raw or "feasibility" in raw:
-        return (1, 1)
-
-    if "goal" in raw and ("unproduced" in raw or "not produced" in raw or "unreachable" in raw or "orphan" in raw):
+    # Tier 2: Goal Producer Reachability
+    if "goal" in raw and (
+        "unproduced" in raw
+        or "not produced" in raw
+        or "unreachable" in raw
+        or "orphan" in raw
+        or "zero producing actions" in raw
+    ):
         return (2, 0)
 
-    if "contradictory" in raw or "missing transition" in raw or "self-blocking" in raw:
+    # Tier 3: State-Transition Consistency
+    if (
+        "simultaneously adds and deletes" in raw
+        or "simultaneously asserts both" in raw
+        or "contradictory simultaneous effects" in raw
+        or "missing transition" in raw
+        or "omits the required delete effect" in raw
+        or "self-blocking" in raw
+    ):
         return (3, 0)
 
-    return (4, 0)
+    # Tier 4: Dynamic Plan Trace Analysis (exact VAL counterexamples first, then Diagnostic LLM fallback)
+    if (
+        "feasibility" in raw
+        or "plan failed on d_gold" in raw
+        or "relational argument permutation" in raw
+        or "reference plan pi_gold" in raw
+        or "interpretability" in raw
+        or "executability" in raw
+    ):
+        return (4, 0)
+
+    return (4, 1)
 
 
 def prioritize_diagnostic_reports(reports: List[DiagnosticReport], max_items: int = 5) -> Tuple[List[DiagnosticReport], int]:
-    """Selects the highest-priority causal tier of reports up to max_items."""
+    """Selects the highest-priority active causal tier of reports up to max_items."""
     if not reports:
         return [], 0
 
@@ -88,6 +126,24 @@ def prioritize_diagnostic_reports(reports: List[DiagnosticReport], max_items: in
     scored = [(compute_layered_fault_priority(r), idx, r) for idx, r in enumerate(reports)]
     scored.sort(key=lambda x: (x[0], x[1]))
     min_tier = scored[0][0][0]
+
+    # For hard structural/reachability blockers (Tiers 0..2), isolate strictly to that tier.
+    if min_tier <= 2:
+        tier_only = [r for p, _, r in scored if p[0] == min_tier]
+        return tier_only[:max_items], min_tier
+
+    # When Tier 3 heuristic transition advisories co-occur with exact VAL counterexample traces (4, 0),
+    # ensure exact VAL counterexample traces are never crowded out of the top max_items budget.
+    exact_val_traces = [r for p, _, r in scored if p == (4, 0)]
+    if min_tier == 3 and exact_val_traces:
+        combined: List[DiagnosticReport] = list(exact_val_traces[:max_items])
+        for p, _, r in scored:
+            if len(combined) >= max_items:
+                break
+            if r not in combined:
+                combined.append(r)
+        return combined, 4
+
     return [r for _, _, r in scored[:max_items]], min_tier
 
 
@@ -97,11 +153,11 @@ def format_diagnostic_feedback(reports: List[DiagnosticReport], active_tier: Opt
         return ""
 
     tier_desc = {
-        0: "Tier 0 (Type Hierarchy & Formal AST Well-Formedness)",
-        1: "Tier 1 (Initial State Groundability & Seed Preconditions)",
-        2: "Tier 2 (Goal Producer Reachability & Causal Alignment)",
-        3: "Tier 3 (State Transition Completeness & Mutex Conservation)",
-        4: "Tier 4 (Precondition & Effect Refinements)",
+        0: "Tier 0 (Syntax, AST Well-Formedness, and Typing Consistency)",
+        1: "Tier 1 (Initial-State Groundability and Precondition Reachability)",
+        2: "Tier 2 (Goal Producer Reachability)",
+        3: "Tier 3 (State-Transition Consistency)",
+        4: "Tier 4 (Dynamic Plan Trace Analysis and Diagnostic Refinement)",
     }
     t_str = tier_desc.get(active_tier, f"Tier {active_tier}") if active_tier is not None else "Root Causal Blockers"
 
@@ -164,11 +220,11 @@ def FaultLocalizationNode(state: Dict[str, Any]) -> Dict[str, Any]:
             state["formatted_diagnostic_feedback"] = format_diagnostic_feedback([rep])
             return state
 
-    domain_bp = state.get("pddl_domain_blueprint", {})
+    domain_bp = state.get("pddl_domain_representation", {})
     if (not domain_bp or not domain_bp.get("actions")) and state.get("generated_domain_pddl"):
-        from nodes.pddl_to_ast_parser import parse_pddl_domain_to_blueprint
-        domain_bp = parse_pddl_domain_to_blueprint(state["generated_domain_pddl"])
-        state["pddl_domain_blueprint"] = domain_bp
+        from nodes.pddl_to_ast_parser import parse_pddl_domain_to_representation
+        domain_bp = parse_pddl_domain_to_representation(state["generated_domain_pddl"])
+        state["pddl_domain_representation"] = domain_bp
 
     problem_pddl = state.get("initial_problem_pddl") or state.get("generated_problem_pddl") or ""
     prob_meta = extract_pddl_problem_metadata(problem_pddl) if problem_pddl else {}
@@ -201,7 +257,12 @@ def FaultLocalizationNode(state: Dict[str, Any]) -> Dict[str, Any]:
     for up in causal_analysis.get("ungroundable_preconditions", []):
         act = up.get("action_name", "") or "domain.actions"
         hint = up.get("reason", "")
-        op_type = RepairOperationType.PRECONDITION_RELAXATION if ("self-blocking" in hint.lower() or "remove" in hint.lower()) else RepairOperationType.TYPE_ARITY_ALIGNMENT
+        if up.get("is_alignment") or "replace" in hint.lower():
+            op_type = RepairOperationType.PRECONDITION_ALIGNMENT
+        elif "self-blocking" in hint.lower() or "remove" in hint.lower():
+            op_type = RepairOperationType.PRECONDITION_RELAXATION
+        else:
+            op_type = RepairOperationType.TYPE_ARITY_ALIGNMENT
         deterministic_reports.append(DiagnosticReport(
             error_category=ErrorCategory.GROUNDING_UNSOLVABILITY,
             repair_operation_type=op_type,
@@ -231,105 +292,182 @@ def FaultLocalizationNode(state: Dict[str, Any]) -> Dict[str, Any]:
             f"Resolve the conflict by keeping the intended direction."
         )
         deterministic_reports.append(DiagnosticReport(
-            error_category=ErrorCategory.SYNTAX_PARSE,
+            error_category=ErrorCategory.GROUNDING_UNSOLVABILITY,
             repair_operation_type=RepairOperationType.EFFECT_ALIGNMENT,
             faulty_element=act_target,
             raw_log=f"Contradictory simultaneous effects in '{act_target}': {clash_atom} and (not {clash_atom})",
             suggested_repair_hint=resolution
         ))
 
-    # Irreversible resource depletions
-    for rd in causal_analysis.get("resource_depletions", []):
-        act_target = rd.get("action_name", "")
-        clash_atom = rd.get("atom", "")
-        deterministic_reports.append(DiagnosticReport(
-            error_category=ErrorCategory.GROUNDING_UNSOLVABILITY,
-            repair_operation_type=RepairOperationType.EFFECT_ALIGNMENT,
-            faulty_element=act_target,
-            raw_log=f"Irreversible resource depletion in '{act_target}': (not {clash_atom})",
-            suggested_repair_hint=rd.get("description", "")
-        ))
+    # Dynamic Plan Trace Analysis: Soundness (pi_gen on D_gold) and Completeness (pi_gold on D_gen)
+    feasibility_errors = [
+        e for e in raw_errors
+        if "Plan Feasibility Rejection" in e or ("Plan failed" in e and "Plan Interpretability Rejection" not in e)
+    ]
+    interpretability_errors = [
+        e for e in raw_errors
+        if "Plan Interpretability Rejection" in e
+    ]
 
-    # Plan feasibility failure
-    if "Plan Feasibility Rejection" in error_traces_str or "Plan failed" in error_traces_str:
-        m_pf = re.search(r"(?:Plan failed because of unsatisfied precondition in|operator)\s*:\s*\(([a-zA-Z0-9_\-]+)\s*([^)]*)\)", error_traces_str, re.IGNORECASE)
+    for feas_err in feasibility_errors:
+        m_pf = re.search(r"(?:Plan failed because of unsatisfied precondition in|operator)\s*:\s*\(([a-zA-Z0-9_\-]+)\s*([^)]*)\)", feas_err, re.IGNORECASE)
         if not m_pf:
-            m_pf = re.search(r"\(([a-zA-Z0-9_\-]+)\s+([^)]*)\)\s+has an unsatisfied precondition", error_traces_str, re.IGNORECASE)
+            m_pf = re.search(r"\(([a-zA-Z0-9_\-]+)\s+([^)]*)\)\s+has an unsatisfied precondition", feas_err, re.IGNORECASE)
         if m_pf:
             act_sym = m_pf.group(1)
             act_args = m_pf.group(2).strip().split()
-            
+
             # Universal First-Order Logic Lifting: Ground VAL Trace -> Lifted Formal Parameters
             lifted_advice = []
             is_alignment = False
             old_atom = ""
+            last_p_sym = ""
             matching_act = next((a for a in domain_bp.get("actions", []) if a.get("action_name", "").lower() == act_sym.lower()), None)
+            deduped_advice = []
             if matching_act:
                 formal_params = [p if p.startswith("?") else f"?{p}" for p in matching_act.get("parameters", {}).keys()]
                 ground_to_formal = {ground_arg.lower(): formal_param for ground_arg, formal_param in zip(act_args, formal_params)}
-                
-                advice_matches = re.findall(r"Set\s+\(([a-zA-Z0-9_\-]+)\s+([^)]*)\)\s+to\s+(true|false)", error_traces_str, re.IGNORECASE)
-                for p_sym, p_args_str, val_bool in advice_matches:
+
+                raw_advice_items = []
+                for p_sym, p_args_str, val_bool in re.findall(r"Set\s+\(([a-zA-Z0-9_\-]+)\s*([^)]*)\)\s+to\s+(true|false)", feas_err, re.IGNORECASE):
+                    raw_advice_items.append((p_sym, p_args_str, val_bool.lower() == "true"))
+                for p_sym, p_args_str in re.findall(r"(?:Unsatisfied precondition|precondition not satisfied|is false)[:\s]*\(([a-zA-Z0-9_\-]+)\s*([^)]*)\)", feas_err, re.IGNORECASE):
+                    raw_advice_items.append((p_sym, p_args_str, True))
+
+                seen_adv = set()
+                for p_sym, p_args_str, val_bool in raw_advice_items:
+                    key = (p_sym.lower(), " ".join(p_args_str.strip().split()).lower(), val_bool)
+                    if key not in seen_adv:
+                        seen_adv.add(key)
+                        deduped_advice.append((p_sym, p_args_str, val_bool))
+
+                for p_sym, p_args_str, val_bool in deduped_advice:
+                    last_p_sym = p_sym
                     p_ground_args = p_args_str.strip().split()
                     if all(g.lower() in ground_to_formal for g in p_ground_args):
                         pargs = " ".join(ground_to_formal[g.lower()] for g in p_ground_args)
-                        lifted_atom = f"({p_sym} {pargs})"
-                        if val_bool.lower() == "true":
-                            # Check if relation symbol is already present with different variable order (argument permutation)
+                        lifted_atom = f"({p_sym} {pargs})" if pargs else f"({p_sym})"
+                        if val_bool:
                             existing_same_pred = []
                             for pre in matching_act.get("preconditions", []):
                                 pre_clean = pre.strip("() ").split()
                                 if pre_clean and pre_clean[0].lower() == p_sym.lower():
                                     existing_same_pred.append(pre.strip())
-                            
+
                             if existing_same_pred:
                                 old_atom = existing_same_pred[0]
                                 if old_atom.lower() != lifted_atom.lower():
                                     is_alignment = True
                                     lifted_advice.append(f"replace precondition '{old_atom}' with '{lifted_atom}' (correct relational argument permutation)")
                                 else:
-                                    lifted_advice.append(f"require precondition '{lifted_atom}'")
+                                    lifted_advice.append(f"ensure preceding actions assert '{lifted_atom}' before execution")
                             else:
                                 lifted_advice.append(f"require precondition '{lifted_atom}'")
                         else:
                             lifted_advice.append(f"do not require '{lifted_atom}'")
-            
+
             lifted_hint = f" Specifically, {'; '.join(lifted_advice)}." if lifted_advice else ""
-            raw_act_str = f"({act_sym} {' '.join(act_args)})"
-            
+            raw_act_str = f"({act_sym} {' '.join(act_args)})".strip()
+
             if is_alignment:
-                op_type = RepairOperationType.PRECONDITION_ALIGNMENT
                 repair_hint = (
                     f"Plan feasibility failed on reference domain D_gold at step '{raw_act_str}'.{lifted_hint} "
-                    f"In action '{act_sym}', replace the inverted relational precondition '{old_atom}' with '{lifted_atom}' "
-                    f"so parameter variable arguments match the physical relation orientation. Do NOT keep both! "
-                    f"Also ensure any conjugate/inverse actions referencing predicate '{p_sym}' use consistent opposing orientation."
+                    f"In action '{act_sym}', apply all relational argument permutation replacements listed above atomically together. "
+                    f"Do NOT keep old inverted literals! When an ordering relation and dynamic state predicates share arguments, "
+                    f"you MUST co-update both the ordering relation and the coupled state literals simultaneously. "
+                    f"Also ensure all counterpart actions referencing predicate '{last_p_sym}' are synchronized to the identical relation orientation."
                 )
                 deterministic_reports.append(DiagnosticReport(
                     error_category=ErrorCategory.GROUNDING_UNSOLVABILITY,
                     repair_operation_type=RepairOperationType.PRECONDITION_ALIGNMENT,
-                    faulty_element=p_sym,
-                    raw_log=f"Relational argument permutation inverted for predicate '({p_sym} ...)' in action '{act_sym}'.",
-                    suggested_repair_hint=f"Align parameter variable ordering for predicate '{p_sym}' across action '{act_sym}' and related conjugate actions to preserve reachability."
+                    faulty_element=act_sym,
+                    raw_log=f"Relational argument permutation inverted for predicate '({last_p_sym} ...)' in action '{act_sym}'.",
+                    suggested_repair_hint=repair_hint
                 ))
             else:
-                op_type = RepairOperationType.PRECONDITION_INSERTION
                 repair_hint = (
                     f"Plan feasibility failed on reference domain D_gold at step '{raw_act_str}'.{lifted_hint} "
-                    f"In action '{act_sym}', check parameter variable ordering, ensure required preconditions match physical invariants, "
+                    f"In action '{act_sym}', check parameter variable ordering, ensure required preconditions match ground-truth invariants, "
                     f"and ensure preceding actions assert required preconditions so the generated plan executes soundly on D_gold."
                 )
-            
+                deterministic_reports.append(DiagnosticReport(
+                    error_category=ErrorCategory.GROUNDING_UNSOLVABILITY,
+                    repair_operation_type=RepairOperationType.PRECONDITION_INSERTION,
+                    faulty_element=act_sym,
+                    raw_log=f"Plan failed on D_gold at operator {raw_act_str}.{lifted_hint}",
+                    suggested_repair_hint=repair_hint
+                ))
+
+    for interp_err in interpretability_errors:
+        m_ip = re.search(r"(?:Plan failed because of unsatisfied precondition in|operator)\s*:\s*\(([a-zA-Z0-9_\-]+)\s*([^)]*)\)", interp_err, re.IGNORECASE)
+        if not m_ip:
+            m_ip = re.search(r"\(([a-zA-Z0-9_\-]+)\s+([^)]*)\)\s+has an unsatisfied precondition", interp_err, re.IGNORECASE)
+        if m_ip:
+            act_sym = m_ip.group(1)
+            act_args = m_ip.group(2).strip().split()
+            matching_act = next((a for a in domain_bp.get("actions", []) if a.get("action_name", "").lower() == act_sym.lower()), None)
+            lifted_unsat = []
+            if matching_act:
+                formal_params = [p if p.startswith("?") else f"?{p}" for p in matching_act.get("parameters", {}).keys()]
+                ground_to_formal = {ground_arg.lower(): formal_param for ground_arg, formal_param in zip(act_args, formal_params)}
+                raw_unsat = []
+                for p_sym, p_args_str, val_bool in re.findall(r"Set\s+\(([a-zA-Z0-9_\-]+)\s*([^)]*)\)\s+to\s+(true|false)", interp_err, re.IGNORECASE):
+                    raw_unsat.append((p_sym, p_args_str, val_bool.lower() == "true"))
+                for p_sym, p_args_str in re.findall(r"(?:Unsatisfied precondition|precondition not satisfied|is false)[:\s]*\(([a-zA-Z0-9_\-]+)\s*([^)]*)\)", interp_err, re.IGNORECASE):
+                    raw_unsat.append((p_sym, p_args_str, True))
+                seen_u = set()
+                for p_sym, p_args_str, val_bool in raw_unsat:
+                    key = (p_sym.lower(), " ".join(p_args_str.strip().split()).lower(), val_bool)
+                    if key in seen_u:
+                        continue
+                    seen_u.add(key)
+                    p_ground_args = p_args_str.strip().split()
+                    if all(g.lower() in ground_to_formal for g in p_ground_args):
+                        pargs = " ".join(ground_to_formal[g.lower()] for g in p_ground_args)
+                        lifted_atom = f"({p_sym} {pargs})" if pargs else f"({p_sym})"
+                    else:
+                        lifted_atom = f"({p_sym} {p_args_str.strip()})".strip()
+                    if val_bool:
+                        lifted_unsat.append(lifted_atom)
+                    else:
+                        lifted_unsat.append(f"(not {lifted_atom})")
+
+            raw_act_str = f"({act_sym} {' '.join(act_args)})".strip()
+            unsat_detail = f" Unsatisfied condition(s) on D_gen: {', '.join(lifted_unsat)}." if lifted_unsat else ""
             deterministic_reports.append(DiagnosticReport(
                 error_category=ErrorCategory.GROUNDING_UNSOLVABILITY,
-                repair_operation_type=op_type,
+                repair_operation_type=RepairOperationType.PRECONDITION_RELAXATION,
                 faulty_element=act_sym,
-                raw_log=f"Plan failed on D_gold at operator {raw_act_str}.{lifted_hint}",
-                suggested_repair_hint=repair_hint
+                raw_log=f"Reference plan pi_gold failed on D_gen at step {raw_act_str}.{unsat_detail}",
+                suggested_repair_hint=(
+                    f"Reference plan pi_gold failed completeness check on D_gen at step '{raw_act_str}'.{unsat_detail} "
+                    f"Either action '{act_sym}' contains an extraneous/unsatisfiable precondition (or inverted argument order) that should be removed or aligned, "
+                    f"or a preceding action in the domain omitted the positive add effect needed to establish that condition."
+                )
+            ))
+        elif "goal not satisfied" in interp_err.lower() or "goal was not achieved" in interp_err.lower():
+            unsat_goals = [
+                f"({p_sym} {p_args.strip()})".strip()
+                for p_sym, p_args in re.findall(r"Set\s+\(([a-zA-Z0-9_\-]+)\s*([^)]*)\)\s+to\s+true", interp_err, re.IGNORECASE)
+            ]
+            goal_detail = f" Unachieved goal atom(s): {', '.join(unsat_goals)}." if unsat_goals else ""
+            deterministic_reports.append(DiagnosticReport(
+                error_category=ErrorCategory.GROUNDING_UNSOLVABILITY,
+                repair_operation_type=RepairOperationType.EFFECT_ALIGNMENT,
+                faulty_element="domain.actions",
+                raw_log=f"Reference plan pi_gold executed on D_gen without achieving goal.{goal_detail}",
+                suggested_repair_hint=(
+                    f"Reference plan pi_gold executed on D_gen but did not satisfy the goal.{goal_detail} "
+                    f"Restore the missing positive add effect (or remove an erroneous delete effect) on the goal-achieving action."
+                )
             ))
 
     # Parse VAL Syntax / Type Checking Directives
-    val_has_error = any("VAL Error:" in err or "Translator Syntax Error:" in err for err in raw_errors)
+    val_has_error = any(
+        kw in err.lower()
+        for err in raw_errors
+        for kw in ("val error", "val syntax error", "syntax error", "type-checking", "translator syntax error", "type problem")
+    )
     if val_has_error:
         for line in error_traces_str.splitlines():
             # Missing Predicate
@@ -389,12 +527,12 @@ def FaultLocalizationNode(state: Dict[str, Any]) -> Dict[str, Any]:
 
     if not deterministic_reports or len(deterministic_reports) < 2:
         prompt = f"""You are an expert PDDL Diagnostic & Fault Localization Oracle.
-Your task is to analyze oracle failure signals against the current PDDL Domain blueprint and fixed Problem instance (P_gold), localize root-cause faults, and produce structured DiagnosticReports.
+Your task is to analyze oracle failure signals against the current PDDL Domain representation and fixed Problem instance (P_gold), localize root-cause faults, and produce structured DiagnosticReports.
 
 NATURAL LANGUAGE REQUIREMENTS:
 {requirements_text}
 
-CURRENT DOMAIN BLUEPRINT:
+CURRENT DOMAIN REPRESENTATION:
 ```json
 {json.dumps(domain_bp, indent=2)}
 ```

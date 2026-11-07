@@ -1,12 +1,144 @@
 {
-  "timestamp": "2026-11-02T02:49:27.366748",
+  "timestamp": "2026-11-06T16:55:24.931397",
   "domain_name": "rover",
   "run_index": 1,
-  "verification_status": "PASSED",
-  "repair_iterations_used": 0,
-  "initial_verification_errors": [],
-  "final_verification_errors": [],
-  "diagnostic_issues_count": 0,
-  "diagnostic_reports": [],
-  "formatted_diagnostic_feedback": ""
+  "verification_status": "FAILED",
+  "repair_iterations_used": 5,
+  "initial_verification_errors": [
+    "Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, but failed execution when transferred to reference domain D_gold on problem P_gold! VAL Oracle Diagnostic Trace: next happening (time 1) Deleting (at rover0 waypoint0) Adding (at rover0 waypoint2) Checking next happening (time 2) Adding (calibrated camera0 rover0) Checking next happening (time 3) Deleting (calibrated camera0 rover0) Adding (have_image rover0 objective0 colour) Checking next happening (time 4) Plan failed because of unsatisfied precondition in: (communicate_image_data rover0 general objective0 colour waypoint0 waypoint2) Plan failed to execute Plan Repair Advice: (communicate_image_data rover0 general objective0 colour waypoint0 waypoint2) has an unsatisfied precondition at time 4 (Follow each of: (Set (at rover0 waypoint0) to true) and (Set (at_lander general waypoint2) to true) ) Failed plans: E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_Rover_60228_iter_0_plan.txt.mapped.val\nAction schemas in D_gen are likely missing necessary preconditions (trivial model trap) or producing effects that violate physical domain invariants.",
+    "Plan Interpretability Rejection on Generated Domain: The standard reference plan pi_gold failed execution on the generated domain D_gen! VAL Oracle Diagnostic Trace: next happening (time 1) Deleting (at rover0 waypoint0) Adding (at rover0 waypoint2) Checking next happening (time 2) Adding (calibrated camera0 rover0) Checking next happening (time 3) Deleting (calibrated camera0 rover0) Adding (have_image rover0 objective0 colour) Checking next happening (time 4) Plan failed because of unsatisfied precondition in: (communicate_image_data rover0 general objective0 colour waypoint2 waypoint0) Plan failed to execute Plan Repair Advice: (communicate_image_data rover0 general objective0 colour waypoint2 waypoint0) has an unsatisfied precondition at time 4 (Follow each of: (Set (at rover0 waypoint0) to true) and (Set (at_lander general waypoint2) to true) ) Failed plans: E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\gold_Rover_60228_iter_0_plan.txt.mapped.val\nAction schemas in D_gen are likely over-constrained with extraneous preconditions (completeness failure) or parameter arities/names do not preserve reference plan operations."
+  ],
+  "final_verification_errors": [
+    "Planner Error: Could not find a plan. INFO     planner time limit: None\nINFO     planner memory limit: None\n\nINFO     Running translator.\nINFO     translator stdin: None\nINFO     translator time limit: None\nINFO     translator memory limit: None\nINFO     translator command line string: 'C:\\Users\\Srushti\\miniconda3\\envs\\agent_env\\python.exe' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\translate\\translate.py' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_Rover_60228_iter_5_dom.pddl' 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_Rover_60228_iter_5_prob.pddl' --sas-file output.sas\nWarning! SIGXCPU is not available on your platform. This means that the planner cannot be gracefully terminated when using a time limit, which, however, is probably supported on your platform anyway.\nParsing...\nParsing: [0.016s CPU, 0.010s wall-clock]\nNormalizing task... [0.000s CPU, 0.000s wall-clock]\nInstantiating...\nGenerating Datalog program... [0.000s CPU, 0.001s wall-clock]\nNormalizing Datalog program...\nNormalizing Datalog program: [0.016s CPU, 0.017s wall-clock]\nPreparing model... [0.000s CPU, 0.003s wall-clock]\nGenerated 87 rules.\nComputing model... [0.000s CPU, 0.003s wall-clock]\n108 relevant atoms\n155 auxiliary atoms\n263 final queue length\n290 total queue pushes\nCompleting instantiation... [0.016s CPU, 0.002s wall-clock]\nInstantiating: [0.031s CPU, 0.025s wall-clock]\nComputing fact groups...\nFinding invariants...\n35 initial candidates\nFinding invariants: [0.000s CPU, 0.006s wall-clock]\nChecking invariant weight... [0.000s CPU, 0.000s wall-clock]\nInstantiating groups... [0.000s CPU, 0.000s wall-clock]\nCollecting mutex groups... [0.000s CPU, 0.000s wall-clock]\nChoosing groups...\n8 uncovered facts\nChoosing groups: [0.000s CPU, 0.000s wall-clock]\nBuilding translation key... [0.000s CPU, 0.000s wall-clock]\nComputing fact groups: [0.000s CPU, 0.007s wall-clock]\nBuilding STRIPS to SAS dictionary... [0.000s CPU, 0.000s wall-clock]\nBuilding dictionary for full mutex groups... [0.000s CPU, 0.000s wall-clock]\nBuilding mutex information...\nBuilding mutex information: [0.000s CPU, 0.000s wall-clock]\nTranslating task...\nProcessing axioms...\nSimplifying axioms... [0.000s CPU, 0.000s wall-clock]\nTranslator axioms removed by simplifying: 0\nProcessing axioms: [0.000s CPU, 0.000s wall-clock]\nTranslating task: [0.000s CPU, 0.003s wall-clock]\n3 effect conditions simplified\n0 implied preconditions added\nDetecting unreachable propositions...\n0 operators removed\n0 axioms removed\n8 propositions removed\nDetecting unreachable propositions: [0.000s CPU, 0.003s wall-clock]\nReordering and filtering variables...\n13 of 15 variables necessary.\n1 of 9 mutex groups necessary.\n27 of 27 operators necessary.\n0 of 0 axiom rules necessary.\nReordering and filtering variables: [0.016s CPU, 0.001s wall-clock]\nTranslator variables: 13\nTranslator derived variables: 0\nTranslator facts: 30\nTranslator goal facts: 3\nTranslator mutex groups: 1\nTranslator total mutex groups size: 3\nTranslator operators: 27\nTranslator axioms: 0\nTranslator task size: 182\nwarning: could not determine peak memory\nWriting output... [0.000s CPU, 0.005s wall-clock]\nDone! [0.062s CPU, 0.057s wall-clock]\ntranslate exit code: 0\n\nINFO     Running search (release).\nINFO     search stdin: output.sas\nINFO     search time limit: None\nINFO     search memory limit: None\nINFO     search command line string: 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\tools\\bin\\downward\\builds\\release\\bin\\downward.exe' --search 'lazy_greedy([ff()])' --internal-plan-file 'E:\\Rosh\\Thesis\\pddl_lifecycle_agent\\results\\temp\\eval_Rover_60228_iter_5_plan.txt' < output.sas\n[t=0.000759s, 828 KB] reading input...\n[t=0.001568s, 848 KB] done reading input!\n[t=0.005705s, 1260 KB] Simplifying 40 unary operators... done! [38 unary operators]\n[t=0.005798s, 1260 KB] time to simplify: 0.000102s\n[t=0.005832s, 1260 KB] Initializing additive heuristic...\n[t=0.005846s, 1260 KB] Initializing FF heuristic...\n[t=0.005935s, 1260 KB] Building successor generator...done!\n[t=0.006001s, 1260 KB] peak memory difference for successor generator creation: 0 KB\n[t=0.006011s, 1260 KB] time for successor generation creation: 0.000042s\n[t=0.006028s, 1260 KB] Variables: 13\n[t=0.006037s, 1260 KB] FactPairs: 30\n[t=0.006051s, 1260 KB] Bytes per state: 4\n[t=0.006101s, 1260 KB] Conducting lazy best first search, (real) bound = 2147483647\n[t=0.006141s, 1260 KB] New best heuristic value for ff: 9\n[t=0.006157s, 1260 KB] g=0, 1 evaluated, 0 expanded\n[t=0.006214s, 1260 KB] Initial heuristic value for ff: 9\n[t=0.006288s, 1260 KB] New best heuristic value for ff: 8\n[t=0.006305s, 1260 KB] g=2, 6 evaluated, 5 expanded\n[t=0.006356s, 1260 KB] New best heuristic value for ff: 7\n[t=0.006374s, 1260 KB] g=3, 8 evaluated, 7 expanded\n[t=0.006603s, 1260 KB] New best heuristic value for ff: 6\n[t=0.006620s, 1260 KB] g=5, 25 evaluated, 20 expanded\n[t=0.006794s, 1260 KB] New best heuristic value for ff: 4\n[t=0.006812s, 1260 KB] g=7, 37 evaluated, 28 expanded\n[t=0.006850s, 1260 KB] New best heuristic value for ff: 3\n[t=0.006867s, 1260 KB] g=8, 39 evaluated, 29 expanded\n[t=0.050799s, 1320 KB] Completely explored state space -- no solution!\n[t=0.050855s, 1320 KB] Actual search time: 0.044749s\n[t=0.050887s, 1320 KB] Expanded 1488 state(s).\n[t=0.050887s, 1320 KB] Reopened 0 state(s).\n[t=0.050887s, 1320 KB] Evaluated 4776 state(s).\n[t=0.050887s, 1320 KB] Evaluations: 4776\n[t=0.050887s, 1320 KB] Generated 7992 state(s).\n[t=0.050887s, 1320 KB] Dead ends: 3288 state(s).\n[t=0.050887s, 1320 KB] Number of registered states: 4776\n[t=0.050887s, 1320 KB] Int hash set load factor: 4776/8192 = 0.583008\n[t=0.050887s, 1320 KB] Int hash set resizes: 13\n[t=0.050887s, 1320 KB] Search time: 0.044786s\n[t=0.050887s, 1320 KB] Total time: 0.050887s\nSearch stopped without finding a solution.\nRemove intermediate file output.sas\nsearch exit code: 12\n\nDriver aborting after search\n\n"
+  ],
+  "diagnostic_issues_count": 18,
+  "diagnostic_reports": [
+    {
+      "error_category": "SYNTAX_PARSE",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_soil_data",
+      "raw_log": "Contradictory simultaneous effects in 'communicate_soil_data': (available ?r) and (not (available ?r))",
+      "suggested_repair_hint": "Action 'communicate_soil_data' simultaneously adds and deletes '(available ?r)'. Keep the delete effect '(not (available ?r))' and REMOVE positive effect '(available ?r)' (consumes fluent)."
+    },
+    {
+      "error_category": "SYNTAX_PARSE",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_soil_data",
+      "raw_log": "Contradictory simultaneous effects in 'communicate_soil_data': (channel_free ?l) and (not (channel_free ?l))",
+      "suggested_repair_hint": "Action 'communicate_soil_data' simultaneously adds and deletes '(channel_free ?l)'. Keep the delete effect '(not (channel_free ?l))' and REMOVE positive effect '(channel_free ?l)' (consumes fluent)."
+    },
+    {
+      "error_category": "SYNTAX_PARSE",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_rock_data",
+      "raw_log": "Contradictory simultaneous effects in 'communicate_rock_data': (available ?r) and (not (available ?r))",
+      "suggested_repair_hint": "Action 'communicate_rock_data' simultaneously adds and deletes '(available ?r)'. Keep the delete effect '(not (available ?r))' and REMOVE positive effect '(available ?r)' (consumes fluent)."
+    },
+    {
+      "error_category": "SYNTAX_PARSE",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_rock_data",
+      "raw_log": "Contradictory simultaneous effects in 'communicate_rock_data': (channel_free ?l) and (not (channel_free ?l))",
+      "suggested_repair_hint": "Action 'communicate_rock_data' simultaneously adds and deletes '(channel_free ?l)'. Keep the delete effect '(not (channel_free ?l))' and REMOVE positive effect '(channel_free ?l)' (consumes fluent)."
+    },
+    {
+      "error_category": "SYNTAX_PARSE",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_image_data",
+      "raw_log": "Contradictory simultaneous effects in 'communicate_image_data': (available ?r) and (not (available ?r))",
+      "suggested_repair_hint": "Action 'communicate_image_data' simultaneously adds and deletes '(available ?r)'. Keep the delete effect '(not (available ?r))' and REMOVE positive effect '(available ?r)' (consumes fluent)."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_soil_data",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'communicate_soil_data' does not produce the effect '(communicated_soil_data ?p)' as required by the goal state. Ensure the action's effects include '(communicated_soil_data ?p)' to align with the goal."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_rock_data",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'communicate_rock_data' does not produce the effect '(communicated_rock_data ?p)' as required by the goal state. Ensure the action's effects include '(communicated_rock_data ?p)' to align with the goal."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_image_data",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'communicate_image_data' does not produce the effect '(communicated_image_data ?o ?m)' as required by the goal state. Ensure the action's effects include '(communicated_image_data ?o ?m)' to align with the goal."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_image_data",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'communicate_image_data' does not produce the goal '(communicated_image_data objective0 colour)'. Ensure the action's effects include '(communicated_image_data ?o ?m)' where '?o' is the objective and '?m' is the mode."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_RELAXATION",
+      "faulty_element": "take_image",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'take_image' requires '(calibrated ?i ?r)' but does not remove this precondition after taking the image. Ensure the effect '(not (calibrated ?i ?r))' is added to the action's effects."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_RELAXATION",
+      "faulty_element": "calibrate",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'calibrate' requires '(visible_from ?t ?w)' but does not ensure that the objective is visible from the waypoint. Verify that the initial state includes '(visible_from objective0 waypoint2)' and ensure the action's preconditions align with the initial state."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_image_data",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'communicate_image_data' does not produce the goal '(communicated_image_data objective0 colour)'. Ensure the action's effects include '(communicated_image_data ?o ?m)' to align with the goal state."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_RELAXATION",
+      "faulty_element": "take_image",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'take_image' requires '(calibrated ?i ?r)' which is removed after taking an image. Consider relaxing this precondition or ensuring calibration persists to allow multiple image captures."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "PRECONDITION_ALIGNMENT",
+      "faulty_element": "communicate_soil_data",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The action 'communicate_soil_data' requires '(have_soil_analysis ?r ?p)' but does not ensure the rover retains the analysis after communication. Align preconditions to allow multiple communications if needed."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "take_image",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'take_image' action does not remove the '(calibrated ?i ?r)' fact after taking an image, which prevents subsequent calibrations and image captures. Add '(not (calibrated ?i ?r))' to the effects of the 'take_image' action."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_image_data",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'communicate_image_data' action does not restore the '(available ?r)' fact after communication, which prevents further actions by the rover. Add '(available ?r)' to the effects of the 'communicate_image_data' action."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_soil_data",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'communicate_soil_data' action does not restore the '(available ?r)' fact after communication, which prevents further actions by the rover. Add '(available ?r)' to the effects of the 'communicate_soil_data' action."
+    },
+    {
+      "error_category": "GROUNDING_UNSOLVABILITY",
+      "repair_operation_type": "EFFECT_ALIGNMENT",
+      "faulty_element": "communicate_rock_data",
+      "raw_log": "Completely explored state space -- no solution!",
+      "suggested_repair_hint": "The 'communicate_rock_data' action does not restore the '(available ?r)' fact after communication, which prevents further actions by the rover. Add '(available ?r)' to the effects of the 'communicate_rock_data' action."
+    }
+  ],
+  "formatted_diagnostic_feedback": "### Diagnostic Failure Analysis Report (Layered Fault Localization Priority: Tier 0 (Type Hierarchy & Formal AST Well-Formedness)):\nCRITICAL GUIDANCE: Focus repairs strictly on resolving these top-priority causal blockers before modifying unrelated actions.\n\n\nIssue #1:\n  - [ERROR TYPE]: SYNTAX_PARSE\n  - [TARGET AST OPERATION]: EFFECT_ALIGNMENT\n  - [LOCATION / COMPONENT]: communicate_soil_data\n  - [DESCRIPTION / RAW TRACE]: Contradictory simultaneous effects in 'communicate_soil_data': (available ?r) and (not (available ?r))\n  - [SUGGESTION FOR REPAIR]: Action 'communicate_soil_data' simultaneously adds and deletes '(available ?r)'. Keep the delete effect '(not (available ?r))' and REMOVE positive effect '(available ?r)' (consumes fluent).\n\nIssue #2:\n  - [ERROR TYPE]: SYNTAX_PARSE\n  - [TARGET AST OPERATION]: EFFECT_ALIGNMENT\n  - [LOCATION / COMPONENT]: communicate_rock_data\n  - [DESCRIPTION / RAW TRACE]: Contradictory simultaneous effects in 'communicate_rock_data': (available ?r) and (not (available ?r))\n  - [SUGGESTION FOR REPAIR]: Action 'communicate_rock_data' simultaneously adds and deletes '(available ?r)'. Keep the delete effect '(not (available ?r))' and REMOVE positive effect '(available ?r)' (consumes fluent).\n\nIssue #3:\n  - [ERROR TYPE]: SYNTAX_PARSE\n  - [TARGET AST OPERATION]: EFFECT_ALIGNMENT\n  - [LOCATION / COMPONENT]: communicate_image_data\n  - [DESCRIPTION / RAW TRACE]: Contradictory simultaneous effects in 'communicate_image_data': (available ?r) and (not (available ?r))\n  - [SUGGESTION FOR REPAIR]: Action 'communicate_image_data' simultaneously adds and deletes '(available ?r)'. Keep the delete effect '(not (available ?r))' and REMOVE positive effect '(available ?r)' (consumes fluent)."
 }

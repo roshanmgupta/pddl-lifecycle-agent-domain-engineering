@@ -1,13 +1,13 @@
 """PDDL Schema definitions and formal modeling standards."""
 
-from nodes.schemas.pddl_blueprint import (
+from nodes.schemas.pddl_representation import (
     ErrorCategory,
     RepairOperationType,
     DiagnosticReport,
     PddlActionSchema,
     ActionSemantics,
     DomainActionSemantics,
-    DomainBlueprint,
+    DomainRepresentation,
 )
 from nodes.schemas.pddl_standards import (
     STANDARD_CLASSICAL_PDDL_RULES,
@@ -22,7 +22,7 @@ __all__ = [
     "PddlActionSchema",
     "ActionSemantics",
     "DomainActionSemantics",
-    "DomainBlueprint",
+    "DomainRepresentation",
     "STANDARD_CLASSICAL_PDDL_RULES",
     "STANDARD_DIAGNOSTIC_RULES",
     "STANDARD_REPAIR_RULES",

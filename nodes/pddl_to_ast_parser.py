@@ -2,40 +2,18 @@
 """
 nodes/pddl_to_ast_parser.py
 Universal deterministic PDDL domain and problem string-to-AST parser.
-Parses raw PDDL 2.1 text into structured AST / DomainBlueprint representations.
+Parses raw PDDL 2.1 text into structured AST / DomainRepresentation representations.
 """
 
 import re
 from typing import Dict, List, Set, Any, Optional, Tuple
-
-def extract_predicate_names(atom_list: List[str]) -> Set[str]:
-    """Extracts base predicate names from a list of PDDL atom strings."""
-    preds = set()
-    for atom in atom_list:
-        clean = atom.strip().replace("(", "").replace(")", "").replace("not", "").strip()
-        tokens = clean.split()
-        if tokens:
-            preds.add(tokens[0].lower())
-    return preds
-
-def clean_blueprint_expression(raw_s: str) -> Optional[str]:
-    """Cleans an individual PDDL precondition or effect expression into a valid blueprint atom."""
-    s = raw_s.strip()
-    if not s or s.lower() == "and":
-        return None
-    while s.startswith("((") and s.endswith("))"):
-        s = s[1:-1].strip()
-    if not s.startswith("("):
-        s = f"({s}"
-    if not s.endswith(")"):
-        s = f"{s})"
-    while re.match(r"^\(\s*not\s*\(\s*not\s*(\(.+\))\s*\)\s*\)$", s, flags=re.IGNORECASE):
-        s = re.sub(r"^\(\s*not\s*\(\s*not\s*(\(.+\))\s*\)\s*\)$", r"\1", s, flags=re.IGNORECASE).strip()
-    # Strip accidental inline typing in atomic formulas (classical PDDL 2.1 invariant)
-    s = re.sub(r"(\?[a-zA-Z0-9_\-]+|[a-zA-Z0-9_\-]+)\s+-\s+[a-zA-Z0-9_\-]+", r"\1", s)
-    # Collapse multiple spaces
-    s = re.sub(r"\s+", " ", s).strip()
-    return s
+from tools.pddl_utils import (
+    clean_representation_expression,
+    extract_action_bodies,
+    parse_action_schema,
+    extract_predicate_declarations,
+    extract_atoms_from_expressions,
+)
 
 
 def alpha_convert_action_variables(
@@ -88,18 +66,7 @@ def alpha_convert_action_variables(
                 ptypes.append("object")
             pred_sigs[psym] = ptypes
 
-    def extract_atoms(exprs: List[str]) -> List[Tuple[str, List[str]]]:
-        atoms: List[Tuple[str, List[str]]] = []
-        for e in exprs:
-            for m in re.finditer(r"\(\s*([a-zA-Z0-9_\-]+)\s*(.*?)\)", str(e)):
-                sym = m.group(1).lower()
-                if sym in ("not", "and", "or", "imply", "forall", "exists"):
-                    continue
-                args = [a for a in m.group(2).split() if a.startswith("?")]
-                atoms.append((sym, args))
-        return atoms
-
-    all_atoms = extract_atoms(preconditions) + extract_atoms(effects)
+    all_atoms = extract_atoms_from_expressions(preconditions + effects)
     used_vars = {v for _, args in all_atoms for v in args}
 
     unbound_vars = [v for v in sorted(used_vars) if v not in canon_vars]
@@ -162,9 +129,9 @@ def alpha_convert_action_variables(
     new_effs = [substitute_in_expr(e) for e in effects]
     return new_precs, new_effs
 
-def parse_pddl_domain_to_blueprint(pddl_str: str) -> Dict[str, Any]:
+def parse_pddl_domain_to_representation(pddl_str: str) -> Dict[str, Any]:
     """
-    Parses a raw PDDL domain string into a structured Domain Blueprint dictionary.
+    Parses a raw PDDL domain string into a structured Domain Representation dictionary.
     Extracts domain name, types hierarchy, predicates, and actions with parameters,
     preconditions, and effects.
     """
@@ -212,77 +179,32 @@ def parse_pddl_domain_to_blueprint(pddl_str: str) -> Dict[str, Any]:
         else:
             reqs = [":strips"]
 
-    pred_match = re.search(r"\(:predicates\s+(.*?)\)\s*\(:", pddl_str, re.DOTALL | re.IGNORECASE)
-    preds: List[str] = []
-    if pred_match:
-        preds = ["(" + p.strip() + ")" for p in re.findall(r"\((.*?)\)", pred_match.group(1)) if p.strip()]
+    preds = extract_predicate_declarations(pddl_str)
 
-    const_match = re.search(r"\(:constants\s+(.*?)\)\s*\(:", pddl_str, re.DOTALL | re.IGNORECASE)
+    const_match = re.search(r"\(:constants\s+(.*?)\)", pddl_str, re.DOTALL | re.IGNORECASE)
     consts_dict: Dict[str, str] = {}
     if const_match:
-        for line in const_match.group(1).split("\n"):
-            line_clean = line.strip()
-            if not line_clean or line_clean.startswith(";"):
-                continue
-            if "-" in line_clean:
-                parts = line_clean.split("-")
-                objs = parts[0].strip().split()
-                parent = parts[1].strip()
-                for o in objs:
-                    consts_dict[o] = parent
+        tokens = const_match.group(1).split()
+        current_consts: List[str] = []
+        i = 0
+        while i < len(tokens):
+            tok = tokens[i]
+            if tok == "-":
+                parent = tokens[i + 1] if i + 1 < len(tokens) else "object"
+                for c in current_consts:
+                    consts_dict[c] = parent
+                current_consts = []
+                i += 2
             else:
-                objs = line_clean.split()
-                for o in objs:
-                    consts_dict[o] = "object"
+                current_consts.append(tok)
+                i += 1
+        for c in current_consts:
+            consts_dict[c] = "object"
 
-    actions: List[Dict[str, Any]] = []
-    for act_match in re.finditer(r"\(:action\s+([a-zA-Z0-9_\-]+)(.*?)(?=\(:action|\)\s*$)", pddl_str, re.DOTALL | re.IGNORECASE):
-        act_name = act_match.group(1)
-        act_body = act_match.group(2)
-
-        params_match = re.search(r":parameters\s*\((.*?)\)", act_body, re.DOTALL | re.IGNORECASE)
-        param_dict: Dict[str, str] = {}
-        if params_match:
-            raw_p = params_match.group(1).strip()
-            tokens = raw_p.split()
-            current_vars: List[str] = []
-            i = 0
-            while i < len(tokens):
-                tok = tokens[i]
-                if tok == "-":
-                    ptype = tokens[i+1] if i + 1 < len(tokens) else "object"
-                    for v in current_vars:
-                        param_dict[v] = ptype
-                    current_vars = []
-                    i += 2
-                elif tok.startswith("?"):
-                    current_vars.append(tok)
-                    i += 1
-                else:
-                    i += 1
-            for v in current_vars:
-                param_dict[v] = "object"
-
-        pre_match = re.search(r":precondition\s+(.*?)(?=:effect)", act_body, re.DOTALL | re.IGNORECASE)
-        pre_list: List[str] = []
-        if pre_match:
-            pre_str = pre_match.group(1).strip()
-            raw_pre = re.findall(r"\((?:not\s*\([^\(\)]+\)|[^\(\)]+)\)", pre_str)
-            pre_list = [clean_blueprint_expression(p) for p in raw_pre if clean_blueprint_expression(p)]
-
-        eff_match = re.search(r":effect\s+(.*?)(?=\)\s*$)", act_body, re.DOTALL | re.IGNORECASE)
-        eff_list: List[str] = []
-        if eff_match:
-            eff_str = eff_match.group(1).strip()
-            raw_eff = re.findall(r"\((?:not\s*\([^\(\)]+\)|[^\(\)]+)\)", eff_str)
-            eff_list = [clean_blueprint_expression(p) for p in raw_eff if clean_blueprint_expression(p)]
-
-        actions.append({
-            "action_name": act_name,
-            "parameters": param_dict,
-            "preconditions": pre_list,
-            "effects": eff_list
-        })
+    actions: List[Dict[str, Any]] = [
+        parse_action_schema(act_name, act_body)
+        for act_name, act_body in extract_action_bodies(pddl_str).items()
+    ]
 
     return {
         "domain_name": dname,
@@ -398,3 +320,4 @@ def extract_pddl_problem_metadata(pddl_str: str) -> Dict[str, Any]:
         "initial_state": inits,
         "goal_state": goals
     }
+

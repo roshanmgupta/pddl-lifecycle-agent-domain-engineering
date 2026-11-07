@@ -19,6 +19,7 @@ STANDARD CLASSICAL PDDL 2.1 (STRIPS + TYPING) RULES:
 
 3. ACTION SCHEMAS:
    - Parameters: Every variable used in preconditions and effects must be declared in 'parameters' with exactly one type.
+   - Lifted Abstraction: Action schemas are strictly lifted parameterized templates. NEVER hardcode problem-specific ground object names (e.g., 'mauve', 'green', 'rooma', 'truck1', 'package1', 'p0') into action preconditions or effects. Every term in an action precondition or effect must be a parameter variable (or a domain ':constants' symbol).
    - Preconditions: Positive conditions required to execute. Disjunction ('or'), negative preconditions ('not'), and quantifiers ('forall', 'exists') are forbidden in STRIPS.
    - Effects: Model complete state transitions. Delete facts '(not (pred ...))' and add facts '(pred ...)'. An action must never assert contradictory simultaneous effects '(pred ...)' and '(not (pred ...))'.
    - State Conservation: When an entity vacates a resource, container, or location, assert the positive vacancy/clearance effect upon completion.
@@ -39,17 +40,24 @@ DIAGNOSTIC GUIDELINES (FIXED PROBLEM P_gold — DOMAIN-ONLY FAULT LOCALIZATION):
     - Check for UNPRODUCED GOALS: If a goal predicate is never added by any action, add the positive effect to the appropriate producer action.
     - Check for DEAD / UNGROUNDABLE PRECONDITIONS: Verify variable binding and argument order against declared initial state facts.
     - MONOTONICITY OF REACHABILITY: Adding preconditions strictly shrinks reachable state space. Never advise adding restrictive preconditions to resolve unsolvability.
+    - LIFTED PARAMETER INVARIANT (ZERO GROUND CONSTANTS IN SCHEMAS): Action schemas are domain-level parameterized abstractions. NEVER instruct an action schema to assert or require a specific problem object constant (e.g., '(colour ?x mauve)' or '(at ?v loc1)'). Preconditions and effects must reference ONLY formal parameters declared in that action's parameter list (e.g., '(colour ?p ?new_col)' where '?new_col - acolour' is an action parameter). If an action lacks the required parameter to produce a goal fact, check if another dedicated specialist action schema with that parameter exists (e.g. glazer/varnisher for colours) or if an existing precondition prevents that specialist action from firing.
+    - CAUSAL PIPELINE & ACTION SPECIALIZATION (NO HALLUCINATED UPSTREAM PRODUCERS): Actions operate in directed causal pipelines: (1) Creation/Sourcing -> (2) Transit/Manipulation -> (3) Transformation/Finishing. When a goal fluent G is unreached, identify which downstream action ALREADY declares G in its effects or specializes in G based on parameter signatures and verbs. Diagnose why that downstream specialist action cannot fire (check its preconditions and machine/state requirements). NEVER advise adding specialized finishing effects (such as surface finishing, treatment, or delivery states) to upstream creation or sourcing actions.
+    - CONJUGATE DIRECTED ORDERING INVARIANT: Actions that navigate or transition entities in opposing physical directions (e.g. move-up vs move-down, ascend vs descend, load vs unload, board vs leave) MUST maintain consistent asymmetric orientation on directed binary relations (such as above, next, adjacent, less-than). If action A moving from ?x to ?y requires directed relation '(rel ?x ?y)', its inverse conjugate action A' moving from ?x to ?y in the opposite direction must require '(rel ?y ?x)'. When a plan feasibility rejection occurs at a directional operator, verify whether the directed relation arguments in preconditions are inverted relative to problem :init facts.
 - Prescriptive Directives: Every report must state: 1) exact domain AST target, 2) concrete operation (ADD, REMOVE, REPLACE), 3) exact PDDL literal or signature to write.
 """
 
 STANDARD_REPAIR_RULES = """
 REPAIR INSTRUCTIONS (SURGICAL DOMAIN REPAIR AGAINST FIXED PROBLEM P_gold):
-- Treat the current domain blueprint as a working draft to surgically edit. Preserve all elements that are already correct.
+- Treat the current domain representation as a working draft to surgically edit. Preserve all elements that are already correct.
 - Fixed Problem P_gold is read-only: resolve all errors exclusively in 'types', 'constants', 'predicates', or 'actions'.
 - Action Preservation: Output action count must equal or exceed baseline. Never remove valid actions to bypass an error; repair preconditions or effects.
 - Type Hierarchy Repair: Update 'types' to declare subtype relationships required by problem objects and action parameters.
 - Predicate Signatures: Keep declared predicate signatures invariant across the entire domain. Unify duplicate declarations under common supertypes.
 - Causal Reachability: Restore missing positive transition effects (e.g. clearance, vacancy, arrival) mandated by requirements.
 - Relational Argument Alignment: When a diagnostic directive indicates that a relational precondition or effect has an inverted argument permutation (e.g. '(rel ?x ?y)' vs '(rel ?y ?x)'), REPLACE the inverted literal with the directed relation indicated by the oracle. Do NOT keep both, as requiring contradictory or unasserted relations causes plan failure.
+- Coupled Relational Co-Update & Conjugate Action Synchronization:
+  * Atomic Co-Update: When an action couples a static progression/ordering relation '(rel ?s1 ?s2)' with a dynamic state predicate '(state ?obj ?s1)' transitioning to '(state ?obj ?s2)', reorienting the static relation strictly requires simultaneously co-updating the corresponding state-variable starting precondition and ending effect that share those arguments. Never flip an ordering relation in isolation without co-updating its coupled state predicates, as this creates an immediate contradiction that prevents plan search from succeeding.
+  * Cluster Synchronization: All actions within a coupled action cluster (e.g., counterpart increment/decrement, load/unload, or buy/sell operators) must share the exact same orientation of the static ordering relation asserted in problem ':init'. When one action in the cluster is updated, synchronize all counterpart actions in the cluster to use that identical orientation.
+- Lifted Parameter Invariant: Action schemas must use variables only. Never introduce problem-specific ground objects (e.g., 'mauve', 'green', 'p0') into action preconditions or effects unless declared in domain ':constants'.
 - Pure STRIPS: Never introduce negative preconditions, disjunctive preconditions ('or'), or dummy literals ('(true)', '(false)').
 """

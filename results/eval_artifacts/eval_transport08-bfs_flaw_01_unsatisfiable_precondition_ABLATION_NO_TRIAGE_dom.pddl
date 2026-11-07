@@ -22,13 +22,13 @@
 
   (:action pick-up
     :parameters (?v - vehicle ?l - location ?p - package ?s1 - capacity-number ?s2 - capacity-number)
-    :precondition (and (at ?v ?l) (at ?p ?l) (capacity-predecessor ?s1 ?s2) (capacity ?v ?s1))
+    :precondition (and (at ?v ?l) (at ?p ?l) (capacity-predecessor ?s2 ?s1) (capacity ?v ?s1))
     :effect (and (not (at ?p ?l)) (in ?p ?v) (capacity ?v ?s2) (not (capacity ?v ?s1)))
   )
 
   (:action drop
     :parameters (?v - vehicle ?l - location ?p - package ?s1 - capacity-number ?s2 - capacity-number)
-    :precondition (and (at ?v ?l) (in ?p ?v) (capacity-predecessor ?s1 ?s2) (capacity ?v ?s1))
+    :precondition (and (at ?v ?l) (in ?p ?v) (capacity-predecessor ?s2 ?s1) (capacity ?v ?s1))
     :effect (and (not (in ?p ?v)) (at ?p ?l) (capacity ?v ?s2) (not (capacity ?v ?s1)))
   )
 

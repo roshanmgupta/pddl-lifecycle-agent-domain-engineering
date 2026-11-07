@@ -70,7 +70,7 @@
   (:action pour-shot-to-used-shaker
     :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l - level ?l1 - level)
     :precondition (and (holding ?h1 ?s) (contains ?s ?i) (unshaked ?d) (shaker-level ?d ?l) (next ?l ?l1))
-    :effect (and (contains ?d ?i) (empty ?s) (shaker-level ?d ?l1) (not (contains ?s ?i)) (not (shaker-level ?d ?l)) (unshaked ?d))
+    :effect (and (contains ?d ?i) (empty ?s) (shaker-level ?d ?l1) (not (contains ?s ?i)) (not (shaker-level ?d ?l)))
   )
 
   (:action empty-shaker
@@ -94,7 +94,7 @@
   (:action pour-shaker-to-shot
     :parameters (?b - beverage ?d - shot ?h - hand ?s - shaker ?l - level ?l1 - level)
     :precondition (and (holding ?h ?s) (shaked ?s) (empty ?d) (contains ?s ?b) (shaker-level ?s ?l) (next ?l ?l1))
-    :effect (and (contains ?d ?b) (shaker-level ?s ?l1) (not (empty ?d)) (not (shaker-level ?s ?l)))
+    :effect (and (contains ?d ?b) (used ?d ?b) (shaker-level ?s ?l1) (not (empty ?d)) (not (shaker-level ?s ?l)))
   )
 
 )

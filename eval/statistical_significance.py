@@ -12,7 +12,7 @@ Directly implements the experimental evaluation protocols:
 3. Hypothesis H2 Tests:
    - McNemar's test on binary success comparing Full Agent with ABLATION_NO_TRIAGE.
    - Wilcoxon signed-rank test on iterations comparing Full Agent with ABLATION_NO_TRIAGE.
-4. Descriptive reporting tables for SVR, Success Rate, Mean Iterations, Tokens, and Latency.
+4. Descriptive reporting tables for Success Rate, Mean Iterations, Tokens, and Latency.
 """
 
 import math
@@ -162,7 +162,7 @@ def aggregate_runs_per_task(
     Aggregates multi-run records per task under the 3-run majority voting and penalty rules:
     - Task succeeds if at least 2 of the 3 runs succeed.
     - Iterations are the mean over the 3 runs, with failed runs counted as 6.
-    - Automatically averages SVR, tokens, and latency.
+    - Automatically averages tokens and latency.
     """
     grouped: Dict[str, List[Dict[str, Any]]] = {}
     for r in run_records:
@@ -187,11 +187,7 @@ def aggregate_runs_per_task(
                 penalized_iters.append(6.0)
         mean_iters = sum(penalized_iters) / len(penalized_iters) if penalized_iters else 6.0
 
-        # SVR mean
-        svrs = [1.0 if bool(r.get("is_syntax_valid") or r.get("init_syntax_ok")) else 0.0 for r in runs]
-        mean_svr = sum(svrs) / len(svrs) if svrs else 0.0
-
-        # Mean tokens and latency
+                # Mean tokens and latency
         mean_prompt_tok = sum(r.get("prompt_tokens", 0) for r in runs) / n_runs
         mean_comp_tok = sum(r.get("completion_tokens", 0) for r in runs) / n_runs
         mean_tot_tok = sum(r.get("total_tokens", 0) for r in runs) / n_runs
@@ -206,7 +202,6 @@ def aggregate_runs_per_task(
             "runs_succeeded": n_success,
             "task_succeeds": task_succeeds,
             "mean_iterations_penalized": round(mean_iters, 2),
-            "svr_rate": round(mean_svr, 3),
             "mean_prompt_tokens": round(mean_prompt_tok, 1),
             "mean_completion_tokens": round(mean_comp_tok, 1),
             "mean_total_tokens": round(mean_tot_tok, 1),
@@ -223,7 +218,7 @@ def format_descriptive_thesis_table(
     Formats the definitive thesis descriptive table reporting:
     - Condition / Agent
     - Evaluated Tasks
-    - Syntactic Validity Rate (SVR)
+    - Syntactic Validity, Executability, Feasibility, Interpretability
     - Success Rate (>= 2/3 voting rule)
     - Mean Iterations (with failed runs = 6)
     - Mean Total Tokens
@@ -231,7 +226,7 @@ def format_descriptive_thesis_table(
     """
     lines = [
         "=" * 110,
-        f"{'CONDITION / AGENT':<24} | {'TASKS':<7} | {'SVR':<8} | {'SUCCESS RATE':<14} | {'MEAN ITERS (P=6)':<18} | {'TOKENS':<10} | {'LATENCY (s)'}",
+        f"{'CONDITION / AGENT':<24} | {'TASKS':<7} | {'SUCCESS RATE':<14} | {'MEAN ITERS (P=6)':<18} | {'TOKENS':<10} | {'LATENCY (s)'}",
         "-" * 110
     ]
 
@@ -241,14 +236,13 @@ def format_descriptive_thesis_table(
             continue
         n_succ = sum(1 for t in tasks_dict.values() if t["task_succeeds"])
         succ_pct = (n_succ / n_tasks) * 100.0
-        avg_svr = (sum(t["svr_rate"] for t in tasks_dict.values()) / n_tasks) * 100.0
         avg_iters = sum(t["mean_iterations_penalized"] for t in tasks_dict.values()) / n_tasks
         avg_tokens = sum(t["mean_total_tokens"] for t in tasks_dict.values()) / n_tasks
         avg_latency = sum(t["mean_latency_sec"] for t in tasks_dict.values()) / n_tasks
 
         succ_str = f"{n_succ}/{n_tasks} ({succ_pct:.1f}%)"
         lines.append(
-            f"{cond_name:<24} | {n_tasks:<7} | {avg_svr:.1f}%   | {succ_str:<14} | {avg_iters:<18.2f} | {int(avg_tokens):<10} | {avg_latency:<10.2f}"
+            f"{cond_name:<24} | {n_tasks:<7} | {succ_str:<14} | {avg_iters:<18.2f} | {int(avg_tokens):<10} | {avg_latency:<10.2f}"
         )
 
     lines.append("=" * 110)

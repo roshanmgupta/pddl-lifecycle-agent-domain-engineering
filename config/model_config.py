@@ -63,12 +63,12 @@ def extract_and_parse_json(schema: Type[T], raw_text: str) -> T:
         # Handle $defs, definitions, or outer "domain" wrappers if emitted by an LLM
         if "$defs" in raw_data and "domain_name" not in raw_data:
             defs = raw_data["$defs"]
-            dom = defs.get("DomainBlueprint") or defs.get("domain")
+            dom = defs.get("DomainRepresentation") or defs.get("DomainBlueprint") or defs.get("domain")
             if isinstance(dom, dict):
                 raw_data = dom
         elif "definitions" in raw_data and "domain_name" not in raw_data:
             defs = raw_data["definitions"]
-            dom = defs.get("DomainBlueprint") or defs.get("domain")
+            dom = defs.get("DomainRepresentation") or defs.get("DomainBlueprint") or defs.get("domain")
             if isinstance(dom, dict):
                 raw_data = dom
         elif "domain" in raw_data and isinstance(raw_data["domain"], dict) and "domain_name" not in raw_data:
@@ -103,6 +103,20 @@ def extract_and_parse_json(schema: Type[T], raw_text: str) -> T:
         f"Received: {repr(snippet)}"
     )
 
+def get_pricing_per_m() -> tuple[float, float]:
+    """Returns (price_prompt_per_m, price_completion_per_m) configured directly via .env."""
+    prompt_raw = os.getenv("PRICE_PROMPT_PER_M")
+    comp_raw = os.getenv("PRICE_COMPLETION_PER_M")
+    if prompt_raw is None or str(prompt_raw).strip() == "":
+        raise RuntimeError("[ALERT] PRICE_PROMPT_PER_M is missing from your .env file! Please set it directly.")
+    if comp_raw is None or str(comp_raw).strip() == "":
+        raise RuntimeError("[ALERT] PRICE_COMPLETION_PER_M is missing from your .env file! Please set it directly.")
+    return float(str(prompt_raw).strip()), float(str(comp_raw).strip())
+
+
+PRICE_PROMPT_PER_M, PRICE_COMPLETION_PER_M = get_pricing_per_m()
+
+
 def extract_telemetry_from_response(raw_resp) -> dict:
     """Extracts prompt_tokens, completion_tokens, total_tokens and estimates USD cost."""
     prompt_tokens = 0
@@ -128,8 +142,9 @@ def extract_telemetry_from_response(raw_resp) -> dict:
         completion_tokens = max(50, len(raw_text) // 4)
         total_tokens = prompt_tokens + completion_tokens
 
-    # Cost calculation: GPT-4o pricing ($2.50/M input, $10.00/M output)
-    cost = (prompt_tokens * 2.50 / 1_000_000) + (completion_tokens * 10.00 / 1_000_000)
+    # Dynamic pricing read from .env (PRICE_PROMPT_PER_M, PRICE_COMPLETION_PER_M)
+    p_in, p_out = get_pricing_per_m()
+    cost = (prompt_tokens * p_in / 1_000_000) + (completion_tokens * p_out / 1_000_000)
     return {
         "prompt_tokens": prompt_tokens,
         "completion_tokens": completion_tokens,
@@ -250,40 +265,59 @@ def invoke_structured_llm_with_telemetry(schema: Type[T], prompt: str, target_mo
 
 def invoke_raw_llm_with_telemetry(prompt: str, target_model: str = None) -> tuple[str, dict]:
     """
-    Invokes LLM (OpenAI or OpenRouter) for unstructured/raw string output (used by Zero-Shot and Unstructured-Retry baselines)
+    Invokes LLM (OpenAI or OpenRouter) for unstructured/raw string output (used by Zero-Shot, No-AST, and Unstructured-Retry baselines)
     and returns (raw_text, telemetry_dict).
-    Strictly invokes only the requested model without switching or falling back to other models.
+    Strictly invokes only the requested model without switching or falling back to other models,
+    applying the same transient network/rate-limit backoff as invoke_structured_llm_with_telemetry.
     """
     provider_label, model_name, api_key, api_base, max_tokens = _get_llm_client_config(target_model)
 
-    try:
-        print(f"[LLM Provider]: Invoking {provider_label} Model '{model_name}'...")
-        llm_kwargs = {
-            "model_name": model_name,
-            "openai_api_key": api_key,
-            "temperature": 0.0,
-            "max_tokens": max_tokens,
-            "timeout": 90.0,
-        }
-        if api_base:
-            llm_kwargs["openai_api_base"] = api_base
-
-        llm = ChatOpenAI(**llm_kwargs)
-        import asyncio
+    max_api_retries = 5
+    for attempt in range(max_api_retries):
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_closed():
+            print(f"[LLM Provider]: Invoking {provider_label} Model '{model_name}' (max_tokens={max_tokens})...")
+            llm_kwargs = {
+                "model_name": model_name,
+                "openai_api_key": api_key,
+                "temperature": 0.0,
+                "max_tokens": max_tokens,
+                "timeout": 120.0,
+                "max_retries": 1,
+            }
+            if api_base:
+                llm_kwargs["openai_api_base"] = api_base
+
+            llm = ChatOpenAI(**llm_kwargs)
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_closed():
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+            except Exception:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-        except Exception:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
 
-        raw_resp = llm.invoke(prompt)
-        telemetry = extract_telemetry_from_response(raw_resp)
-        raw_text = raw_resp.content if hasattr(raw_resp, "content") else str(raw_resp)
-        return raw_text, telemetry
-    except Exception as e:
-        raise RuntimeError(f"[ALERT] {provider_label} (Raw) LLM API Error for Model '{model_name}': {str(e)}")
+            raw_resp = llm.invoke(prompt)
+            telemetry = extract_telemetry_from_response(raw_resp)
+            raw_text = raw_resp.content if hasattr(raw_resp, "content") else str(raw_resp)
+            if not raw_text or not raw_text.strip():
+                ak = getattr(raw_resp, "additional_kwargs", {}) or {}
+                if ak.get("reasoning_content"):
+                    raw_text = ak.get("reasoning_content")
+                else:
+                    raise ValueError("Empty response returned by upstream endpoint.")
+            print(f"[LLM Provider]: Successfully obtained raw response from {provider_label} ('{model_name}').")
+            return raw_text, telemetry
+        except Exception as e:
+            err_msg = str(e)
+            is_rate_limit = any(k in err_msg.lower() for k in ["429", "rate limit", "rate_limit", "quota"])
+            is_conn_error = any(k in err_msg.lower() for k in ["connection error", "timeout", "timed out", "connection reset", "remote end closed", "empty response", "peer closed", "incomplete chunked"])
+            if (is_rate_limit or is_conn_error) and attempt < max_api_retries - 1:
+                backoff_time = (attempt + 1) * 6
+                print(f"[LLM Provider WARNING]: Transient raw API issue ({err_msg[:70]}...). Backoff retry {attempt + 1}/{max_api_retries} in {backoff_time}s...")
+                time.sleep(backoff_time)
+                continue
+            raise RuntimeError(f"[ALERT] {provider_label} (Raw) LLM API Error for Model '{model_name}': {err_msg}")
 
 

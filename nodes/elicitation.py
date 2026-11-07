@@ -1,31 +1,31 @@
 import json
 import re
 import time
-from nodes.schemas.pddl_blueprint import DomainBlueprint
+from nodes.schemas.pddl_representation import DomainRepresentation
 from config.model_config import get_phase_model, invoke_structured_llm_with_telemetry
-from config.pddl_standards import STANDARD_CLASSICAL_PDDL_RULES
+from nodes.schemas.pddl_standards import STANDARD_CLASSICAL_PDDL_RULES
 from nodes.pddl_to_ast_parser import extract_pddl_problem_metadata
 
 
 def run_elicitation_node(state: dict) -> dict:
-    """Parses requirements into a DomainBlueprint."""
+    """Parses requirements into a DomainRepresentation."""
     requirements_text = state.get("requirements", "")
     formatted_feedback = state.get("formatted_diagnostic_feedback", "")
     verification_errors = state.get("verification_errors", [])
-    existing_domain_bp = state.get("pddl_domain_blueprint")
+    existing_domain_rep = state.get("pddl_domain_representation")
     problem_pddl = state.get("initial_problem_pddl") or state.get("generated_problem_pddl") or ""
     prob_meta = extract_pddl_problem_metadata(problem_pddl) if problem_pddl else {}
 
-    # Preserve pre-loaded faulty blueprint if present
-    if existing_domain_bp and verification_errors and not formatted_feedback:
-        print("[Elicitation Node]: Pre-loaded faulty domain blueprint detected for synthetic repair task. Preserving blueprint for validation & repair loop.")
+    # Preserve pre-loaded faulty representation if present
+    if existing_domain_rep and verification_errors and not formatted_feedback:
+        print("[Elicitation Node]: Pre-loaded faulty domain representation detected for synthetic repair task. Preserving representation for validation & repair loop.")
         return {
-            "pddl_domain_blueprint": existing_domain_bp
+            "pddl_domain_representation": existing_domain_rep
         }
 
     feedback_context = ""
     if formatted_feedback:
-        feedback_context = f"\n{formatted_feedback}\nPlease resolve all listed diagnostic issues in your revised DomainBlueprint JSON.\n"
+        feedback_context = f"\n{formatted_feedback}\nPlease resolve all listed diagnostic issues in your revised DomainRepresentation JSON.\n"
         print("Feedback Context for LLM (Fault Localization Format):\n", feedback_context)
     elif verification_errors:
         feedback_context = f"\nPrevious Diagnostic Feedback / Verification Errors to resolve:\n{verification_errors}\n"
@@ -38,10 +38,10 @@ def run_elicitation_node(state: dict) -> dict:
     use_fixed_signatures = bool(ref_dom_pddl and ref_dom_pddl.strip())
 
     if use_fixed_signatures:
-        from nodes.pddl_to_ast_parser import parse_pddl_domain_to_blueprint
-        from nodes.schemas.pddl_blueprint import DomainActionSemantics, PddlActionSchema
+        from nodes.pddl_to_ast_parser import parse_pddl_domain_to_representation
+        from nodes.schemas.pddl_representation import DomainActionSemantics, PddlActionSchema
 
-        ref_bp = parse_pddl_domain_to_blueprint(ref_dom_pddl)
+        ref_bp = parse_pddl_domain_to_representation(ref_dom_pddl)
         target_dname = ref_bp.get("domain_name") or target_dname
         fixed_types = ref_bp.get("types", {})
         fixed_constants = ref_bp.get("constants", {})
@@ -108,21 +108,19 @@ def run_elicitation_node(state: dict) -> dict:
         )
         elapsed = time.time() - start_t
 
-        # Merge action semantics into DomainBlueprint
-        from nodes.pddl_to_ast_parser import clean_blueprint_expression, alpha_convert_action_variables
-        def _norm_token(s: str) -> str:
-            clean = re.sub(r"^(domain\.)?(actions?|predicates?|types?)\.", "", str(s).strip("'\"` "), flags=re.IGNORECASE)
-            return clean.lower().replace("-", "").replace("_", "")
+        # Merge action semantics into DomainRepresentation
+        from nodes.pddl_to_ast_parser import clean_representation_expression, alpha_convert_action_variables
+        from tools.pddl_utils import norm_token
 
         gen_actions_map = {
-            _norm_token(a.action_name): a for a in action_semantics_obj.actions
+            norm_token(a.action_name): a for a in action_semantics_obj.actions
         }
         completed_actions = []
         for fa in fixed_actions:
             aname = fa["action_name"]
-            gen_sem = gen_actions_map.get(_norm_token(aname))
-            raw_pre = [clean_blueprint_expression(p) for p in (gen_sem.preconditions if gen_sem else []) if clean_blueprint_expression(p)]
-            raw_eff = [clean_blueprint_expression(p) for p in (gen_sem.effects if gen_sem else []) if clean_blueprint_expression(p)]
+            gen_sem = gen_actions_map.get(norm_token(aname))
+            raw_pre = [clean_representation_expression(p) for p in (gen_sem.preconditions if gen_sem else []) if clean_representation_expression(p)]
+            raw_eff = [clean_representation_expression(p) for p in (gen_sem.effects if gen_sem else []) if clean_representation_expression(p)]
             # Align variables to declared action parameters
             conv_pre, conv_eff = alpha_convert_action_variables(
                 aname,
@@ -139,7 +137,7 @@ def run_elicitation_node(state: dict) -> dict:
                 effects=conv_eff
             ))
 
-        domain_blueprint_obj = DomainBlueprint(
+        domain_representation_obj = DomainRepresentation(
             domain_name=target_dname,
             requirements=fixed_reqs,
             types=fixed_types,
@@ -147,17 +145,17 @@ def run_elicitation_node(state: dict) -> dict:
             predicates=fixed_predicates,
             actions=completed_actions
         )
-        dom_dict = domain_blueprint_obj.model_dump()
-        state["pddl_domain_blueprint"] = dom_dict
+        dom_dict = domain_representation_obj.model_dump()
+        state["pddl_domain_representation"] = dom_dict
         state["fixed_signatures"] = True
 
     else:
         # Full domain elicitation when no reference domain is provided
         prompt = f"""
-    You are an expert PDDL Knowledge Engineer. Your task is to analyze the following requirements text and construct a single, valid JSON object that strictly conforms to the DomainBlueprint schema (D_gen).
+    You are an expert PDDL Knowledge Engineer. Your task is to analyze the following requirements text and construct a single, valid JSON object that strictly conforms to the DomainRepresentation schema (D_gen).
     You only need to generate the PDDL Domain model ("domain_name", "requirements", "types", "constants", "predicates", "actions").
 
-    Here is an example of the required DomainBlueprint JSON structure:
+    Here is an example of the required DomainRepresentation JSON structure:
     ```json
     {{
       "domain_name": "{target_dname}",
@@ -222,18 +220,18 @@ def run_elicitation_node(state: dict) -> dict:
 
     {STANDARD_CLASSICAL_PDDL_RULES}
 
-    Produce ONLY the DomainBlueprint JSON object and nothing else.
+    Produce ONLY the DomainRepresentation JSON object and nothing else.
     """
 
         start_t = time.time()
-        domain_blueprint_obj, usage = invoke_structured_llm_with_telemetry(
-            DomainBlueprint, prompt, target_model=get_phase_model(1)
+        domain_representation_obj, usage = invoke_structured_llm_with_telemetry(
+            DomainRepresentation, prompt, target_model=get_phase_model(1)
         )
         elapsed = time.time() - start_t
-        dom_dict = domain_blueprint_obj.model_dump()
+        dom_dict = domain_representation_obj.model_dump()
         if prob_meta.get("domain_name"):
             dom_dict["domain_name"] = prob_meta["domain_name"]
-        state["pddl_domain_blueprint"] = dom_dict
+        state["pddl_domain_representation"] = dom_dict
 
     # Update telemetry
     state["total_prompt_tokens"] = state.get("total_prompt_tokens", 0) + usage.get("prompt_tokens", 0)

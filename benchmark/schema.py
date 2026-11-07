@@ -56,3 +56,15 @@ class BenchmarkTask(BaseModel):
         default="",
         description="Reference correct problem PDDL string for evaluation comparison"
     )
+    ground_truth_problems: List[str] = Field(
+        default_factory=list,
+        description="All reference ground-truth problem PDDL strings for multi-instance evaluation"
+    )
+    ground_truth_gold_plans: List[str] = Field(
+        default_factory=list,
+        description="Optional file paths to precomputed ground-truth reference plans aligned with ground_truth_problems"
+    )
+    ground_truth_problem_names: List[str] = Field(
+        default_factory=list,
+        description="Problem filenames aligned with ground_truth_problems"
+    )

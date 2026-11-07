@@ -44,8 +44,8 @@
 
   (:action POP-END
     :parameters (?pipe - pipe ?from-area - area ?to-area - area ?first-batch-atom - batch-atom ?next-first-batch-atom - batch-atom)
-    :precondition (and (pop-updating ?pipe) (first ?first-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (follow ?next-first-batch-atom ?first-batch-atom))
-    :effect (and (normal ?pipe) (first ?next-first-batch-atom ?pipe) (on ?first-batch-atom ?from-area) (not (pop-updating ?pipe)) (not (follow ?next-first-batch-atom ?first-batch-atom)) (not (first ?first-batch-atom ?pipe)))
+    :precondition (and (pop-updating ?pipe) (first ?first-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (follow ?first-batch-atom ?next-first-batch-atom))
+    :effect (and (normal ?pipe) (first ?next-first-batch-atom ?pipe) (on ?first-batch-atom ?from-area) (not (pop-updating ?pipe)) (not (follow ?first-batch-atom ?next-first-batch-atom)) (not (first ?first-batch-atom ?pipe)))
   )
 
   (:action PUSH-UNITARYPIPE
@@ -56,7 +56,7 @@
 
   (:action POP-UNITARYPIPE
     :parameters (?pipe - pipe ?batch-atom-in - batch-atom ?from-area - area ?to-area - area ?last-batch-atom - batch-atom ?product-batch-atom-in - product ?product-last-batch - product)
-    :precondition (and (last ?last-batch-atom ?pipe) (connect ?to-area ?from-area ?pipe) (on ?batch-atom-in ?to-area) (unitary ?pipe) (is-product ?batch-atom-in ?product-batch-atom-in) (is-product ?last-batch-atom ?product-last-batch) (may-interface ?product-batch-atom-in ?product-last-batch))
+    :precondition (and (last ?last-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (on ?batch-atom-in ?to-area) (unitary ?pipe) (is-product ?batch-atom-in ?product-batch-atom-in) (is-product ?last-batch-atom ?product-last-batch) (may-interface ?product-batch-atom-in ?product-last-batch))
     :effect (and (last ?batch-atom-in ?pipe) (first ?batch-atom-in ?pipe) (on ?last-batch-atom ?from-area) (not (last ?last-batch-atom ?pipe)) (not (first ?last-batch-atom ?pipe)) (not (on ?batch-atom-in ?to-area)))
   )
 

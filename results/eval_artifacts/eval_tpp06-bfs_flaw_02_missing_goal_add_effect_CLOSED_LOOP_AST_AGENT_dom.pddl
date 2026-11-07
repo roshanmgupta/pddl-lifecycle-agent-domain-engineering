@@ -25,7 +25,7 @@
 
   (:action load
     :parameters (?g - goods ?t - truck ?m - market ?l1 - level ?l2 - level ?l3 - level ?l4 - level)
-    :precondition (and (at ?t ?m) (loaded ?g ?t ?l3) (ready-to-load ?g ?m ?l2) (next ?l2 ?l1) (next ?l4 ?l3))
+    :precondition (and (at ?t ?m) (ready-to-load ?g ?m ?l2) (next ?l2 ?l1) (next ?l4 ?l3))
     :effect (and (loaded ?g ?t ?l4) (not (loaded ?g ?t ?l3)) (ready-to-load ?g ?m ?l1) (not (ready-to-load ?g ?m ?l2)))
   )
 
@@ -37,7 +37,7 @@
 
   (:action buy
     :parameters (?t - truck ?g - goods ?m - market ?l1 - level ?l2 - level ?l3 - level ?l4 - level)
-    :precondition (and (at ?t ?m) (on-sale ?g ?m ?l2) (next ?l2 ?l1) (next ?l4 ?l3))
+    :precondition (and (at ?t ?m) (on-sale ?g ?m ?l2) (ready-to-load ?g ?m ?l3) (next ?l2 ?l1) (next ?l4 ?l3))
     :effect (and (on-sale ?g ?m ?l1) (not (on-sale ?g ?m ?l2)) (ready-to-load ?g ?m ?l4) (not (ready-to-load ?g ?m ?l3)))
   )
 

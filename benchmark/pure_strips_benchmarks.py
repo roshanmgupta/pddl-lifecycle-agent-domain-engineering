@@ -19,56 +19,41 @@ from typing import Dict, List, Tuple, Optional, Any
 from config.paths import get_autoplanbench_dir #, get_nl2pddl_dir
 
 # ==============================================================================
-# Filtered Pure STRIPS + Typing Benchmark Domains (autoplanbench/data/)
+# Canonical 21 Pure STRIPS + Typing Benchmark Domains (autoplanbench/data/)
 # ==============================================================================
 
-AUTOPLANBENCH_PURE_STRIPS_DOMAINS = [
-    # Classic IPC Core Pure Domains (16)
+DOMAINS_21: List[str] = [
+    "blocksworld",
     "gripper",
+    "logistics",
     "depot",
-    "satellite",
     "rovers",
-    "barman14-bfs",
+    "satellite",
     "elevators08",
-    "floortile",
     "parking11",
     "goldminer",
-    "transport08-bfs",
     "scanalyzer08",
     "visitall",
-    "pipesworld-notankage04-bfs",
-    "woodworking08",
+    "transport08-bfs",
+    "floortile",
     "tpp06-bfs",
     "pegsol08",
-    # Expanded Pure STRIPS + Typing Domains (14)
     "nomystery11-bfs",
-    "transport11",
-    "transport14",
-    "elevators11",
-    "scanalyzer11",
-    "barman11-bfs",
-    "floortile11",
-    "floortile14",
-    "pegsol11",
-    "rovers06-bfs",
-    "pipesworld-tankage04-bfs",
-    "woodworking11",
-    "visitall11-bfs",
-    "visitall14-bfs"
+    "barman14-bfs",
+    "pipesworld-notankage04-bfs",
+    "woodworking08",
+    "zenotravel02",
+    "driverlog02-bfs"
 ]
+
+AUTOPLANBENCH_PURE_STRIPS_DOMAINS = DOMAINS_21
 
 # ==============================================================================
 # AutoPlanBench Original Loader
 # ==============================================================================
 
 def get_autoplanbench_domain_folder(domain_name: str) -> Path:
-    p1 = Path(get_autoplanbench_dir()) / domain_name
-    if p1.exists() and (p1 / "domain.pddl").exists():
-        return p1
-    p2 = Path("pddl_benchmark_instances/autoplanbench") / domain_name
-    if p2.exists() and (p2 / "domain.pddl").exists():
-        return p2
-    return p1
+    return Path(get_autoplanbench_dir()) / domain_name
 
 
 def list_autoplanbench_problem_files(domain_name: str) -> List[str]:

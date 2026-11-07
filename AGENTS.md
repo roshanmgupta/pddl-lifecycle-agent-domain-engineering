@@ -112,3 +112,9 @@ All chapter drafting, editing, proofreading, and audits MUST strictly adhere to 
     - To summarize someone else's research over several sentences, provide an explicit lead-in at the beginning of the paragraph and cite appropriately.
     - Never use raw numeric citation brackets as grammatical subjects in a sentence (e.g., never write *"[12] shows that..."* or *"\cite{oswald} proves..."*; write *"Oswald et al.~\cite{oswald} show that..."* or *"Empirical evaluations demonstrate that...~\cite{oswald}"*).
 
+## 9. Strict Scientific Factuality & Zero Unverified Generalization Mandate
+- **Zero Unverified Guarantees**: NEVER claim, assume, or write that the framework or methodology is "independent of any specific commercial language model", "guaranteed to work across all planners", or "portable across unverified tools" unless that specific claim has been empirically tested and verified in our experimental evaluation.
+- **Empirical Grounding Only**: Anything that was not empirically performed, executed, or tested in the thesis experiments CANNOT be stated as a verified fact or guarantee. Do not write broad assumptions as established truths.
+- **Precise Scope Formulation**: Describe the architecture strictly by what was actually designed, implemented, and verified (e.g., domain-independent formulation grounded in classical PDDL 2.1 formal semantics, evaluated with the specific pipeline oracles). If cross-model portability or alternative planner support has not been benchmarked, do not state or imply universal cross-model or cross-tool guarantees.
+
+

@@ -45,11 +45,11 @@ from benchmark.loader import (
     list_domain_flaws,
     load_flaw_task,
     load_elicitation_task,
-    SELECTED_BENCHMARK_DOMAINS,
     list_autoplanbench_domains,
     load_autoplanbench_synthesis_task,
 )
 from benchmark.pure_strips_benchmarks import (
+    DOMAINS_21,
     AUTOPLANBENCH_PURE_STRIPS_DOMAINS,
     list_autoplanbench_problem_files,
     get_autoplanbench_domain_folder,
@@ -88,7 +88,7 @@ ARCHITECTURES = [
 
 ARCH_DESCRIPTIONS = {
     "CLOSED_LOOP_AST_AGENT": "🧠 Closed-Loop AST Agent (FaultLocalizationNode + Surgical AST)",
-    "ABLATION_NO_TRIAGE": "🔬 Ablation: No Fault Localization (AST Blueprint + Raw Truncated Errors)",
+    "ABLATION_NO_TRIAGE": "🔬 Ablation: No Fault Localization (AST Representation + Raw Truncated Errors)",
     "ABLATION_NO_AST": "🔬 Ablation: No AST (Direct PDDL Text + Fault Localization)",
     "UNSTRUCTURED_RETRY": "⚡ Baseline: Unstructured Retry (Direct PDDL + Raw Truncated Errors)",
     "ZERO_SHOT": "🎯 Baseline: Zero-Shot (Direct PDDL, No Feedback Loop)"
@@ -96,14 +96,14 @@ ARCH_DESCRIPTIONS = {
 
 FEEDBACK_EXPLANATIONS = {
     "CLOSED_LOOP_AST_AGENT": {
-        "title": "Structured Model-Based Fault Localization + Surgical AST Blueprint",
-        "mechanism": "Layered Model-Based Fault Localization triages raw oracle logs into root-cause categories, pinpointing the exact faulty AST action schema and preconditions/effects. The surgical repair prompt provides only the target action schema from the Pydantic AST blueprint alongside structured repair hints, preserving non-faulty actions untouched.",
-        "target": "Pydantic AST Action Schema Blueprint (JSON / PDDL domain skeleton)"
+        "title": "Structured Model-Based Fault Localization + Surgical AST Representation",
+        "mechanism": "Layered Model-Based Fault Localization triages raw oracle logs into root-cause categories, pinpointing the exact faulty AST action schema and preconditions/effects. The surgical repair prompt provides only the target action schema from the Pydantic AST representation alongside structured repair hints, preserving non-faulty actions untouched.",
+        "target": "Pydantic AST Action Schema Representation (JSON / PDDL domain skeleton)"
     },
     "ABLATION_NO_TRIAGE": {
-        "title": "Raw Truncated Oracle Errors + Surgical AST Blueprint (No Fault Localization)",
+        "title": "Raw Truncated Oracle Errors + Surgical AST Representation (No Fault Localization)",
         "mechanism": "Bypasses the Diagnostic LLM Agent entirely. Raw, unparsed compiler/solver logs (truncated to 1500 chars) are passed directly into the surgical AST repair prompt without error classification or causal invariant context.",
-        "target": "Pydantic AST Action Schema Blueprint"
+        "target": "Pydantic AST Action Schema Representation"
     },
     "ABLATION_NO_AST": {
         "title": "Structured Model-Based Fault Localization + Raw Full PDDL Text (No AST)",
@@ -246,8 +246,8 @@ def load_domain_synthesis_task(domain_name: str, problem_instance: Optional[str]
 
 
 def save_output_to_disk(state: dict, task: Optional[Any] = None) -> tuple:
-    """Saves compiled domain.pddl, problem.pddl, blueprint.json, diagnostic_report.json, and plan.txt."""
-    domain_bp = state.get("pddl_domain_blueprint", {})
+    """Saves compiled domain.pddl, problem.pddl, representation.json, diagnostic_report.json, and plan.txt."""
+    domain_bp = state.get("pddl_domain_representation", {})
     if isinstance(domain_bp, dict):
         d_name = domain_bp.get("domain_name", "generated_domain")
     else:
@@ -291,7 +291,7 @@ def save_output_to_disk(state: dict, task: Optional[Any] = None) -> tuple:
 
     dom_file_path = os.path.join(output_dir, f"{dom_stem}_{next_idx}{dom_ext}")
     prob_file_path = os.path.join(output_dir, f"{prob_stem}_{next_idx}{prob_ext}")
-    json_file_path = os.path.join(output_dir, f"blueprint_{next_idx}.json")
+    json_file_path = os.path.join(output_dir, f"representation_{next_idx}.json")
     diag_file_path = os.path.join(output_dir, f"diagnostic_report_{next_idx}.json")
     plan_file_path = os.path.join(output_dir, f"{plan_stem}_{next_idx}{plan_ext}")
 
@@ -306,7 +306,7 @@ def save_output_to_disk(state: dict, task: Optional[Any] = None) -> tuple:
     meta_content = {
         "domain_name": d_name,
         "run_index": next_idx,
-        "domain_blueprint": state.get("pddl_domain_blueprint"),
+        "domain_representation": state.get("pddl_domain_representation"),
         "iteration_count": state.get("iteration_count", 0),
         "is_valid": not bool(state.get("verification_errors"))
     }
@@ -505,7 +505,7 @@ else:
     # AutoPlanBench Curated Lifecycle Tasks
     all_domains = list_benchmark_domains()
     if not all_domains:
-        all_domains = SELECTED_BENCHMARK_DOMAINS
+        all_domains = DOMAINS_21
 
     if exec_scope == "🏛️ Run 6 Core Domains Benchmark":
         st.sidebar.markdown("### 🏛️ 6 Core Domains Benchmark")
@@ -554,7 +554,7 @@ else:
             selected_batch_domains = st.sidebar.multiselect(
                 "Select Domains to Benchmark:",
                 all_domains,
-                default=[d for d in SELECTED_BENCHMARK_DOMAINS if d in all_domains]
+                default=all_domains[:5]
             )
             batch_agents_to_run = st.sidebar.multiselect(
                 "Select Architectures to Evaluate:",
@@ -609,7 +609,7 @@ else:
             selected_batch_domains = st.sidebar.multiselect(
                 "Select Domains to Benchmark:",
                 all_domains,
-                default=[d for d in SELECTED_BENCHMARK_DOMAINS if d in all_domains][:5]
+                default=all_domains[:5]
             )
             all_flaw_keys = list(FLAW_LABELS.keys())
             selected_batch_flaws = st.sidebar.multiselect(
@@ -708,11 +708,11 @@ def execute_task_with_telemetry(
     # 1. Closed-Loop AST Agent & Ablation No-Triage
     if agent_type in ["CLOSED_LOOP_AST_AGENT", "ABLATION_NO_TRIAGE"]:
         is_flaw = (task.task_type == LifecycleTaskType.SYNTHETIC_FAULT_REPAIR)
-        bench_probs = getattr(task, "baseline_benchmark_problems", []) or []
+
 
         initial_state = {
             "requirements": task.natural_language_requirements,
-            "pddl_domain_blueprint": {},
+            "pddl_domain_representation": {},
             "initial_domain_pddl": task.initial_domain_pddl or "",
             "initial_problem_pddl": task.initial_problem_pddl or task.ground_truth_problem_pddl or "",
             "reference_domain_pddl": task.ground_truth_domain_pddl or "",
@@ -720,8 +720,8 @@ def execute_task_with_telemetry(
             "skip_elicitation": is_flaw,
             "generated_domain_pddl": task.initial_domain_pddl or "",
             "generated_problem_pddl": task.initial_problem_pddl or task.ground_truth_problem_pddl or "",
-            "baseline_benchmark_problems": bench_probs,
-            "benchmark_problem_distribution": bench_probs,
+
+
             "verification_errors": [],
             "diagnostic_reports": [],
             "formatted_diagnostic_feedback": "",
@@ -748,12 +748,12 @@ def execute_task_with_telemetry(
 
                 if status_box:
                     if node_name == "elicit":
-                        bp = node_update.get("pddl_domain_blueprint", {})
+                        bp = node_update.get("pddl_domain_representation", {})
                         n_acts = len(bp.get("actions", [])) if isinstance(bp, dict) else 0
-                        status_box.write(f"* **Phase 1 (Requirements Elicitation)**: Synthesized domain blueprint with {n_acts} action schema(s).")
+                        status_box.write(f"* **Phase 1 (Requirements Elicitation)**: Synthesized domain representation with {n_acts} action schema(s).")
                     elif node_name == "compile":
                         dom_p = node_update.get("generated_domain_pddl", "")
-                        status_box.write(f"* **Phase 2 (AST Compilation)**: Programmatically compiled AST blueprint into PDDL ({len(dom_p)} chars).")
+                        status_box.write(f"* **Phase 2 (AST Compilation)**: Programmatically compiled AST representation into PDDL ({len(dom_p)} chars).")
                     elif node_name == "validate":
                         ot = node_update.get("oracle_trace", {})
                         it = final_state.get("iteration_count", 0)
@@ -817,7 +817,7 @@ def execute_task_with_telemetry(
                 "target_actions": rf.get("target_actions", []),
                 "causal_context": rf.get("causal_context", ""),
                 "prompt": rf.get("repair_prompt", ""),
-                "model_target": "ast_blueprint"
+                "model_target": "ast_representation"
             })
 
         metrics = evaluate_candidate_pddl(
@@ -840,7 +840,7 @@ def execute_task_with_telemetry(
         print("\n" + "=" * 80, flush=True)
         print(f" [STREAMLIT TASK COMPLETED]: {task.task_id} | Agent: {agent_type}", flush=True)
         print(f" * End-to-End Success Gate   : {'PASS [OK]' if metrics.e2e_success else 'FAIL [X]'}", flush=True)
-        print(f" * SVR (Syntax Valid Rate)  : {metrics.svr_syntax_valid_rate >= 1.0}", flush=True)
+        print(f" * Syntax Valid (VAL)       : {metrics.is_syntax_valid}", flush=True)
         print(f" * Plan Solvable            : {metrics.is_solvable} (Plan Length: {metrics.plan_length or 'N/A'})", flush=True)
         print(f" * Executability (VAL D_gen): {metrics.executability_valid}", flush=True)
         print(f" * Feasibility (VAL D_gold) : {metrics.feasibility_valid}", flush=True)
@@ -857,7 +857,7 @@ def execute_task_with_telemetry(
             if metrics.e2e_success:
                 status_box.write("🎯 All formal criteria satisfied: Executable, Feasible, Interpretable!")
             else:
-                status_box.write(f"⚠️ SVR={metrics.svr_syntax_valid_rate >= 1.0} | Solvable={metrics.is_solvable} | Feasible={metrics.feasibility_valid}")
+                status_box.write(f"⚠️ Syntax Valid={metrics.is_syntax_valid} | Solvable={metrics.is_solvable} | Feasible={metrics.feasibility_valid}")
 
         return metrics, final_state, phase_events
 
@@ -907,7 +907,7 @@ def execute_task_with_telemetry(
         print("\n" + "=" * 80, flush=True)
         print(f" [STREAMLIT TASK COMPLETED]: {task.task_id} | Agent: {agent_type}", flush=True)
         print(f" * End-to-End Success Gate   : {'PASS [OK]' if metrics.e2e_success else 'FAIL [X]'}", flush=True)
-        print(f" * SVR (Syntax Valid Rate)  : {metrics.svr_syntax_valid_rate >= 1.0}", flush=True)
+        print(f" * Syntax Valid (VAL)       : {metrics.is_syntax_valid}", flush=True)
         print(f" * Plan Solvable            : {metrics.is_solvable}", flush=True)
         print(f" * Executability (VAL D_gen): {metrics.executability_valid}", flush=True)
         print(f" * Feasibility (VAL D_gold) : {metrics.feasibility_valid}", flush=True)
@@ -930,7 +930,7 @@ def execute_task_with_telemetry(
             "estimated_cost_usd": est_cost,
             "phase_events": phase_events,
             "oracle_trace": {
-                "val_ok": metrics.svr_syntax_valid_rate >= 1.0,
+                "val_ok": metrics.is_syntax_valid,
                 "fd_ok": metrics.is_solvable,
                 "executability_valid": metrics.executability_valid,
                 "feasibility_valid": metrics.feasibility_valid,
@@ -940,7 +940,7 @@ def execute_task_with_telemetry(
             },
             "generated_plan_result": {
                 "is_solvable": metrics.is_solvable,
-                "val_plan_valid": metrics.tpv_target_plan_valid,
+                "val_plan_valid": metrics.executability_valid,
                 "plan_length": metrics.plan_length,
                 "plan_steps": []
             }
@@ -956,8 +956,8 @@ def metrics_to_row_dict(m: EvaluationMetrics, task: Optional[BenchmarkTask] = No
         "Task Type": m.task_type,
         "Architecture": m.agent_type,
         "Status": "Verified [PASS]" if m.e2e_success else "Unverified [FAIL]",
-        "SVR": round(m.svr_syntax_valid_rate, 2),
-        "TPV": "PASS" if m.tpv_target_plan_valid else "FAIL",
+        "Syntax Valid": "PASS" if m.is_syntax_valid else "FAIL",
+
         "Executability": "Certified" if m.executability_valid else ("FAIL" if m.is_syntax_valid else "N/A"),
         "Feasibility": "PASS" if m.feasibility_valid else ("FAIL" if m.feasibility_valid is False else "N/A"),
         "Interpretability": "PASS" if m.interpretability_valid else ("FAIL" if m.interpretability_valid is False else "N/A"),
@@ -1125,9 +1125,9 @@ with tab_results:
         st.info("👈 **No benchmark runs executed yet in this session.** Select a task in the sidebar and click **'🚀 Run'** or execute **'🎓 Run 6 Core Domains'** to populate this table.")
         st.markdown("#### 📐 Supported Quantitative Metrics Reference")
         st.markdown("""
-        - **SVR (Syntax Validity Rate)**: VAL parse rate (100% iff domain and problem parse without syntax or typing errors).
-        - **TPV (Target Plan Validity)**: Plan validity certified by VAL on target task instance.
-        - **PTS / Executability**: Internal solvability certificate (`VAL(D_gen, P_gen, pi_gen) == SUCCESS`).
+        - **Syntax Valid**: VAL parse and type-checking pass rate (domain and problem parse without syntax or typing errors).
+        - **Solvability**: Fast Downward finds a valid plan on the target problem instance within the search budget.
+        - **Executability**: Internal solvability certificate (`VAL(D_gen, P_gen, pi_gen) == SUCCESS`).
         - **Feasibility (Forward Soundness)**: Physical soundness certificate on ground-truth domain (`VAL(D_gold, P_gold, pi_gen) == SUCCESS`).
         - **Interpretability (Inverse Completeness)**: Reference solvability preservation on generated domain (`VAL(D_gen, P_gold, pi_gold) == SUCCESS`).
         """)
@@ -1140,36 +1140,22 @@ with tab_results:
         numeric_iters = pd.to_numeric(df_results["Iterations (k)"], errors="coerce")
         avg_iters = numeric_iters.dropna().mean() if not numeric_iters.dropna().empty else 1.0
 
-        numeric_svr = pd.to_numeric(df_results["SVR"], errors="coerce")
-        mean_svr = numeric_svr.dropna().mean() * 100.0 if not numeric_svr.dropna().empty else 0.0
+        syntax_passes = len(df_results[df_results["Syntax Valid"] == "PASS"]) if "Syntax Valid" in df_results.columns else 0
+        mean_syntax = (syntax_passes / total_runs * 100.0) if total_runs > 0 else 0.0
 
-        tpv_passes = len(df_results[df_results["TPV"] == "PASS"])
-        tpv_rate = (tpv_passes / total_runs * 100.0) if total_runs > 0 else 0.0
+        exec_passes = len(df_results[df_results["Executability"] == "Certified"]) if "Executability" in df_results.columns else 0
+        exec_rate = (exec_passes / total_runs * 100.0) if total_runs > 0 else 0.0
 
-        st.markdown(f"""
-        <div class="kpi-container">
-            <div class="kpi-card">
-                <div class="kpi-title">Total Evaluated</div>
-                <div class="kpi-value">{total_runs} Runs</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Verified Pass Rate</div>
-                <div class="kpi-value">{pass_rate:.1f}%</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Mean SVR Rate</div>
-                <div class="kpi-value">{mean_svr:.1f}%</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Mean TPV Rate</div>
-                <div class="kpi-value">{tpv_rate:.1f}%</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Avg Iterations (k)</div>
-                <div class="kpi-value">{avg_iters:.2f}</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="kpi-container">'
+            f'<div class="kpi-card"><div class="kpi-title">Total Evaluated</div><div class="kpi-value">{total_runs} Runs</div></div>'
+            f'<div class="kpi-card"><div class="kpi-title">Verified Pass Rate</div><div class="kpi-value">{pass_rate:.1f}%</div></div>'
+            f'<div class="kpi-card"><div class="kpi-title">Syntax Valid Rate</div><div class="kpi-value">{mean_syntax:.1f}%</div></div>'
+            f'<div class="kpi-card"><div class="kpi-title">Executability Rate</div><div class="kpi-value">{exec_rate:.1f}%</div></div>'
+            f'<div class="kpi-card"><div class="kpi-title">Avg Iterations (k)</div><div class="kpi-value">{avg_iters:.2f}</div></div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
 
         st.markdown("#### 📋 Consolidated Empirical Results Table")
         st.dataframe(df_results, use_container_width=True)
@@ -1205,7 +1191,7 @@ with tab_pddl:
     if active_state:
         dom_pddl = active_state.get("generated_domain_pddl", "")
         prob_pddl = active_state.get("generated_problem_pddl", "")
-        domain_bp = active_state.get("pddl_domain_blueprint", {})
+        domain_bp = active_state.get("pddl_domain_representation", {})
         has_errors = bool(active_state.get("verification_errors", []))
         oracle_trace = active_state.get("oracle_trace", {})
 
@@ -1250,8 +1236,8 @@ with tab_pddl:
         st.markdown("#### `domain.pddl` (Generated / Repaired)")
         st.code(dom_pddl, language="lisp")
 
-        with st.expander("Domain Blueprint AST (JSON)", expanded=False):
-            st.json(domain_bp if domain_bp else {"info": "Blueprint empty or generated via direct text baseline."})
+        with st.expander("Domain Representation AST (JSON)", expanded=False):
+            st.json(domain_bp if domain_bp else {"info": "Representation empty or generated via direct text baseline."})
 
         # 3. GENERATED PROBLEM CODE
         st.markdown("#### `problem.pddl`")
@@ -1273,12 +1259,12 @@ with tab_pddl:
         if active_result:
             st.markdown("---")
             st.markdown("### 🏆 Comprehensive Evaluation Metrics Scorecard")
-            st.caption("Formal Tri-Criteria Semantic Verification and Structural F1 Alignment metrics calculated on the final model.")
+            st.caption("Formal Tri-Criteria Semantic Verification metrics calculated on the final model.")
 
             m = active_result
             col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
-            col_m1.metric("SVR (Syntax)", f"{m.svr_syntax_valid_rate * 100.0:.0f}%")
-            col_m2.metric("TPV (Plan Valid)", "PASS" if m.tpv_target_plan_valid else "FAIL")
+            col_m1.metric("Syntax Valid", "PASS" if m.is_syntax_valid else "FAIL")
+            col_m2.metric("Plan Solvable", "PASS" if m.is_solvable else "FAIL")
             col_m3.metric("Executability", "PASS" if m.executability_valid else ("FAIL" if m.is_syntax_valid else "N/A"))
             col_m4.metric("Feasibility", "PASS" if m.feasibility_valid else ("FAIL" if m.feasibility_valid is False else "N/A"))
             col_m5.metric("Interpretability", "PASS" if m.interpretability_valid else ("FAIL" if m.interpretability_valid is False else "N/A"))
@@ -1290,8 +1276,8 @@ with tab_pddl:
             col_cost.metric("Estimated Cost", f"${m.estimated_cost_usd:.5f}")
 
             metrics_table = [
-                {"Metric": "SVR (Syntax Validity Rate)", "Value": f"{m.svr_syntax_valid_rate * 100.0:.1f}%", "Formal Criterion": "VAL Syntax Check"},
-                {"Metric": "TPV (Target Plan Validity)", "Value": "PASS" if m.tpv_target_plan_valid else "FAIL", "Formal Criterion": "VAL Plan Validator"},
+                {"Metric": "Syntax Validity", "Value": "PASS" if m.is_syntax_valid else "FAIL", "Formal Criterion": "VAL Syntax Check"},
+                {"Metric": "Planner Solvability", "Value": "PASS" if m.is_solvable else "FAIL", "Formal Criterion": "Fast Downward Search"},
                 {"Metric": "Internal Solvability (Executability)", "Value": "PASS" if m.executability_valid else "FAIL", "Formal Criterion": "VAL(D_gen, P_gen, pi_gen)"},
                 {"Metric": "Forward Soundness (Feasibility)", "Value": "PASS" if m.feasibility_valid else ("FAIL" if m.feasibility_valid is False else "N/A"), "Formal Criterion": "VAL(D_gold, P_gold, pi_gen)"},
                 {"Metric": "Inverse Completeness (Interpretability)", "Value": "PASS" if m.interpretability_valid else ("FAIL" if m.interpretability_valid is False else "N/A"), "Formal Criterion": "VAL(D_gen, P_gold, pi_gold)"},
@@ -1444,7 +1430,7 @@ with tab_fault_loc:
         reports = active_state.get("historical_diagnostic_reports", []) or active_state.get("diagnostic_reports", [])
 
         from tools.causal_fault_analyzer import run_causal_fault_analysis
-        d_bp = active_state.get("pddl_domain_blueprint") or {}
+        d_bp = active_state.get("pddl_domain_representation") or {}
         p_pddl = active_state.get("initial_problem_pddl") or active_state.get("generated_problem_pddl") or ""
         causal_data = active_state.get("causal_graph_analysis")
         if not causal_data and d_bp and d_bp.get("actions"):

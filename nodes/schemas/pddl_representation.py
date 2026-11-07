@@ -7,7 +7,6 @@ class ErrorCategory(str, Enum):
     TYPE_SIGNATURE = "TYPE_SIGNATURE"
     GROUNDING_UNSOLVABILITY = "GROUNDING_UNSOLVABILITY"
     SYSTEM_ORACLE_ERROR = "SYSTEM_ORACLE_ERROR"
-    HISTORICAL_REGRESSION = "HISTORICAL_REGRESSION"
 
 class RepairOperationType(str, Enum):
     PRECONDITION_RELAXATION = "PRECONDITION_RELAXATION" # Remove over-constraining precondition when goal is unreachable
@@ -16,7 +15,6 @@ class RepairOperationType(str, Enum):
     EFFECT_ALIGNMENT = "EFFECT_ALIGNMENT"               # Add/delete missing state effects
     TYPE_ARITY_ALIGNMENT = "TYPE_ARITY_ALIGNMENT"       # Fix parameter type mismatch, type hierarchy, or predicate arity
     ACTION_ADDITION = "ACTION_ADDITION"                 # Synthesize missing enabling action to complete open causal chain (McAllester & Rosenblitt 1991)
-    REGRESSION_BACKWARD_COMPATIBILITY = "REGRESSION_BACKWARD_COMPATIBILITY" # Preserve historical problem solvability
     GENERAL_AST_REPAIR = "GENERAL_AST_REPAIR"           # Catch all for other domain AST repairs
 
 class DiagnosticReport(BaseModel):
@@ -38,8 +36,6 @@ class DiagnosticReport(BaseModel):
     suggested_repair_hint: str = Field(
         description="Actionable guidance detailing what structural modifications should be made to resolve the failure"
     )
-
-
 
 class PddlActionSchema(BaseModel):
     """Schema definition for individual PDDL actions."""
@@ -77,8 +73,8 @@ class DomainActionSemantics(BaseModel):
         description="List of synthesized preconditions and effects for each fixed action signature"
     )
 
-class DomainBlueprint(BaseModel):
-    """Relational Blueprint Schema."""
+class DomainRepresentation(BaseModel):
+    """Relational Representation Schema."""
     domain_name: str = Field(
         default="generated_domain", 
         description="Identifier for the domain, e.g., 'logistics_warehouse'"

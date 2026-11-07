@@ -93,7 +93,7 @@
 
   (:action pour-shaker-to-shot
     :parameters (?b - beverage ?d - shot ?h - hand ?s - shaker ?l - level ?l1 - level)
-    :precondition (and (holding ?h ?s) (shaked ?s) (empty ?d) (clean ?d) (contains ?s ?b) (shaker-level ?s ?l) (next ?l1 ?l))
+    :precondition (and (holding ?h ?s) (shaked ?s) (empty ?d) (clean ?d) (contains ?s ?b) (shaker-level ?s ?l) (next ?l ?l1))
     :effect (and (not (clean ?d)) (not (empty ?d)) (contains ?d ?b) (shaker-level ?s ?l1) (not (shaker-level ?s ?l)))
   )
 

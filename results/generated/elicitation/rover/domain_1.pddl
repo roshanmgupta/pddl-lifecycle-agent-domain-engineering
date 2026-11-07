@@ -1,5 +1,5 @@
 (define (domain Rover)
-  (:requirements :typing)
+  (:requirements :strips :typing)
 
   (:types
     camera lander mode objective rover store waypoint - object
@@ -72,19 +72,19 @@
   (:action communicate_soil_data
     :parameters (?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
     :precondition (and (at ?r ?x) (at_lander ?l ?y) (have_soil_analysis ?r ?p) (visible ?x ?y) (available ?r) (channel_free ?l))
-    :effect (and (channel_free ?l) (communicated_soil_data ?p) (available ?r))
+    :effect (and (communicated_soil_data ?p) (not (channel_free ?l)) (available ?r))
   )
 
   (:action communicate_rock_data
     :parameters (?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
     :precondition (and (at ?r ?x) (at_lander ?l ?y) (have_rock_analysis ?r ?p) (visible ?x ?y) (available ?r) (channel_free ?l))
-    :effect (and (channel_free ?l) (communicated_rock_data ?p) (available ?r))
+    :effect (and (communicated_rock_data ?p) (not (channel_free ?l)) (available ?r))
   )
 
   (:action communicate_image_data
     :parameters (?r - rover ?l - lander ?o - objective ?m - mode ?x - waypoint ?y - waypoint)
     :precondition (and (at ?r ?y) (at_lander ?l ?x) (have_image ?r ?o ?m) (visible ?y ?x) (available ?r) (channel_free ?l))
-    :effect (and (channel_free ?l) (communicated_image_data ?o ?m) (available ?r))
+    :effect (and (communicated_image_data ?o ?m) (not (channel_free ?l)) (available ?r))
   )
 
 )

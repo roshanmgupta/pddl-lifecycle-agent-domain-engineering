@@ -45,7 +45,7 @@
 
   (:action refill-shot
     :parameters (?s - shot ?i - ingredient ?h1 - hand ?h2 - hand ?d - dispenser)
-    :precondition (and (holding ?h1 ?s) (handempty ?h2) (dispenses ?d ?i) (used ?s ?i))
+    :precondition (and (holding ?h1 ?s) (handempty ?h2) (dispenses ?d ?i) (empty ?s) (used ?s ?i))
     :effect (and (contains ?s ?i) (not (empty ?s)))
   )
 
@@ -75,7 +75,7 @@
 
   (:action empty-shaker
     :parameters (?h - hand ?s - shaker ?b - cocktail ?l - level ?l1 - level)
-    :precondition (and (holding ?h ?s) (contains ?s ?b) (shaked ?s) (shaker-level ?s ?l))
+    :precondition (and (holding ?h ?s) (contains ?s ?b) (shaked ?s) (shaker-level ?s ?l) (shaker-empty-level ?s ?l1))
     :effect (and (shaker-level ?s ?l1) (empty ?s) (not (shaked ?s)) (not (shaker-level ?s ?l)) (not (contains ?s ?b)))
   )
 
@@ -87,14 +87,14 @@
 
   (:action shake
     :parameters (?b - cocktail ?d1 - ingredient ?d2 - ingredient ?s - shaker ?h1 - hand ?h2 - hand)
-    :precondition (and (holding ?h1 ?s) (handempty ?h2) (contains ?s ?d1) (contains ?s ?d2) (cocktail-part1 ?b ?d1) (cocktail-part2 ?b ?d2) (unshaked ?s))
-    :effect (and (shaked ?s) (contains ?s ?b) (not (unshaked ?s)) (not (contains ?s ?d1)) (not (contains ?s ?d2)))
+    :precondition (and (holding ?h1 ?s) (handempty ?h2) (contains ?s ?d1) (contains ?s ?d2) (cocktail-part1 ?b ?d1) (cocktail-part2 ?b ?d2))
+    :effect (and (shaked ?s) (contains ?s ?b) (not (contains ?s ?d1)) (not (contains ?s ?d2)))
   )
 
   (:action pour-shaker-to-shot
     :parameters (?b - beverage ?d - shot ?h - hand ?s - shaker ?l - level ?l1 - level)
     :precondition (and (holding ?h ?s) (shaked ?s) (empty ?d) (clean ?d) (contains ?s ?b) (shaker-level ?s ?l) (next ?l ?l1))
-    :effect (and (contains ?d ?b) (shaker-level ?s ?l1) (not (clean ?d)) (not (empty ?d)) (not (shaker-level ?s ?l)))
+    :effect (and (contains ?d ?b) (shaker-level ?s ?l1) (empty ?s) (not (clean ?d)) (not (empty ?d)) (not (shaker-level ?s ?l)))
   )
 
 )

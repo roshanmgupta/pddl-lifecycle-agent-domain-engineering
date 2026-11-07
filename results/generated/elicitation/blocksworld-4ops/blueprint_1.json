@@ -1,7 +1,7 @@
 {
   "domain_name": "blocksworld-4ops",
   "run_index": 1,
-  "domain_blueprint": {
+  "domain_representation": {
     "domain_name": "blocksworld-4ops",
     "requirements": [
       ":strips"

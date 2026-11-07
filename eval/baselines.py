@@ -3,7 +3,7 @@ import os
 import re
 import time
 from pathlib import Path
-from typing import Tuple, Dict, Any, Optional, Callable
+from typing import Tuple, Dict, Any, Optional, Callable, List
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -11,7 +11,6 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from benchmark.schema import BenchmarkTask, LifecycleTaskType
 from config.model_config import invoke_raw_llm_with_telemetry
-from tools.symbolic_oracles import run_val_validator, run_fast_downward_with_plan
 from config.paths import get_eval_output_dir
 
 
@@ -25,31 +24,32 @@ def _emit(on_event: Optional[Callable[[Dict[str, Any]], None]], **event: Any) ->
         print(f"[Baseline Trace Callback Warning]: {cb_err}")
 
 
-def _emit_oracle_check(on_event, iteration: int, is_valid: bool, val_log: str, fd_res: Optional[Dict[str, Any]]) -> None:
+def _emit_oracle_check(on_event, iteration: int, verif: Dict[str, Any]) -> None:
     """Emits a standardized VAL / Fast Downward oracle event."""
     _emit(
         on_event,
         phase="validate",
         iteration=iteration,
-        val_ok=bool(is_valid),
-        val_log=val_log,
-        fd_ran=fd_res is not None,
-        fd_ok=bool(fd_res.get("is_solvable")) if fd_res else None,
-        fd_timed_out=bool(fd_res.get("timed_out")) if fd_res else False,
-        fd_log=fd_res.get("raw_fd_log", "") if fd_res else "",
-        plan_steps=list(fd_res.get("plan_steps", [])) if fd_res else [],
-        executability_valid=fd_res.get("executability_valid") if fd_res else None,
+        val_ok=bool(verif.get("is_syntax_valid")),
+        val_log=verif.get("syntax_log", ""),
+        fd_ran=bool(verif.get("is_syntax_valid")),
+        fd_ok=bool(verif.get("is_solvable")) if verif.get("is_syntax_valid") else None,
+        fd_timed_out=bool(verif.get("planner_timeout", False)),
+        fd_log=verif.get("raw_fd_log", ""),
+        plan_steps=list(verif.get("plan_steps", [])),
+        executability_valid=verif.get("executability_valid"),
+        feasibility_valid=verif.get("feasibility_valid"),
+        interpretability_valid=verif.get("interpretability_valid"),
     )
+
 
 def extract_pddl_blocks(raw_text: str) -> Tuple[str, str]:
     """Extracts domain.pddl and problem.pddl code blocks from raw LLM output text."""
     domain_pddl = ""
     problem_pddl = ""
 
-    # Match (define (domain ...) ...) blocks
     domain_match = re.search(r'\(define\s*\(domain.*?\n\)', raw_text, re.DOTALL | re.IGNORECASE)
     if not domain_match:
-        # Fallback: extract code block tagged as pddl or lisp
         code_blocks = re.findall(r'```(?:pddl|lisp)?\s*(.*?)\s*```', raw_text, re.DOTALL | re.IGNORECASE)
         for block in code_blocks:
             if "(domain" in block.lower():
@@ -66,33 +66,47 @@ def extract_pddl_blocks(raw_text: str) -> Tuple[str, str]:
     return domain_pddl, problem_pddl
 
 
-def build_fixed_signature_prompt(task: BenchmarkTask) -> Optional[str]:
-    """Builds prompt giving reference types, predicates, and action signatures."""
+def _build_fixed_skeleton_block(task: BenchmarkTask) -> Optional[str]:
+    """Builds the ground-truth domain skeleton string (types, predicates, action signatures)."""
     gt_dom = getattr(task, "ground_truth_domain_pddl", "")
     if not gt_dom or not gt_dom.strip():
         return None
-    from nodes.pddl_to_ast_parser import parse_pddl_domain_to_blueprint
-    ref_bp = parse_pddl_domain_to_blueprint(gt_dom)
+    from nodes.pddl_to_ast_parser import parse_pddl_domain_to_representation
+    ref_bp = parse_pddl_domain_to_representation(gt_dom)
     action_headers = []
     for a in ref_bp.get("actions", []):
         param_str = " ".join([f"{var} - {t}" if t and t != "object" else var for var, t in a.get("parameters", {}).items()])
         action_headers.append(f"(:action {a['action_name']}\n    :parameters ({param_str})\n    :precondition ...\n    :effect ...\n  )")
-    
+
     actions_str = "\n  ".join(action_headers)
     reqs_str = " ".join(ref_bp.get("requirements", [":strips", ":typing"]))
     types_str = ""
     if ref_bp.get("types"):
         types_str = "\n  (:types " + " ".join([f"{k} - {v}" if v and v != "object" else k for k, v in ref_bp["types"].items()]) + ")"
+    consts_str = ""
+    if ref_bp.get("constants"):
+        consts_str = "\n  (:constants " + " ".join([f"{k} - {v}" if v and v != "object" else k for k, v in ref_bp["constants"].items()]) + ")"
     preds_str = "\n  (:predicates\n    " + "\n    ".join(ref_bp.get("predicates", [])) + "\n  )"
-    
+
+    return (
+        f"(define (domain {ref_bp.get('domain_name', 'domain')})\n"
+        f"  (:requirements {reqs_str}){types_str}{consts_str}{preds_str}\n"
+        f"  {actions_str}\n"
+        f")"
+    )
+
+
+def build_fixed_signature_prompt(task: BenchmarkTask) -> Optional[str]:
+    """Builds prompt giving reference types, predicates, and action signatures."""
+    skeleton = _build_fixed_skeleton_block(task)
+    if not skeleton:
+        return None
+
     prompt = f"""You are an automated PDDL domain model generator.
 Your task is to generate a complete, valid PDDL domain file by generating ONLY the :precondition and :effect expressions for the given actions.
 
 THE DOMAIN SKELETON IS FIXED TO MATCH THE GROUND TRUTH:
-(define (domain {ref_bp.get('domain_name', 'domain')})
-  (:requirements {reqs_str}){types_str}{preds_str}
-  {actions_str}
-)
+{skeleton}
 
 Domain Requirements:
 {task.natural_language_requirements}
@@ -106,11 +120,57 @@ Respond ONLY with the PDDL domain code block.
 """
     return prompt
 
+
+def _verify_baseline_candidate_across_problems(
+    task: BenchmarkTask,
+    domain_pddl: str,
+    eval_dir: str,
+    tag_prefix: str
+) -> Tuple[List[str], Dict[str, Any], str]:
+    """
+    Verifies a baseline candidate domain across all ground-truth problem instances
+    for Syntax, Solvability, Soundness, and Completeness.
+    Returns (errors, active_verif_dict, active_problem_pddl).
+    """
+    from nodes.validation import verify_pddl_candidate, _collect_verification_errors
+
+    gt_dom = getattr(task, "ground_truth_domain_pddl", None) or None
+    gt_problems: List[str] = list(getattr(task, "ground_truth_problems", None) or [])
+    gt_gold_plans: List[str] = list(getattr(task, "ground_truth_gold_plans", None) or [])
+    gt_prob_names: List[str] = list(getattr(task, "ground_truth_problem_names", None) or [])
+
+    fallback_prob = getattr(task, "ground_truth_problem_pddl", "") or getattr(task, "initial_problem_pddl", "") or ""
+    if not gt_problems and fallback_prob:
+        gt_problems = [fallback_prob]
+
+    last_verif: Dict[str, Any] = {}
+    active_prob = gt_problems[0] if gt_problems else fallback_prob
+
+    for idx, prob_str in enumerate(gt_problems):
+        gp_path = gt_gold_plans[idx] if idx < len(gt_gold_plans) and gt_gold_plans[idx] else None
+        p_label = gt_prob_names[idx] if (len(gt_problems) > 1 and idx < len(gt_prob_names)) else ""
+        verif = verify_pddl_candidate(
+            generated_domain_pddl=domain_pddl,
+            generated_problem_pddl=prob_str,
+            ground_truth_domain_pddl=gt_dom,
+            ground_truth_problem_pddl=prob_str,
+            ground_truth_plan_path=gp_path,
+            temp_dir=Path(eval_dir),
+            tag=f"{tag_prefix}_p{idx + 1}"
+        )
+        last_verif = verif
+        errors = _collect_verification_errors(verif, gt_dom, prob_label=p_label)
+        if errors:
+            return errors, verif, prob_str
+
+    return [], last_verif, active_prob
+
+
 def run_zero_shot_baseline(task: BenchmarkTask, on_event: Optional[Callable[[Dict[str, Any]], None]] = None) -> Dict[str, Any]:
     """
     Baseline 1: Zero-Shot Direct LLM Generation / Single-Pass Repair.
     Requests raw PDDL domain code (D_gen) directly from natural language prompt without Pydantic AST or validation loops,
-    holding the ground-truth problem instance (P_gold) fixed.
+    holding the ground-truth problem instance(s) fixed.
     Strictly NO fallback to ground truth domain.
     """
     if getattr(task, "initial_domain_pddl", None):
@@ -131,12 +191,10 @@ Format your output using a markdown code fence:
 Respond ONLY with the repaired PDDL domain code block.
 """
     else:
-        # Use fixed signatures when reference domain is available
         fixed_prompt = build_fixed_signature_prompt(task)
         if fixed_prompt:
             prompt = fixed_prompt
         else:
-            # Unconstrained zero-shot prompt
             prompt = f"""You are an automated PDDL domain model generator.
 Domain Requirements:
 {task.natural_language_requirements}
@@ -184,12 +242,12 @@ Respond ONLY with the PDDL domain code block.
         "raw_response": raw_response
     }
 
+
 def run_unstructured_retry_baseline(task: BenchmarkTask, max_retries: int = 5, on_event: Optional[Callable[[Dict[str, Any]], None]] = None) -> Dict[str, Any]:
     """
     Baseline 2: Direct LLM Generation + Raw Unstructured Error Feedback Retry.
-    Passes raw validator compiler logs directly back to the LLM without Pydantic AST,
-    model-based fault localization, or causal analysis, holding P_gold fixed and repairing only D_gen.
-    Strictly NO fallback to ground truth domain.
+    Passes raw validator and planner logs directly back to the LLM without Pydantic AST,
+    model-based fault localization, or causal analysis, holding ground-truth problem(s) fixed.
     """
     is_repair_task = bool(getattr(task, "initial_domain_pddl", None))
     last_domain = task.initial_domain_pddl if is_repair_task else ""
@@ -203,17 +261,13 @@ def run_unstructured_retry_baseline(task: BenchmarkTask, max_retries: int = 5, o
 
     eval_dir = str(get_eval_output_dir())
     os.makedirs(eval_dir, exist_ok=True)
-    dom_file = os.path.join(eval_dir, f"temp_baseline_unstructured_dom_{task.task_id}.pddl")
-    prob_file = os.path.join(eval_dir, f"temp_baseline_unstructured_prob_{task.task_id}.pddl")
+    fixed_skeleton = _build_fixed_skeleton_block(task)
 
-    # If domain formulation task with no starting domain, generate initial domain
     if not last_domain:
-        # Fixed signatures when reference domain is available
         fixed_p = build_fixed_signature_prompt(task)
         if fixed_p:
             base_prompt = fixed_p
         else:
-            # Unconstrained base prompt
             base_prompt = f"""You are an automated PDDL domain model generator.
 Domain Requirements:
 {task.natural_language_requirements}
@@ -251,57 +305,51 @@ Respond ONLY with the PDDL domain code block.
                 "error": str(e)
             }
 
+    fixed_sig_clause = ""
+    if fixed_skeleton:
+        fixed_sig_clause = (
+            f"\nFIXED DOMAIN SKELETON (preserve exact domain name, requirements, types, predicates, and action headers; "
+            f"modify ONLY :precondition and :effect expressions):\n{fixed_skeleton}\n"
+        )
+
     repair_attempts = 0
     for iteration in range(1, max_retries + 1):
         if not last_domain:
             break
 
-        with open(dom_file, "w", encoding="utf-8") as f:
-            f.write(last_domain)
-        with open(prob_file, "w", encoding="utf-8") as f:
-            f.write(last_problem)
+        errors, verif, active_prob = _verify_baseline_candidate_across_problems(
+            task=task,
+            domain_pddl=last_domain,
+            eval_dir=eval_dir,
+            tag_prefix=f"unstructured_{task.task_id}_it{iteration}"
+        )
+        _emit_oracle_check(on_event, iteration=iteration, verif=verif)
 
-        is_valid, val_log = run_val_validator(dom_file, prob_file)
-        fd_res = None
-        if is_valid:
-            # Check solvability
-            fd_res = run_fast_downward_with_plan(dom_file, prob_file)
-            _emit_oracle_check(on_event, iteration=iteration, is_valid=is_valid, val_log=val_log, fd_res=fd_res)
-            if fd_res["is_solvable"]:
-                return {
-                    "generated_domain_pddl": last_domain,
-                    "generated_problem_pddl": last_problem,
-                    "iterations_used": max(1, repair_attempts),
-                    "prompt_tokens": cumulative_prompt_tokens,
-                    "completion_tokens": cumulative_completion_tokens,
-                    "total_tokens": cumulative_tokens,
-                    "estimated_cost_usd": cumulative_cost,
-                    "validation_passed": True,
-                    "is_solvable": True,
-                    "val_plan_valid": fd_res.get("val_plan_valid", False),
-                    "error_history": error_history,
-                    "raw_response": last_raw_response
-                }
-
-            # If syntax valid but unsolvable, pass raw Fast Downward output
-            raw_error = fd_res.get("raw_fd_log", "Fast Downward found no plan.")
-        else:
-            _emit_oracle_check(on_event, iteration=iteration, is_valid=is_valid, val_log=val_log, fd_res=None)
-            raw_error = val_log
+        if not errors:
+            return {
+                "generated_domain_pddl": last_domain,
+                "generated_problem_pddl": last_problem,
+                "iterations_used": max(1, repair_attempts),
+                "prompt_tokens": cumulative_prompt_tokens,
+                "completion_tokens": cumulative_completion_tokens,
+                "total_tokens": cumulative_tokens,
+                "estimated_cost_usd": cumulative_cost,
+                "validation_passed": True,
+                "is_solvable": True,
+                "val_plan_valid": verif.get("executability_valid", False),
+                "error_history": error_history,
+                "raw_response": last_raw_response
+            }
 
         repair_attempts += 1
-
-        # Feed raw unparsed error string directly back into prompt
+        raw_error = "\n\n".join(errors)
         clean_err = raw_error.encode("ascii", "ignore").decode("ascii")[:1500]
-        # print("\n" + "=" * 75)
-        # print(f"[UNSTRUCTURED_RETRY Iteration {iteration}]: Raw Oracle Feedback Received:")
-        # print(clean_err.strip()[:1500])
-        # print("=" * 75 + "\n", flush=True)
         error_history.append(f"[Iter {iteration} Raw Oracle Error]: {re.sub(r'\\s+', ' ', clean_err).strip()[:400]}")
+
         retry_prompt = f"""You are an automated PDDL domain debugger and repair system.
 Domain Requirements:
 {task.natural_language_requirements}
-
+{fixed_sig_clause}
 CURRENT FLAWED DOMAIN PDDL:
 ```pddl
 {last_domain.strip()}
@@ -365,7 +413,7 @@ Respond ONLY with the PDDL domain code block.
 
 
 def run_no_ast_ablation(task: BenchmarkTask, max_retries: int = 5, on_event: Optional[Callable[[Dict[str, Any]], None]] = None) -> Dict[str, Any]:
-    """Ablation 1: Direct PDDL text repair with fault localization."""
+    """Ablation 1: Direct PDDL text generation and repair with layered fault localization."""
     from nodes.fault_localization import FaultLocalizationNode
 
     base_prompt = f"""You are an automated PDDL domain model generator.
@@ -391,10 +439,8 @@ Respond ONLY with the PDDL domain code block.
 
     eval_dir = str(get_eval_output_dir())
     os.makedirs(eval_dir, exist_ok=True)
-    dom_file = os.path.join(eval_dir, f"temp_ablation_no_ast_dom_{task.task_id}.pddl")
-    prob_file = os.path.join(eval_dir, f"temp_ablation_no_ast_prob_{task.task_id}.pddl")
+    fixed_skeleton = _build_fixed_skeleton_block(task)
 
-    # Initial generation if no starting domain provided
     if not last_domain:
         initial_gen_prompt = build_fixed_signature_prompt(task) or base_prompt
         try:
@@ -423,71 +469,74 @@ Respond ONLY with the PDDL domain code block.
                 "error": str(e)
             }
 
+    fixed_sig_clause = ""
+    if fixed_skeleton:
+        fixed_sig_clause = (
+            f"\nFIXED DOMAIN SKELETON (preserve exact domain name, requirements, types, predicates, and action headers; "
+            f"modify ONLY :precondition and :effect expressions):\n{fixed_skeleton}\n"
+        )
+
     repair_attempts = 0
     for iteration in range(1, max_retries + 1):
         if not last_domain:
             break
 
-        with open(dom_file, "w", encoding="utf-8") as f:
-            f.write(last_domain)
-        with open(prob_file, "w", encoding="utf-8") as f:
-            f.write(last_problem)
+        errors, verif, active_prob = _verify_baseline_candidate_across_problems(
+            task=task,
+            domain_pddl=last_domain,
+            eval_dir=eval_dir,
+            tag_prefix=f"no_ast_{task.task_id}_it{iteration}"
+        )
+        _emit_oracle_check(on_event, iteration=iteration, verif=verif)
 
-        is_valid, val_log = run_val_validator(dom_file, prob_file)
-        fd_res = None
-        if is_valid:
-            fd_res = run_fast_downward_with_plan(dom_file, prob_file)
-            _emit_oracle_check(on_event, iteration=iteration, is_valid=is_valid, val_log=val_log, fd_res=fd_res)
-            if fd_res["is_solvable"]:
-                return {
-                    "generated_domain_pddl": last_domain,
-                    "generated_problem_pddl": last_problem,
-                    "iterations_used": max(1, repair_attempts),
-                    "prompt_tokens": cumulative_prompt_tokens,
-                    "completion_tokens": cumulative_completion_tokens,
-                    "total_tokens": cumulative_tokens,
-                    "estimated_cost_usd": cumulative_cost,
-                    "validation_passed": True,
-                    "is_solvable": True,
-                    "val_plan_valid": fd_res.get("val_plan_valid", False),
-                    "diagnostic_reports": diagnostic_reports,
-                    "error_history": error_history,
-                    "raw_response": last_raw_response
-                }
-            raw_error = fd_res.get("raw_fd_log", "Planner Error: Fast Downward found no plan.")
-        else:
-            _emit_oracle_check(on_event, iteration=iteration, is_valid=is_valid, val_log=val_log, fd_res=None)
-            raw_error = "VAL Error: " + val_log
+        if not errors:
+            return {
+                "generated_domain_pddl": last_domain,
+                "generated_problem_pddl": last_problem,
+                "iterations_used": max(1, repair_attempts),
+                "prompt_tokens": cumulative_prompt_tokens,
+                "completion_tokens": cumulative_completion_tokens,
+                "total_tokens": cumulative_tokens,
+                "estimated_cost_usd": cumulative_cost,
+                "validation_passed": True,
+                "is_solvable": True,
+                "val_plan_valid": verif.get("executability_valid", False),
+                "diagnostic_reports": diagnostic_reports,
+                "error_history": error_history,
+                "raw_response": last_raw_response
+            }
 
         repair_attempts += 1
 
-        # Run fault localization on raw error
         fault_loc_state = {
             "requirements": task.natural_language_requirements,
             "generated_domain_pddl": last_domain,
-            "initial_problem_pddl": last_problem,
-            "verification_errors": [raw_error],
+            "initial_problem_pddl": active_prob,
+            "verification_errors": errors,
             "skip_fault_localization": False,
-            "pddl_domain_blueprint": {}
+            "pddl_domain_representation": {}
         }
         try:
             t_res = FaultLocalizationNode(fault_loc_state)
-            diag_feedback = t_res.get("formatted_diagnostic_feedback", raw_error)
+            diag_feedback = t_res.get("formatted_diagnostic_feedback", "\n".join(errors))
             diagnostic_reports = t_res.get("diagnostic_reports", [])
-        except Exception as te:
-            diag_feedback = f"Verification Error:\n{raw_error}"
+            cumulative_prompt_tokens += t_res.get("total_prompt_tokens", 0)
+            cumulative_completion_tokens += t_res.get("total_completion_tokens", 0)
+            cumulative_tokens += t_res.get("total_tokens", 0)
+            cumulative_cost += t_res.get("estimated_cost_usd", 0.0)
+        except Exception:
+            diag_feedback = "Verification Error:\n" + "\n".join(errors)
             diagnostic_reports = []
 
         error_history.append(f"[Iter {iteration} Fault Localization Feedback]: {diag_feedback[:300]}")
 
-        # Construct repair prompt targeting PDDL code output
         repair_prompt = f"""You are an expert PDDL Knowledge Engineer specializing in formal domain model repair.
 Your task is to repair the existing PDDL Domain (D_gen) to resolve the diagnostic errors reported by symbolic oracles.
 You must ONLY repair and output the PDDL domain definition.
 
 Domain Requirements:
 {task.natural_language_requirements}
-
+{fixed_sig_clause}
 CURRENT RAW PDDL DOMAIN CODE (TO REPAIR):
 ```pddl
 {last_domain}
@@ -543,288 +592,5 @@ Produce ONLY the updated valid PDDL domain file (define (domain ...) ...) enclos
         "is_solvable": False,
         "diagnostic_reports": diagnostic_reports,
         "error_history": error_history,
-        "raw_response": last_raw_response
-    }
-
-
-def run_unstructured_retry_evolution(task: BenchmarkTask, max_retries: int = 5) -> Dict[str, Any]:
-    """
-    Baseline 2 (Evolution): Unstructured Iterative Retry.
-    Evolves an existing baseline domain by prompting for raw PDDL text,
-    and re-prompting with raw unparsed compiler/solver error logs without structured AST or triage.
-    """
-    base_domain = getattr(task, "initial_domain_pddl", "")
-    target_problem = getattr(task, "evolution_target_problem_pddl", "") or getattr(task, "initial_problem_pddl", "")
-    cumulative_prompt_tokens = 0
-    cumulative_completion_tokens = 0
-    cumulative_tokens = 0
-    cumulative_cost = 0.0
-    last_raw_response = ""
-    error_history = []
-
-    eval_dir = str(get_eval_output_dir())
-    os.makedirs(eval_dir, exist_ok=True)
-    dom_file = os.path.join(eval_dir, f"temp_unstructured_retry_evo_dom_{task.task_id}.pddl")
-    prob_file = os.path.join(eval_dir, f"temp_unstructured_retry_evo_prob_{task.task_id}.pddl")
-
-    # Initial evolution prompt (raw PDDL text)
-    init_prompt = f"""You are an automated PDDL domain modeling and evolution system.
-Your task is to evolve the following baseline classical PDDL 2.1 domain to satisfy the new capability extension requirements.
-
-BASELINE DOMAIN PDDL:
-```pddl
-{base_domain.strip()}
-```
-
-CAPABILITY EXTENSION REQUIREMENTS:
-{task.natural_language_requirements}
-
-CONSERVATIVE EXTENSION MANDATE:
-Retain all baseline predicates and actions from the baseline domain while adding the new actions and predicates needed for the new capability.
-Respond ONLY with the complete evolved PDDL domain definition enclosed in a markdown code block:
-```pddl
-(define (domain ...) ...)
-```
-"""
-    try:
-        raw_response, telemetry = invoke_raw_llm_with_telemetry(init_prompt)
-        cumulative_prompt_tokens += telemetry.get("prompt_tokens", 0)
-        cumulative_completion_tokens += telemetry.get("completion_tokens", 0)
-        cumulative_tokens += telemetry.get("total_tokens", 0)
-        cumulative_cost += telemetry.get("estimated_cost_usd", 0.0)
-        last_raw_response = raw_response
-        d_pddl, _ = extract_pddl_blocks(raw_response)
-        if not d_pddl and "(define (domain" in raw_response.lower():
-            d_pddl = raw_response
-        last_domain = d_pddl
-    except Exception as e:
-        print(f"[UNSTRUCTURED_RETRY Evolution Error]: Initial LLM call failed: {e}")
-        return {
-            "generated_domain_pddl": "",
-            "iterations_used": 1,
-            "prompt_tokens": 0,
-            "completion_tokens": 0,
-            "total_tokens": 0,
-            "estimated_cost_usd": 0.0,
-            "error": str(e)
-        }
-
-    for iteration in range(1, max_retries + 1):
-        if not last_domain:
-            break
-
-        with open(dom_file, "w", encoding="utf-8") as f:
-            f.write(last_domain)
-        with open(prob_file, "w", encoding="utf-8") as f:
-            f.write(target_problem)
-
-        is_valid, val_log = run_val_validator(dom_file, prob_file)
-        if is_valid:
-            fd_res = run_fast_downward_with_plan(dom_file, prob_file)
-            if fd_res["is_solvable"]:
-                return {
-                    "generated_domain_pddl": last_domain,
-                    "iterations_used": iteration,
-                    "prompt_tokens": cumulative_prompt_tokens,
-                    "completion_tokens": cumulative_completion_tokens,
-                    "total_tokens": cumulative_tokens,
-                    "estimated_cost_usd": cumulative_cost,
-                    "validation_passed": True,
-                    "is_solvable": True,
-                    "raw_response": last_raw_response
-                }
-            raw_error = fd_res.get("raw_fd_log", "Fast Downward found no plan for target problem.")
-        else:
-            raw_error = val_log
-
-        clean_err = raw_error.encode("ascii", "ignore").decode("ascii")[:1500]
-        retry_prompt = f"""You are an automated PDDL domain evolution system.
-Your evolved PDDL domain failed validation on the capability target problem with the following raw compiler/planner error:
-
-RAW ORACLE ERROR:
-{clean_err}
-
-CURRENT EVOLVED DOMAIN PDDL:
-```pddl
-{last_domain.strip()}
-```
-
-Please revise the PDDL domain to resolve this error while preserving all baseline capabilities and satisfying the requirements:
-{task.natural_language_requirements}
-
-Respond ONLY with the complete revised PDDL domain code block:
-```pddl
-(define (domain ...) ...)
-```
-"""
-        try:
-            raw_response, telemetry = invoke_raw_llm_with_telemetry(retry_prompt)
-            cumulative_prompt_tokens += telemetry.get("prompt_tokens", 0)
-            cumulative_completion_tokens += telemetry.get("completion_tokens", 0)
-            cumulative_tokens += telemetry.get("total_tokens", 0)
-            cumulative_cost += telemetry.get("estimated_cost_usd", 0.0)
-            last_raw_response = raw_response
-            d_pddl, _ = extract_pddl_blocks(raw_response)
-            if d_pddl:
-                last_domain = d_pddl
-        except Exception as e:
-            print(f"[UNSTRUCTURED_RETRY Evolution Error]: Retry failed on iter {iteration}: {e}")
-            break
-
-    return {
-        "generated_domain_pddl": last_domain,
-        "iterations_used": max_retries,
-        "prompt_tokens": cumulative_prompt_tokens,
-        "completion_tokens": cumulative_completion_tokens,
-        "total_tokens": cumulative_tokens,
-        "estimated_cost_usd": cumulative_cost,
-        "validation_passed": False,
-        "is_solvable": False,
-        "raw_response": last_raw_response
-    }
-
-
-def run_no_ast_evolution(task: BenchmarkTask, max_retries: int = 5) -> Dict[str, Any]:
-    """
-    Ablation 1 (Evolution): No-AST / Direct Text Repair.
-    Evolves domain via direct PDDL text manipulation with Layered Model-Based Fault Localization feedback,
-    isolating the impact of the Pydantic AST schema and compiler.
-    """
-    from nodes.fault_localization import FaultLocalizationNode
-    base_domain = getattr(task, "initial_domain_pddl", "")
-    target_problem = getattr(task, "evolution_target_problem_pddl", "") or getattr(task, "initial_problem_pddl", "")
-    cumulative_prompt_tokens = 0
-    cumulative_completion_tokens = 0
-    cumulative_tokens = 0
-    cumulative_cost = 0.0
-    last_raw_response = ""
-
-    eval_dir = str(get_eval_output_dir())
-    os.makedirs(eval_dir, exist_ok=True)
-    dom_file = os.path.join(eval_dir, f"temp_no_ast_evo_dom_{task.task_id}.pddl")
-    prob_file = os.path.join(eval_dir, f"temp_no_ast_evo_prob_{task.task_id}.pddl")
-
-    # Initial evolution prompt (raw text)
-    init_prompt = f"""You are an expert PDDL Knowledge Engineer.
-Evolve the following baseline classical PDDL 2.1 domain to support the new capability requirements.
-
-BASELINE DOMAIN PDDL:
-```pddl
-{base_domain.strip()}
-```
-
-REQUIREMENTS:
-{task.natural_language_requirements}
-
-Retain all baseline predicates and actions. Respond ONLY with the complete evolved PDDL domain in a markdown code block:
-```pddl
-(define (domain ...) ...)
-```
-"""
-    try:
-        raw_response, telemetry = invoke_raw_llm_with_telemetry(init_prompt)
-        cumulative_prompt_tokens += telemetry.get("prompt_tokens", 0)
-        cumulative_completion_tokens += telemetry.get("completion_tokens", 0)
-        cumulative_tokens += telemetry.get("total_tokens", 0)
-        cumulative_cost += telemetry.get("estimated_cost_usd", 0.0)
-        last_raw_response = raw_response
-        d_pddl, _ = extract_pddl_blocks(raw_response)
-        if not d_pddl and "(define (domain" in raw_response.lower():
-            d_pddl = raw_response
-        last_domain = d_pddl
-    except Exception as e:
-        print(f"[ABLATION_NO_AST Evolution Error]: Initial LLM call failed: {e}")
-        return {
-            "generated_domain_pddl": "",
-            "iterations_used": 1,
-            "prompt_tokens": 0,
-            "completion_tokens": 0,
-            "total_tokens": 0,
-            "estimated_cost_usd": 0.0,
-            "error": str(e)
-        }
-
-    for iteration in range(1, max_retries + 1):
-        if not last_domain:
-            break
-
-        with open(dom_file, "w", encoding="utf-8") as f:
-            f.write(last_domain)
-        with open(prob_file, "w", encoding="utf-8") as f:
-            f.write(target_problem)
-
-        is_valid, val_log = run_val_validator(dom_file, prob_file)
-        if is_valid:
-            fd_res = run_fast_downward_with_plan(dom_file, prob_file)
-            if fd_res["is_solvable"]:
-                return {
-                    "generated_domain_pddl": last_domain,
-                    "iterations_used": iteration,
-                    "prompt_tokens": cumulative_prompt_tokens,
-                    "completion_tokens": cumulative_completion_tokens,
-                    "total_tokens": cumulative_tokens,
-                    "estimated_cost_usd": cumulative_cost,
-                    "validation_passed": True,
-                    "is_solvable": True,
-                    "raw_response": last_raw_response
-                }
-            raw_error = fd_res.get("raw_fd_log", "Fast Downward found no plan for target problem.")
-        else:
-            raw_error = val_log
-
-        # Run fault localization
-        fault_loc_state = {
-            "requirements": task.natural_language_requirements,
-            "generated_domain_pddl": last_domain,
-            "initial_problem_pddl": target_problem,
-            "verification_errors": [raw_error],
-            "skip_fault_localization": False,
-            "pddl_domain_blueprint": {}
-        }
-        try:
-            t_res = FaultLocalizationNode(fault_loc_state)
-            diag_feedback = t_res.get("formatted_diagnostic_feedback", raw_error)
-        except Exception:
-            diag_feedback = f"Verification Error:\n{raw_error}"
-
-        repair_prompt = f"""You are an expert PDDL Knowledge Engineer specializing in formal domain model evolution and repair.
-Your evolved PDDL domain failed validation. Use the following structured diagnostic feedback to surgically repair the raw PDDL domain code.
-
-CURRENT RAW PDDL DOMAIN CODE:
-```pddl
-{last_domain.strip()}
-```
-
-LAYERED MODEL-BASED FAULT LOCALIZATION FEEDBACK:
-{diag_feedback}
-
-CAPABILITY REQUIREMENTS:
-{task.natural_language_requirements}
-
-Produce ONLY the updated valid PDDL domain file in a ```pddl ... ``` code block.
-"""
-        try:
-            raw_response, telemetry = invoke_raw_llm_with_telemetry(repair_prompt)
-            cumulative_prompt_tokens += telemetry.get("prompt_tokens", 0)
-            cumulative_completion_tokens += telemetry.get("completion_tokens", 0)
-            cumulative_tokens += telemetry.get("total_tokens", 0)
-            cumulative_cost += telemetry.get("estimated_cost_usd", 0.0)
-            last_raw_response = raw_response
-            d_pddl, _ = extract_pddl_blocks(raw_response)
-            if d_pddl:
-                last_domain = d_pddl
-        except Exception as e:
-            print(f"[ABLATION_NO_AST Evolution Error]: Repair failed on iter {iteration}: {e}")
-            break
-
-    return {
-        "generated_domain_pddl": last_domain,
-        "iterations_used": max_retries,
-        "prompt_tokens": cumulative_prompt_tokens,
-        "completion_tokens": cumulative_completion_tokens,
-        "total_tokens": cumulative_tokens,
-        "estimated_cost_usd": cumulative_cost,
-        "validation_passed": False,
-        "is_solvable": False,
         "raw_response": last_raw_response
     }

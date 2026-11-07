@@ -76,38 +76,38 @@
 
   (:action cut-board-small
     :parameters (?b - board ?p - part ?m - highspeed-saw ?w - awood ?surface - surface ?size_before - aboardsize ?size_after - aboardsize)
-    :precondition (and (unused ?p) (goalsize ?p small) (in-highspeed-saw ?b ?m) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?size_before ?size_after))
-    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (boardsize ?b ?size_before)) (not (unused ?p)))
+    :precondition (and (unused ?p) (goalsize ?p small) (in-highspeed-saw ?b ?m) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?size_after ?size_before))
+    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (unused ?p)))
   )
 
   (:action cut-board-medium
     :parameters (?b - board ?p - part ?m - highspeed-saw ?w - awood ?surface - surface ?size_before - aboardsize ?s1 - aboardsize ?size_after - aboardsize)
-    :precondition (and (unused ?p) (goalsize ?p medium) (in-highspeed-saw ?b ?m) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?s1 ?size_after) (boardsize-successor ?size_before ?s1))
-    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (boardsize ?b ?size_before)) (not (unused ?p)) (colour ?p mauve) (colour ?p green))
+    :precondition (and (unused ?p) (goalsize ?p medium) (in-highspeed-saw ?b ?m) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?s1 ?size_before) (boardsize-successor ?size_after ?s1))
+    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (unused ?p)))
   )
 
   (:action cut-board-large
     :parameters (?b - board ?p - part ?m - highspeed-saw ?w - awood ?surface - surface ?size_before - aboardsize ?s1 - aboardsize ?s2 - aboardsize ?size_after - aboardsize)
-    :precondition (and (unused ?p) (goalsize ?p large) (in-highspeed-saw ?b ?m) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?s2 ?size_after) (boardsize-successor ?s1 ?s2) (boardsize-successor ?size_before ?s1))
-    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (boardsize ?b ?size_before)) (not (unused ?p)))
+    :precondition (and (unused ?p) (goalsize ?p large) (in-highspeed-saw ?b ?m) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?s1 ?size_before) (boardsize-successor ?s2 ?s1) (boardsize-successor ?size_after ?s2))
+    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (unused ?p)))
   )
 
   (:action do-saw-small
     :parameters (?b - board ?p - part ?m - saw ?w - awood ?surface - surface ?size_before - aboardsize ?size_after - aboardsize)
-    :precondition (and (unused ?p) (goalsize ?p small) (available ?b) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?size_before ?size_after))
-    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (boardsize ?b ?size_before)) (not (unused ?p)))
+    :precondition (and (unused ?p) (goalsize ?p small) (available ?b) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?size_after ?size_before))
+    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (unused ?p)))
   )
 
   (:action do-saw-medium
     :parameters (?b - board ?p - part ?m - saw ?w - awood ?surface - surface ?size_before - aboardsize ?s1 - aboardsize ?size_after - aboardsize)
-    :precondition (and (unused ?p) (goalsize ?p medium) (available ?b) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?s1 ?size_after) (boardsize-successor ?size_before ?s1))
-    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (boardsize ?b ?size_before)) (not (unused ?p)))
+    :precondition (and (unused ?p) (goalsize ?p medium) (available ?b) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?s1 ?size_before) (boardsize-successor ?size_after ?s1))
+    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (unused ?p)))
   )
 
   (:action do-saw-large
     :parameters (?b - board ?p - part ?m - saw ?w - awood ?surface - surface ?size_before - aboardsize ?s1 - aboardsize ?s2 - aboardsize ?size_after - aboardsize)
-    :precondition (and (unused ?p) (goalsize ?p large) (available ?b) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?s2 ?size_after) (boardsize-successor ?s1 ?s2) (boardsize-successor ?size_before ?s1))
-    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (boardsize ?b ?size_before)) (not (unused ?p)))
+    :precondition (and (unused ?p) (goalsize ?p large) (available ?b) (wood ?b ?w) (surface-condition ?b ?surface) (boardsize ?b ?size_before) (boardsize-successor ?s1 ?size_before) (boardsize-successor ?s2 ?s1) (boardsize-successor ?size_after ?s2))
+    :effect (and (available ?p) (wood ?p ?w) (surface-condition ?p ?surface) (colour ?p natural) (treatment ?p untreated) (boardsize ?b ?size_after) (not (unused ?p)))
   )
 
 )

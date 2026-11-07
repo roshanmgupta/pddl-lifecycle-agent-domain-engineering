@@ -18,6 +18,7 @@ from typing import Tuple, Dict, Any, Optional, List
 # ---------------------------------------------------------------------------
 import shutil
 from dotenv import load_dotenv
+from tools.pddl_utils import extract_action_bodies, extract_action_arities
 
 load_dotenv()
 
@@ -143,9 +144,9 @@ def run_val_validator(domain_path: str, problem_path: str = None) -> Tuple[bool,
                 clean_out = f"VAL Parser Crash (exit code {result.returncode}): Syntax violation detected. Check for undeclared variables or inline type annotations in action expressions."
             return False, clean_out
 
-    except FileNotFoundError:
+    except (FileNotFoundError, OSError) as e:
         return False, (
-            f"VAL Error: Failed to execute VAL binary at '{val_exe}'. "
+            f"VAL Error: Failed to execute VAL binary at '{val_exe}': {e}. "
             "Verify 'VAL_PATH' in your .env file."
         )
     except subprocess.TimeoutExpired:
@@ -230,6 +231,36 @@ def validate_plan_with_val(domain_path: str, problem_path: str, plan_path: str =
         return False, f"VAL Plan Validation Error: {e}"
 
 
+def translate_plan_to_ground_truth(
+    plan_steps: List[str],
+    gt_domain_pddl: str,
+    generated_domain_pddl: str
+) -> List[str]:
+    """
+    Translates a synthesized plan into ground-truth domain vocabulary.
+    Preserves exact parameter argument sequence without heuristic permutation.
+    """
+    if not plan_steps or not gt_domain_pddl or not generated_domain_pddl:
+        return plan_steps
+
+    gt_bodies = extract_action_bodies(gt_domain_pddl)
+    gt_names_lower = {k.lower(): k for k in gt_bodies.keys()}
+
+    translated_steps = []
+    for step in plan_steps:
+        m = re.search(r"\(\s*([a-zA-Z0-9_\-]+)\s*(.*?)\)", step)
+        if m:
+            act_name = m.group(1)
+            raw_args = m.group(2).strip()
+            act_lower = act_name.lower()
+            canonical_act = gt_names_lower.get(act_lower, act_name)
+            args_str = f" {raw_args}" if raw_args else ""
+            translated_steps.append(f"({canonical_act}{args_str})")
+        else:
+            translated_steps.append(step)
+    return translated_steps
+
+
 def validate_plan_semantic_soundness(
     ground_truth_domain_path: str, 
     problem_path: str, 
@@ -251,17 +282,10 @@ def validate_plan_semantic_soundness(
             with open(plan_path, "r", encoding="utf-8", errors="ignore") as f:
                 raw_lines = [l.strip() for l in f.readlines() if l.strip() and not l.strip().startswith(";")]
 
-            from eval.action_reconstruction import translate_plan_to_ground_truth, extract_action_bodies
             translated_steps = translate_plan_to_ground_truth(raw_lines, gt_dom, gen_dom)
 
             # Universal Grounding Arity Check: Verify mapped steps match D_gt parameter counts
-            gt_bodies = extract_action_bodies(gt_dom)
-            gt_arities = {}
-            for gname, gbody in gt_bodies.items():
-                pm = re.search(r":parameters\s*\((.*?)\)", gbody, re.DOTALL | re.IGNORECASE)
-                if pm:
-                    pvars = [t for t in pm.group(1).split() if t.startswith("?")]
-                    gt_arities[gname.lower()] = len(pvars)
+            gt_arities = extract_action_arities(gt_dom)
 
             for stp in translated_steps:
                 m_stp = re.search(r"\(\s*([a-zA-Z0-9_\-]+)\s*(.*?)\)", stp)
@@ -294,16 +318,6 @@ def validate_plan_semantic_soundness(
             pass
 
     return validate_plan_with_val(ground_truth_domain_path, problem_path, plan_path)
-
-
-
-def validate_domain_coverage_admissibility(generated_domain_path: str, problem_path: str, ground_truth_plan_path: str) -> Tuple[bool, str]:
-    """
-    Validates whether the known human ground-truth plan (pi_gt) executes cleanly on
-    the generated domain (D_gen).
-    Verifies that the generated domain is not over-constrained or blocking valid classical trajectories.
-    """
-    return validate_plan_with_val(generated_domain_path, problem_path, ground_truth_plan_path)
 
 
 def run_fast_downward_with_plan(

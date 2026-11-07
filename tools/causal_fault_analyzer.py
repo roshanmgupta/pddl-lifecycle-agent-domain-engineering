@@ -3,26 +3,7 @@
 from typing import Dict, List, Set, Tuple, Any, Optional
 import re
 from nodes.pddl_to_ast_parser import extract_pddl_problem_metadata
-from tools.pddl_utils import normalize_atom, is_subtype
-
-
-def normalize_atom_expression(expr: str) -> Tuple[str, bool]:
-    """Normalizes a PDDL literal into ('(pred arg1 arg2)', is_positive)."""
-    return normalize_atom(expr)
-
-
-def _build_subtype_checker(dom_types_raw: Any):
-    """Constructs a transitive subtyping checker."""
-    parent_map: Dict[str, str] = {}
-    if isinstance(dom_types_raw, dict):
-        for child, parent in dom_types_raw.items():
-            if child and parent:
-                parent_map[str(child).lower()] = str(parent).lower()
-
-    def checker(sub: str, super_t: str) -> bool:
-        return is_subtype(sub, super_t, parent_map)
-
-    return checker
+from tools.pddl_utils import normalize_atom, build_subtype_checker
 
 
 def run_causal_fault_analysis(
@@ -52,7 +33,7 @@ def run_causal_fault_analysis(
     dom_types_raw = getattr(domain_bp, "types", {}) if hasattr(domain_bp, "types") else (domain_bp.get("types", {}) if isinstance(domain_bp, dict) else {})
     constants_raw = getattr(domain_bp, "constants", {}) if hasattr(domain_bp, "constants") else (domain_bp.get("constants", {}) if isinstance(domain_bp, dict) else {})
     objects_raw = prob_meta.get("objects", {})
-    is_subtype = _build_subtype_checker(dom_types_raw)
+    is_subtype = build_subtype_checker(dom_types_raw)
 
     all_objs: Dict[str, str] = {}
     if isinstance(constants_raw, dict):
@@ -67,7 +48,7 @@ def run_causal_fault_analysis(
 
     init_facts: Dict[str, List[List[str]]] = {}
     for a in init_atoms:
-        canon, is_pos = normalize_atom_expression(a)
+        canon, is_pos = normalize_atom(a)
         if canon and is_pos:
             toks = canon.strip("() ").split()
             if toks:
@@ -89,14 +70,14 @@ def run_causal_fault_analysis(
 
         pos_preconds = set()
         for p in preconds:
-            pcanon, pis_pos = normalize_atom_expression(p)
+            pcanon, pis_pos = normalize_atom(p)
             if pcanon and pis_pos:
                 pos_preconds.add(pcanon.lower())
 
         pos_effs: Set[str] = set()
         neg_effs: Set[str] = set()
         for eff in effs:
-            canon, is_pos = normalize_atom_expression(eff)
+            canon, is_pos = normalize_atom(eff)
             if not canon:
                 continue
             toks = canon.strip("() ").split()
@@ -112,64 +93,56 @@ def run_causal_fault_analysis(
         # Check for contradictory simultaneous effects
         for clash in sorted(pos_effs.intersection(neg_effs)):
             is_in_pre = clash in pos_preconds
-            resolution = (
-                f"Keep the delete effect '(not {clash})' and REMOVE positive effect '{clash}' (consumes fluent)."
-                if is_in_pre else
-                f"Keep positive effect '{clash}' and REMOVE delete effect '(not {clash})' (establishes fluent)."
-            )
             internal_contradictions.append({
                 "action_name": act_name,
                 "atom": clash,
                 "is_in_precond": is_in_pre,
-                "description": f"Action '{act_name}' simultaneously adds and deletes '{clash}'. {resolution}"
+                "description": (
+                    f"Action '{act_name}' simultaneously asserts both '{clash}' and '(not {clash})'. "
+                    f"Under classical PDDL 2.1 add-after-delete semantics (s' = (s \\ del(a)) U add(a)), "
+                    f"positive add effects override delete effects on the same atom. Consult the domain specification: "
+                    f"if '{clash}' remains true after '{act_name}' completes, remove the redundant delete effect '(not {clash})'; "
+                    f"only if '{act_name}' permanently falsifies '{clash}' should '{clash}' be removed from positive effects."
+                )
             })
 
-    # Check for unproduced goal predicates
+    # Check for unproduced goal predicates and goal reachability telemetry
     orphaned_goals: List[str] = []
+    goal_producer_telemetry: List[str] = []
+    goal_pred_seen: Set[str] = set()
     init_facts_lower = set(init_facts.keys())
     for g in goal_atoms:
-        canon, is_pos = normalize_atom_expression(g)
+        canon, is_pos = normalize_atom(g)
         if canon and is_pos:
             toks = canon.strip("() ").split()
             if toks:
                 gpred = toks[0].lower()
                 if gpred not in produced_preds and gpred not in init_facts_lower:
                     orphaned_goals.append(gpred)
+                elif gpred not in goal_pred_seen:
+                    goal_pred_seen.add(gpred)
+                    prods = sorted(list(producers_by_pred.get(gpred, set())))
+                    if prods:
+                        unproducible_for_prods = {}
+                        for aname in prods:
+                            act_obj = next((a for a in actions if (getattr(a, "action_name", "") if hasattr(a, "action_name") else a.get("action_name", "")) == aname), None)
+                            if act_obj:
+                                act_preconds = getattr(act_obj, "preconditions", []) if hasattr(act_obj, "preconditions") else act_obj.get("preconditions", [])
+                                for p in act_preconds:
+                                    pcanon, pis_pos = normalize_atom(p)
+                                    if pcanon and pis_pos:
+                                        ptoks = pcanon.strip("() ").split()
+                                        if ptoks:
+                                            pname = ptoks[0].lower()
+                                            if pname not in init_facts_lower and pname not in produced_preds:
+                                                unproducible_for_prods.setdefault(aname, set()).add(pname)
+                        if unproducible_for_prods:
+                            for aname, bad_preds in unproducible_for_prods.items():
+                                goal_producer_telemetry.append(f"Goal predicate '{gpred}' produced by '{aname}' is BLOCKED because precondition predicate(s) {sorted(bad_preds)} have zero producers and are not in :init.")
+                        else:
+                            goal_producer_telemetry.append(f"Goal predicate '{gpred}' dedicated producer(s): {prods}.")
 
-    # Check for irreversible resource depletion
-    resource_depletions: List[Dict[str, Any]] = []
-    required_precond_preds: Dict[str, Set[str]] = {}
-    for act in actions:
-        aname = getattr(act, "action_name", "") if hasattr(act, "action_name") else act.get("action_name", "")
-        for p in (getattr(act, "preconditions", []) if hasattr(act, "preconditions") else act.get("preconditions", [])):
-            pcanon, pis_pos = normalize_atom_expression(p)
-            if pcanon and pis_pos:
-                toks = pcanon.strip("() ").split()
-                if toks:
-                    required_precond_preds.setdefault(toks[0].lower(), set()).add(aname)
-
-    for act in actions:
-        aname = getattr(act, "action_name", "") if hasattr(act, "action_name") else act.get("action_name", "")
-        for eff in (getattr(act, "effects", []) if hasattr(act, "effects") else act.get("effects", [])):
-            canon, is_pos = normalize_atom_expression(eff)
-            if canon and not is_pos:
-                toks = canon.strip("() ").split()
-                if toks:
-                    pname = toks[0].lower()
-                    if pname in required_precond_preds and pname not in produced_preds:
-                        other_consumers = sorted(required_precond_preds[pname] - {aname})
-                        if other_consumers:
-                            resource_depletions.append({
-                                "action_name": aname,
-                                "atom": canon,
-                                "is_in_precond": True,
-                                "description": (
-                                    f"In action '{aname}', delete effect '(not {canon})' permanently depletes fluent '{pname}', "
-                                    f"which has ZERO producing actions in the domain and is required by other action(s) {other_consumers}. "
-                                    f"This creates an irreversible absorbing deadlock. If this capability or resource is reusable, "
-                                    f"assert positive '{canon}' in effects upon completion and omit '(not {canon})'."
-                                )
-                            })
+    # Classical STRIPS allows consumable resources and irreversible fluents (DAG transitions).
 
     # Check parameter domains and precondition reachability
     for act in actions:
@@ -193,14 +166,14 @@ def run_causal_fault_analysis(
         # Precondition reachability analysis
         pos_eff_tuples = []
         for eff in effs:
-            c_eff, is_p = normalize_atom_expression(eff)
+            c_eff, is_p = normalize_atom(eff)
             if c_eff and is_p:
                 toks_eff = c_eff.strip("() ").split()
                 if toks_eff:
                     pos_eff_tuples.append((toks_eff[0].lower(), [x.lower() for x in toks_eff[1:]]))
 
         for p in preconds:
-            pcanon, pis_pos = normalize_atom_expression(p)
+            pcanon, pis_pos = normalize_atom(p)
             if not pcanon or not pis_pos:
                 continue
             toks = pcanon.strip("() ").split()
@@ -263,34 +236,9 @@ def run_causal_fault_analysis(
                             )
                         })
 
-            # Check for conflicting support and clearance preconditions
-            toks = pcanon.strip("() ").split()
-            SUPPORT_RELS = {"on", "in", "stacked_on", "loaded_in", "contains", "support", "supported"}
-            CLEAR_PREDS = {"clear", "empty", "vacant"}
-            if len(toks) == 3 and toks[0].lower() in SUPPORT_RELS:
-                top_arg, base_arg = toks[1].lower(), toks[2].lower()
-                for p2 in preconds:
-                    p2canon, p2pos = normalize_atom_expression(p2)
-                    if p2canon and p2pos:
-                        toks2 = p2canon.strip("() ").split()
-                        if len(toks2) == 2 and toks2[0].lower() in CLEAR_PREDS and toks2[1].lower() == base_arg:
-                            clear_pred = toks2[0].lower()
-                            ungroundable_preconditions.append({
-                                "action_name": act_name,
-                                "predicate": clear_pred,
-                                "expression": p2canon,
-                                "reason": (
-                                    f"In action '{act_name}', precondition '{p2canon}' checks clearance of base '{base_arg}', "
-                                    f"but precondition '{pcanon}' asserts that '{top_arg}' is occupying '{base_arg}'. "
-                                    f"A base supporting an entity is occupied, not clear! "
-                                    f"In action '{act_name}' preconditions, require clearance on the top entity '({clear_pred} {top_arg})' instead of '{p2canon}', "
-                                    f"and in effects assert positive '({clear_pred} {base_arg})' upon vacating/lifting the entity."
-                                )
-                            })
-
         # Check that state transitions delete the previous state
         for p in preconds:
-            pcanon, pis_pos = normalize_atom_expression(p)
+            pcanon, pis_pos = normalize_atom(p)
             if not pcanon or not pis_pos:
                 continue
             toks = pcanon.strip("() ").split()
@@ -302,7 +250,7 @@ def run_causal_fault_analysis(
                         # Check if previous state is deleted
                         expected_del = f"(not {pcanon})"
                         del_found = any(
-                            normalize_atom_expression(e)[0].lower() == pcanon.lower() and not normalize_atom_expression(e)[1]
+                            normalize_atom(e)[0].lower() == pcanon.lower() and not normalize_atom(e)[1]
                             for e in effs
                         )
                         if not del_found:
@@ -323,15 +271,11 @@ def run_causal_fault_analysis(
         summary_parts.append(f"Ungroundable/Self-blocking Preconditions: {len(ungroundable_preconditions)}")
     if internal_contradictions:
         summary_parts.append(f"Contradictory Simultaneous Effects: {len(internal_contradictions)}")
-    if resource_depletions:
-        summary_parts.append(f"Irreversible Absorbing Deadlocks: {len(resource_depletions)}")
     if missing_transition_deletes:
         summary_parts.append(f"Missing State-Transition Deletes: {len(missing_transition_deletes)}")
 
     top_act = None
-    if resource_depletions:
-        top_act = resource_depletions[0].get("action_name")
-    elif ungroundable_preconditions:
+    if ungroundable_preconditions:
         top_act = ungroundable_preconditions[0].get("action_name")
     elif missing_transition_deletes:
         top_act = missing_transition_deletes[0].get("action_name")
@@ -341,9 +285,9 @@ def run_causal_fault_analysis(
     return {
         "orphaned_goals": sorted(list(set(orphaned_goals))),
         "internal_contradictions": internal_contradictions,
-        "resource_depletions": resource_depletions,
         "ungroundable_preconditions": ungroundable_preconditions,
         "missing_transition_deletes": missing_transition_deletes,
+        "goal_producer_telemetry": goal_producer_telemetry,
         "top_action": top_act,
         "diagnostic_summary": " | ".join(summary_parts) if summary_parts else "Causal dependencies and goal coverage valid."
     }

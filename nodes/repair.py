@@ -2,17 +2,17 @@ import json
 import re
 import time
 from typing import Dict, Any, Set, List
-from nodes.schemas.pddl_blueprint import DomainBlueprint
-from config.pddl_standards import STANDARD_CLASSICAL_PDDL_RULES, STANDARD_REPAIR_RULES
+from nodes.schemas.pddl_representation import DomainRepresentation
+from nodes.schemas.pddl_standards import STANDARD_CLASSICAL_PDDL_RULES, STANDARD_REPAIR_RULES
 from config.model_config import get_phase_model, invoke_structured_llm_with_telemetry
 from nodes.pddl_to_ast_parser import extract_pddl_problem_metadata
 from tools.pddl_utils import norm_token
 
 
 def run_repair_node(state: dict) -> dict:
-    """Repairs the DomainBlueprint using diagnostic feedback."""
+    """Repairs the DomainRepresentation using diagnostic feedback."""
     requirements_text = state.get("requirements", "")
-    domain_blueprint = state.get("pddl_domain_blueprint", {})
+    domain_representation = state.get("pddl_domain_representation", {})
     problem_pddl = state.get("initial_problem_pddl") or state.get("generated_problem_pddl") or ""
     prob_meta = extract_pddl_problem_metadata(problem_pddl) if problem_pddl else {}
     formatted_feedback = state.get("formatted_diagnostic_feedback", "")
@@ -45,12 +45,12 @@ def run_repair_node(state: dict) -> dict:
 
     orig_action_map = {
         a.get("action_name"): a
-        for a in domain_blueprint.get("actions", []) if isinstance(a, dict) and a.get("action_name")
+        for a in domain_representation.get("actions", []) if isinstance(a, dict) and a.get("action_name")
     }
     known_action_names = {norm_token(aname): aname for aname in orig_action_map.keys()}
-    known_type_names = {norm_token(t) for t in domain_blueprint.get("types", {}).keys() if t}
+    known_type_names = {norm_token(t) for t in domain_representation.get("types", {}).keys() if t}
     known_pred_names = set()
-    for p in domain_blueprint.get("predicates", []):
+    for p in domain_representation.get("predicates", []):
         if isinstance(p, str):
             toks = p.strip("() ").split()
             if toks:
@@ -87,6 +87,10 @@ def run_repair_node(state: dict) -> dict:
             if orig_a.lower() in text or nt in text:
                 target_actions.add(orig_a)
 
+    raw_err_text = " ".join(str(e) for e in verification_errors).lower()
+    if any(kw in raw_err_text for kw in ("unknown type", "type problem", "type-checking", "type signature", "syntax error", "undeclared")):
+        is_schema_fault = True
+
     if flagged_predicates:
         for aname, a in orig_action_map.items():
             conds = a.get("preconditions", []) + a.get("effects", [])
@@ -98,7 +102,7 @@ def run_repair_node(state: dict) -> dict:
 
     target_guidance = ""
     if is_schema_fault:
-        schema_symbols = ", ".join(sorted(t for t in target_elements if t))
+        schema_symbols = ", ".join(sorted(t for t in target_elements if t)) or "global type / predicate signatures"
         target_guidance = f"""
     CRITICAL SCHEMA REPAIR INVARIANT (GLOBAL PREDICATE / TYPE REPAIR: {schema_symbols}):
     Symbolic oracle diagnostics localized the fault to global predicates, types, or cross-action relational signatures: {schema_symbols}.
@@ -109,13 +113,13 @@ def run_repair_node(state: dict) -> dict:
         target_guidance = f"""
     CRITICAL SURGICAL EDITING INVARIANT (TARGET ACTION SCHEMA: {target_list_str}):
     Symbolic oracle diagnostics localized the fault strictly to: {target_list_str}.
-    All other actions in the domain blueprint are already verified and correct.
+    All other actions in the domain representation are already verified and correct.
     Do NOT modify, alter, add, or delete any preconditions or effects in actions other than {target_list_str}!
-    Copy all other actions EXACTLY as they appear in the CURRENT DOMAIN BLUEPRINT.
+    Copy all other actions EXACTLY as they appear in the CURRENT DOMAIN REPRESENTATION.
     """
 
     fixed_contract_guidance = ""
-    if state.get("fixed_signatures") or state.get("reference_domain_pddl"):
+    if state.get("fixed_signatures") or (state.get("reference_domain_pddl") and not state.get("is_synthetic_repair")):
         fixed_contract_guidance = (
             "\n    FIXED SIGNATURE & CONTRACT INVARIANT:\n"
             "    - The domain types hierarchy, constants, predicates, and action parameter signatures are FIXED CONTRACTS.\n"
@@ -125,9 +129,9 @@ def run_repair_node(state: dict) -> dict:
 
     prompt = f"""
     You are an expert PDDL Knowledge Engineer specializing in formal domain model repair.
-    Your task is to repair the existing PDDL Domain blueprint (D_gen) to resolve the diagnostic errors reported by symbolic oracles against the fixed ground-truth problem instance (P_gold).
-    Because the problem instance is held fixed for formal verification, you must ONLY repair and output the DomainBlueprint JSON object ("domain_name", "requirements", "types", "constants", "predicates", "actions").
-    Treat the provided domain blueprint as a working draft to surgically edit, not as disposable context.
+    Your task is to repair the existing PDDL Domain representation (D_gen) to resolve the diagnostic errors reported by symbolic oracles against the fixed ground-truth problem instance (P_gold).
+    Because the problem instance is held fixed for formal verification, you must ONLY repair and output the DomainRepresentation JSON object ("domain_name", "requirements", "types", "constants", "predicates", "actions").
+    Treat the provided domain representation as a working draft to surgically edit, not as disposable context.
     Preserve all elements that are already correct and apply the smallest set of changes needed to satisfy oracle feedback.
     {target_guidance}
     {fixed_contract_guidance}
@@ -135,9 +139,9 @@ def run_repair_node(state: dict) -> dict:
     Original Requirements Text & Fixed Problem Contract:
     {requirements_text}
 
-    CURRENT DOMAIN BLUEPRINT (D_gen — TO REPAIR):
+    CURRENT DOMAIN REPRESENTATION (D_gen — TO REPAIR):
     ```json
-    {json.dumps(domain_blueprint, indent=2)}
+    {json.dumps(domain_representation, indent=2)}
     ```
 
     FIXED READ-ONLY TARGET PROBLEM PDDL (P_target — DO NOT MODIFY):
@@ -152,10 +156,10 @@ def run_repair_node(state: dict) -> dict:
     {STANDARD_CLASSICAL_PDDL_RULES}
     {STANDARD_REPAIR_RULES}
 
-    Produce ONLY the updated valid JSON object conforming to the DomainBlueprint schema.
+    Produce ONLY the updated valid JSON object conforming to the DomainRepresentation schema.
     """
 
-    print("[Repair Node]: Executing domain blueprint repair based on diagnostic feedback...")
+    print("[Repair Node]: Executing domain representation repair based on diagnostic feedback...")
 
     # Observability: record exactly what feedback is handed to the repair LLM this iteration
     feedback_log = list(state.get("repair_feedback_log", []) or [])
@@ -174,12 +178,12 @@ def run_repair_node(state: dict) -> dict:
     start_t = time.time()
 
     try:
-        repaired_domain_blueprint, usage = invoke_structured_llm_with_telemetry(
-            DomainBlueprint,
+        repaired_domain_representation, usage = invoke_structured_llm_with_telemetry(
+            DomainRepresentation,
             prompt,
             target_model=get_phase_model(3)
         )
-        dom_dict = repaired_domain_blueprint.model_dump()
+        dom_dict = repaired_domain_representation.model_dump()
         if prob_meta.get("domain_name"):
             dom_dict["domain_name"] = prob_meta["domain_name"]
 
@@ -196,12 +200,12 @@ def run_repair_node(state: dict) -> dict:
                     preserved_actions.append(a)
             dom_dict["actions"] = preserved_actions
 
-        # Restore reference signatures if active
-        if state.get("fixed_signatures") or state.get("reference_domain_pddl"):
+        # Restore reference signatures if active (H1 fixed-signature elicitation only; never leak D_gold AST in H2 synthetic repair)
+        if state.get("fixed_signatures") or (state.get("reference_domain_pddl") and not state.get("is_synthetic_repair")):
             ref_dom_pddl = state.get("reference_domain_pddl") or state.get("ground_truth_domain_pddl")
             if ref_dom_pddl:
-                from nodes.pddl_to_ast_parser import parse_pddl_domain_to_blueprint, clean_blueprint_expression, alpha_convert_action_variables
-                ref_bp = parse_pddl_domain_to_blueprint(ref_dom_pddl)
+                from nodes.pddl_to_ast_parser import parse_pddl_domain_to_representation, clean_representation_expression, alpha_convert_action_variables
+                ref_bp = parse_pddl_domain_to_representation(ref_dom_pddl)
                 dom_dict["types"] = ref_bp.get("types", {})
                 dom_dict["constants"] = ref_bp.get("constants", {})
                 dom_dict["predicates"] = ref_bp.get("predicates", [])
@@ -216,8 +220,8 @@ def run_repair_node(state: dict) -> dict:
                         canon_act = canonical_actions[nat]
                         act["action_name"] = canon_act["action_name"]
                         act["parameters"] = canon_act["parameters"]
-                        raw_pre = [clean_blueprint_expression(p) for p in act.get("preconditions", []) if clean_blueprint_expression(p)]
-                        raw_eff = [clean_blueprint_expression(p) for p in act.get("effects", []) if clean_blueprint_expression(p)]
+                        raw_pre = [clean_representation_expression(p) for p in act.get("preconditions", []) if clean_representation_expression(p)]
+                        raw_eff = [clean_representation_expression(p) for p in act.get("effects", []) if clean_representation_expression(p)]
                         c_pre, c_eff = alpha_convert_action_variables(
                             canon_act["action_name"],
                             canon_act["parameters"],
@@ -231,7 +235,7 @@ def run_repair_node(state: dict) -> dict:
                     aligned_actions.append(act)
                 dom_dict["actions"] = aligned_actions
 
-        state["pddl_domain_blueprint"] = dom_dict
+        state["pddl_domain_representation"] = dom_dict
 
         # Telemetry
         state["total_prompt_tokens"] = state.get("total_prompt_tokens", 0) + usage.get("prompt_tokens", 0)
@@ -239,14 +243,14 @@ def run_repair_node(state: dict) -> dict:
         state["total_tokens"] = state.get("total_tokens", 0) + usage.get("total_tokens", 0)
         state["estimated_cost_usd"] = round(state.get("estimated_cost_usd", 0.0) + usage.get("estimated_cost_usd", 0.0), 6)
         
-        # Terminal Observability: Compute and display repaired blueprint diff
+        # Terminal Observability: Compute and display repaired representation diff
         print("\n" + "=" * 80, flush=True)
-        print(f" [REPAIR NODE]: Domain Blueprint AST Repaired (Iteration {iteration})", flush=True)
+        print(f" [REPAIR NODE]: Domain Representation AST Repaired (Iteration {iteration})", flush=True)
         print("=" * 80, flush=True)
 
         orig_acts = {
             a.get("action_name"): a
-            for a in domain_blueprint.get("actions", [])
+            for a in domain_representation.get("actions", [])
             if isinstance(a, dict) and a.get("action_name")
         }
         new_acts = {
@@ -289,7 +293,7 @@ def run_repair_node(state: dict) -> dict:
                 print(f" * [-] Removed Action Schema : '{aname}'", flush=True)
                 modified_any = True
 
-        orig_preds = set(domain_blueprint.get("predicates", []))
+        orig_preds = set(domain_representation.get("predicates", []))
         new_preds = set(dom_dict.get("predicates", []))
         if orig_preds != new_preds:
             added_p = new_preds - orig_preds

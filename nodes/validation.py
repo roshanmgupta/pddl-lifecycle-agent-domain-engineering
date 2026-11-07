@@ -19,19 +19,6 @@ from tools.symbolic_oracles import (
     validate_plan_semantic_soundness
 )
 
-# Token pricing per 1M tokens (Standard GPT-4o rates: $2.50/M input, $10.00/M output)
-PRICE_PROMPT_PER_M = 2.50
-PRICE_COMPLETION_PER_M = 10.00
-
-
-def calculate_llm_cost(prompt_tokens: int, completion_tokens: int) -> float:
-    """Calculates LLM query cost in USD based on standard benchmark rates."""
-    return round(
-        (prompt_tokens * PRICE_PROMPT_PER_M / 1_000_000) +
-        (completion_tokens * PRICE_COMPLETION_PER_M / 1_000_000), 
-        6
-    )
-
 
 def extract_val_failure_trace(raw_log: str) -> str:
     """Extracts informative failure sections from VAL output."""
@@ -183,6 +170,52 @@ def verify_pddl_candidate(
     }
 
 
+def _collect_verification_errors(verif: Dict[str, Any], ref_dom_code: Optional[str], prob_label: str = "") -> List[str]:
+    """Builds oracle verification error messages from a single-instance verification dict."""
+    errors: List[str] = []
+    prefix = f"[{prob_label}] " if prob_label else ""
+
+    if not verif["is_syntax_valid"]:
+        errors.append(prefix + "VAL Error: " + verif["syntax_log"])
+        return errors
+
+    is_translate_crash = False
+    if not verif["is_solvable"]:
+        fd_log = verif["raw_fd_log"]
+        is_translate_crash = any(
+            k in fd_log.lower()
+            for k in ["translate exit code: 30", "translate exit code: 31", "undefined variable", "parsing error", "syntax error:"]
+        )
+        if verif["planner_timed_out"]:
+            errors.append(prefix + "Planner Error: " + fd_log)
+        elif is_translate_crash:
+            errors.append(prefix + "Translator Syntax Error: " + fd_log)
+        else:
+            errors.append(prefix + "Planner Error: Could not find a plan. " + fd_log)
+    else:
+        if ref_dom_code and not verif["feasibility_valid"]:
+            clean_log = extract_val_failure_trace(verif["feasibility_log"])
+            errors.append(
+                f"{prefix}Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, "
+                f"but failed execution when transferred to reference domain D_gold on problem P_gold! "
+                f"VAL Oracle Diagnostic Trace: {clean_log}\n"
+                f"Actions in D_gen are likely missing necessary preconditions "
+                f"or producing effects that violate ground-truth domain invariants."
+            )
+
+    if (not is_translate_crash) and ref_dom_code and not verif["interpretability_valid"]:
+        clean_interp = extract_val_failure_trace(verif["interpretability_log"])
+        errors.append(
+            f"{prefix}Plan Interpretability Rejection on Generated Domain: The standard reference plan pi_gold "
+            f"failed execution on the generated domain D_gen! "
+            f"VAL Oracle Diagnostic Trace: {clean_interp}\n"
+            f"Actions in D_gen are likely over-constrained with extraneous preconditions "
+            f"or missing required positive effects needed by reference plan operations."
+        )
+
+    return errors
+
+
 def run_validation_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """LangGraph node execution function for formal multi-criteria validation."""
     start_t = time.time()
@@ -195,16 +228,19 @@ def run_validation_node(state: Dict[str, Any]) -> Dict[str, Any]:
     if problem_pddl_code:
         state["generated_problem_pddl"] = problem_pddl_code
 
-    # Ensure Domain AST blueprint exists
-    if not state.get("pddl_domain_blueprint") and pddl_code:
-        from nodes.pddl_to_ast_parser import parse_pddl_domain_to_blueprint
-        state["pddl_domain_blueprint"] = parse_pddl_domain_to_blueprint(pddl_code)
+    # Ensure Domain AST representation exists
+    if not state.get("pddl_domain_representation") and pddl_code:
+        from nodes.pddl_to_ast_parser import parse_pddl_domain_to_representation
+        state["pddl_domain_representation"] = parse_pddl_domain_to_representation(pddl_code)
 
     ref_dom_code = state.get("reference_domain_pddl") or state.get("ground_truth_domain_pddl")
     gold_plan_file = state.get("gold_reference_plan_file")
+    ref_problems: List[str] = state.get("reference_problems") or []
+    ref_gold_plans: List[str] = state.get("reference_gold_plans") or []
+    ref_prob_names: List[str] = state.get("reference_problem_names") or []
 
     cur_iter = state.get("iteration_count", 0)
-    d_name = state.get("pddl_domain_blueprint", {}).get("domain_name") or "domain"
+    d_name = state.get("pddl_domain_representation", {}).get("domain_name") or "domain"
     p_hash = abs(hash(problem_pddl_code)) % 100000 if problem_pddl_code else 0
     tag_str = f"{d_name}_{p_hash}_iter_{cur_iter}"
 
@@ -216,6 +252,34 @@ def run_validation_node(state: Dict[str, Any]) -> Dict[str, Any]:
         ground_truth_plan_path=gold_plan_file,
         tag=tag_str
     )
+
+    errors = _collect_verification_errors(verif, ref_dom_code)
+
+    # Multi-problem check: if primary problem passes and a suite of ground-truth problems is provided,
+    # verify Soundness and Completeness across all ground-truth problems.
+    if not errors and ref_problems:
+        for idx, extra_prob in enumerate(ref_problems):
+            if not extra_prob or extra_prob.strip() == problem_pddl_code.strip():
+                continue
+            extra_gp = ref_gold_plans[idx] if idx < len(ref_gold_plans) and ref_gold_plans[idx] else None
+            extra_name = ref_prob_names[idx] if idx < len(ref_prob_names) else f"problem_{idx + 1}"
+            extra_verif = verify_pddl_candidate(
+                generated_domain_pddl=pddl_code,
+                generated_problem_pddl=extra_prob,
+                ground_truth_domain_pddl=ref_dom_code,
+                ground_truth_problem_pddl=extra_prob,
+                ground_truth_plan_path=extra_gp,
+                tag=f"{tag_str}_p{idx + 1}"
+            )
+            extra_errors = _collect_verification_errors(extra_verif, ref_dom_code, prob_label=extra_name)
+            if extra_errors:
+                verif = extra_verif
+                errors = extra_errors
+                state["initial_problem_pddl"] = extra_prob
+                state["generated_problem_pddl"] = extra_prob
+                if extra_gp:
+                    state["gold_reference_plan_file"] = extra_gp
+                break
 
     trace = {
         "val_ok": bool(verif["is_syntax_valid"]),
@@ -246,10 +310,6 @@ def run_validation_node(state: Dict[str, Any]) -> Dict[str, Any]:
         "raw_fd_log": verif["raw_fd_log"],
     }
 
-    # Error handling and message construction
-    errors: List[str] = []
-
-    cur_iter = state.get("iteration_count", 0)
     print("\n" + "-" * 70, flush=True)
     print(f" [VALIDATION ORACLES - Iteration {cur_iter}]:", flush=True)
     print(f" * Syntax Valid (VAL)    : {verif['is_syntax_valid']}", flush=True)
@@ -262,47 +322,14 @@ def run_validation_node(state: Dict[str, Any]) -> Dict[str, Any]:
             print(f" * Plan Length           : {len(verif['plan_steps'])} steps", flush=True)
             print(f" * Executability Valid   : {verif['executability_valid']}", flush=True)
             if ref_dom_code:
-                print(f" * Feasibility (Sound)   : {verif['feasibility_valid']}", flush=True)
-                print(f" * Interpretability      : {verif['interpretability_valid']}", flush=True)
+                print(f" * Soundness (Feasible)  : {verif['feasibility_valid']}", flush=True)
+                print(f" * Completeness (Interp) : {verif['interpretability_valid']}", flush=True)
         else:
             clean_fd = verif['raw_fd_log'].strip().replace('\n', ' ')[:120]
             print(f"   -> Planner Failure     : {clean_fd}", flush=True)
+            if ref_dom_code:
+                print(f" * Completeness (Interp) : {verif['interpretability_valid']}", flush=True)
     print("-" * 70, flush=True)
-
-    if not verif["is_syntax_valid"]:
-        errors.append("VAL Error: " + verif["syntax_log"])
-
-    elif not verif["is_solvable"]:
-        fd_log = verif["raw_fd_log"]
-        is_translate_crash = any(k in fd_log.lower() for k in ["translate exit code: 30", "translate exit code: 31", "undefined variable", "parsing error", "syntax error:"])
-        if verif["planner_timed_out"]:
-            errors.append("Planner Error: " + fd_log)
-        elif is_translate_crash:
-            errors.append("Translator Syntax Error: " + fd_log)
-        else:
-            errors.append("Planner Error: Could not find a plan. " + fd_log)
-
-    else:
-        # Check semantic criteria
-        if ref_dom_code and not verif["feasibility_valid"]:
-            clean_log = extract_val_failure_trace(verif["feasibility_log"])
-            errors.append(
-                f"Plan Feasibility Rejection on Standard Domain: The synthesized plan solved generated domain D_gen, "
-                f"but failed execution when transferred to reference domain D_gold on problem P_gold! "
-                f"VAL Oracle Diagnostic Trace: {clean_log}\n"
-                f"Action schemas in D_gen are likely missing necessary preconditions (trivial model trap) "
-                f"or producing effects that violate physical domain invariants."
-            )
-
-        if ref_dom_code and not verif["interpretability_valid"]:
-            clean_interp = extract_val_failure_trace(verif["interpretability_log"])
-            errors.append(
-                f"Plan Interpretability Rejection on Generated Domain: The standard reference plan pi_gold "
-                f"failed execution on the generated domain D_gen! "
-                f"VAL Oracle Diagnostic Trace: {clean_interp}\n"
-                f"Action schemas in D_gen are likely over-constrained with extraneous preconditions (completeness failure) "
-                f"or parameter arities/names do not preserve reference plan operations."
-            )
 
     if errors:
         state["verification_errors"] = errors

@@ -66,25 +66,25 @@
   (:action take_image
     :parameters (?r - rover ?p - waypoint ?o - objective ?i - camera ?m - mode)
     :precondition (and (calibrated ?i ?r) (on_board ?i ?r) (equipped_for_imaging ?r) (supports ?i ?m) (visible_from ?o ?p) (at ?r ?p))
-    :effect (and (have_image ?r ?o ?m) (not (calibrated ?i ?r)))
+    :effect (have_image ?r ?o ?m)
   )
 
   (:action communicate_soil_data
     :parameters (?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
     :precondition (and (at ?r ?x) (at_lander ?l ?y) (have_soil_analysis ?r ?p) (visible ?x ?y) (available ?r) (channel_free ?l))
-    :effect (and (communicated_soil_data ?p) (channel_free ?l))
+    :effect (and (not (available ?r)) (not (channel_free ?l)) (communicated_soil_data ?p))
   )
 
   (:action communicate_rock_data
     :parameters (?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
     :precondition (and (at ?r ?x) (at_lander ?l ?y) (have_rock_analysis ?r ?p) (visible ?x ?y) (available ?r) (channel_free ?l))
-    :effect (and (communicated_rock_data ?p) (channel_free ?l))
+    :effect (and (not (available ?r)) (not (channel_free ?l)) (communicated_rock_data ?p))
   )
 
   (:action communicate_image_data
     :parameters (?r - rover ?l - lander ?o - objective ?m - mode ?x - waypoint ?y - waypoint)
     :precondition (and (at ?r ?x) (at_lander ?l ?y) (have_image ?r ?o ?m) (visible ?x ?y) (available ?r) (channel_free ?l))
-    :effect (and (communicated_image_data ?o ?m) (channel_free ?l))
+    :effect (and (available ?r) (not (channel_free ?l)) (communicated_image_data ?o ?m))
   )
 
 )

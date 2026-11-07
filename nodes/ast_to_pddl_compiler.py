@@ -1,12 +1,12 @@
 """
 nodes/ast_to_pddl_compiler.py
-Pure, deterministic compilation engine translating structured DomainBlueprint ASTs into valid PDDL 2.1 syntax.
+Pure, deterministic compilation engine translating structured DomainRepresentation ASTs into valid PDDL 2.1 syntax.
 Contains zero LangGraph or agent state dependencies.
 """
 
 import re
 from typing import Optional, Dict, Any, List, Set
-from nodes.schemas.pddl_blueprint import DomainBlueprint, PddlActionSchema
+from nodes.schemas.pddl_representation import DomainRepresentation, PddlActionSchema
 from nodes.pddl_to_ast_parser import extract_pddl_problem_metadata
 from tools.pddl_utils import (
     normalize_pddl_expression,
@@ -17,8 +17,8 @@ from tools.pddl_utils import (
 )
 
 
-def sanitize_action_effects(raw_effects: list) -> list:
-    """Prunes delete effects that conflict with positive add effects."""
+def enforce_effect_consistency(raw_effects: list) -> list:
+    """Enforces classical PDDL 2.1 effect consistency: prunes delete effects that conflict with positive add effects."""
     flat = flatten_atoms(raw_effects)
     pos_atoms = set()
     for eff in flat:
@@ -26,24 +26,24 @@ def sanitize_action_effects(raw_effects: list) -> list:
         if is_pos:
             pos_atoms.add(atom)
 
-    sanitized = []
+    consistent_effects = []
     seen = set()
     for eff in flat:
         atom, is_pos = normalize_atom(eff)
         if not is_pos and atom in pos_atoms:
-            # Positive add takes precedence over delete
+            # Positive add takes precedence over delete under STRIPS update semantics
             continue
         clean_eff = atom if is_pos else f"(not {atom})"
         if clean_eff not in seen:
             seen.add(clean_eff)
-            sanitized.append(clean_eff)
-    return sanitized
+            consistent_effects.append(clean_eff)
+    return consistent_effects
 
 
-def synchronize_ast_predicate_symbols(blueprint_data: dict, problem_pddl: Optional[str] = None) -> dict:
+def synchronize_ast_predicate_symbols(representation_data: dict, problem_pddl: Optional[str] = None) -> dict:
     """Synchronizes domain predicate symbols to match problem predicate naming."""
-    if not problem_pddl or not isinstance(blueprint_data, dict):
-        return blueprint_data
+    if not problem_pddl or not isinstance(representation_data, dict):
+        return representation_data
 
     prob_meta = extract_pddl_problem_metadata(problem_pddl)
     prob_atoms = flatten_atoms(prob_meta.get("initial_state", [])) + flatten_atoms(prob_meta.get("goal_state", []))
@@ -57,7 +57,7 @@ def synchronize_ast_predicate_symbols(blueprint_data: dict, problem_pddl: Option
             prob_pred_map[norm_key] = sym
 
     if not prob_pred_map:
-        return blueprint_data
+        return representation_data
 
     def _replace_sym(atom_str: str) -> str:
         atom, is_pos = normalize_atom(atom_str)
@@ -70,29 +70,29 @@ def synchronize_ast_predicate_symbols(blueprint_data: dict, problem_pddl: Option
         core = f"({' '.join(toks)})"
         return core if is_pos else f"(not {core})"
 
-    blueprint_data["predicates"] = [_replace_sym(p) for p in blueprint_data.get("predicates", [])]
-    for act in blueprint_data.get("actions", []):
+    representation_data["predicates"] = [_replace_sym(p) for p in representation_data.get("predicates", [])]
+    for act in representation_data.get("actions", []):
         if isinstance(act, dict):
             act["preconditions"] = [_replace_sym(p) for p in act.get("preconditions", [])]
             act["effects"] = [_replace_sym(e) for e in act.get("effects", [])]
 
-    return blueprint_data
+    return representation_data
 
 
-def compile_pddl_programmatically(blueprint_data: dict, problem_pddl: Optional[str] = None) -> str:
-    """Compiles a DomainBlueprint dictionary into a PDDL domain string."""
+def compile_pddl_programmatically(representation_data: dict, problem_pddl: Optional[str] = None) -> str:
+    """Compiles a DomainRepresentation dictionary into a PDDL domain string."""
     if problem_pddl:
-        synchronize_ast_predicate_symbols(blueprint_data, problem_pddl)
+        synchronize_ast_predicate_symbols(representation_data, problem_pddl)
 
     prob_meta = extract_pddl_problem_metadata(problem_pddl) if (problem_pddl and isinstance(problem_pddl, str)) else {}
-    raw_dname = prob_meta.get("domain_name") or blueprint_data.get("domain_name", "generated_domain")
+    raw_dname = prob_meta.get("domain_name") or representation_data.get("domain_name", "generated_domain")
     domain_name = re.sub(r'\.pddl$', '', str(raw_dname), flags=re.IGNORECASE)
     domain_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', domain_name) or "generated_domain"
 
-    requirements = blueprint_data.get("requirements", [":strips", ":typing"])
-    types = blueprint_data.get("types", {})
-    predicates = blueprint_data.get("predicates", [])
-    actions = blueprint_data.get("actions", [])
+    requirements = representation_data.get("requirements", [":strips", ":typing"])
+    types = representation_data.get("types", {})
+    predicates = representation_data.get("predicates", [])
+    actions = representation_data.get("actions", [])
 
     pddl_lines = []
 
@@ -171,7 +171,7 @@ def compile_pddl_programmatically(blueprint_data: dict, problem_pddl: Optional[s
         pddl_lines.append("")
 
     # 3. Constants Block
-    raw_constants = blueprint_data.get("constants", {}) if isinstance(blueprint_data, dict) else getattr(blueprint_data, "constants", {})
+    raw_constants = representation_data.get("constants", {}) if isinstance(representation_data, dict) else getattr(representation_data, "constants", {})
     prob_objs = {str(k).strip().lower() for k in prob_meta.get("objects", {}).keys()} if prob_meta else set()
     valid_constants = {}
     if isinstance(raw_constants, dict):
@@ -258,7 +258,7 @@ def compile_pddl_programmatically(blueprint_data: dict, problem_pddl: Optional[s
             act_obj = act
 
         flat_preconds = flatten_atoms(act_obj.preconditions)
-        flat_effects = sanitize_action_effects(act_obj.effects)
+        flat_effects = enforce_effect_consistency(act_obj.effects)
 
         # Validate preconditions against declared predicate arities
         sanitized_preconds = []

@@ -72,19 +72,19 @@
   (:action communicate_soil_data
     :parameters (?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
     :precondition (and (at ?r ?x) (at_lander ?l ?y) (have_soil_analysis ?r ?p) (visible ?x ?y) (available ?r) (channel_free ?l))
-    :effect (and (not (available ?r)) (not (channel_free ?l)) (communicated_soil_data ?p))
+    :effect (and (not (channel_free ?l)) (communicated_soil_data ?p) (available ?r))
   )
 
   (:action communicate_rock_data
     :parameters (?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
     :precondition (and (at ?r ?x) (at_lander ?l ?y) (have_rock_analysis ?r ?p) (visible ?x ?y) (available ?r) (channel_free ?l))
-    :effect (and (not (available ?r)) (not (channel_free ?l)) (communicated_rock_data ?p))
+    :effect (and (not (channel_free ?l)) (communicated_rock_data ?p) (available ?r))
   )
 
   (:action communicate_image_data
     :parameters (?r - rover ?l - lander ?o - objective ?m - mode ?x - waypoint ?y - waypoint)
     :precondition (and (at ?r ?x) (at_lander ?l ?y) (have_image ?r ?o ?m) (visible ?x ?y) (available ?r) (channel_free ?l))
-    :effect (and (not (available ?r)) (not (channel_free ?l)) (communicated_image_data ?o ?m))
+    :effect (and (not (channel_free ?l)) (communicated_image_data ?o ?m) (available ?r))
   )
 
 )

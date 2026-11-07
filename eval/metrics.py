@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Optional
 from pydantic import BaseModel, Field
 
 class EvaluationMetrics(BaseModel):
@@ -19,9 +19,9 @@ class EvaluationMetrics(BaseModel):
     # -------------------------------------------------------------
     # 1. Operational Verification Metrics (Multi-Stage Funnel)
     # -------------------------------------------------------------
-    svr_syntax_valid_rate: float = Field(
-        default=0.0,
-        description="Stage 1: SVR: 1.0 if domain and problem pass VAL syntactic and typing parser; else 0.0"
+    is_syntax_valid: bool = Field(
+        default=False,
+        description="Stage 1: Syntax Valid: VAL parser and type-checker pass"
     )
     is_solvable: bool = Field(
         default=False,
@@ -29,15 +29,11 @@ class EvaluationMetrics(BaseModel):
     )
     planner_timeout: bool = Field(
         default=False,
-        description="Stage 2b: Search budget exhausted (30s) without proving unsolvability"
+        description="Stage 2b: Search budget exhausted without proving unsolvability"
     )
     executability_valid: bool = Field(
         default=False,
-        description="Stage 2c: Internal Consistency / Self-Certification: VAL(D_gen, P_gen, pi_gen) == PASS"
-    )
-    tpv_target_plan_valid: bool = Field(
-        default=False,
-        description="TPV: True iff Fast Downward exits 0 and VAL certifies plan execution validity on target task; else False"
+        description="Stage 2c: Internal Consistency: VAL(D_gen, P_gen, pi_gen) == PASS"
     )
     feasibility_valid: bool = Field(
         default=False,
@@ -53,59 +49,27 @@ class EvaluationMetrics(BaseModel):
     )
     e2e_gate_success: bool = Field(
         default=False,
-        description="Strict E2E Gate: SVR and is_solvable and executability_valid and semantic_soundness"
+        description="Strict E2E Gate: is_syntax_valid and is_solvable and executability_valid and semantic_soundness"
     )
-    cov_ref_coverage_rate: Optional[float] = Field(
-        default=None,
-        description="Cov_ref: Reference Suite Coverage percentage (0.0 to 100.0) on baseline benchmark suite"
+    problems_evaluated: int = Field(
+        default=1,
+        description="Total number of ground-truth problem instances evaluated for this task"
     )
-    reference_instances_passed: Optional[int] = Field(
-        default=None,
-        description="Passed instances in reference problem suite"
-    )
-    reference_instances_total: Optional[int] = Field(
-        default=None,
-        description="Total instances in reference problem suite"
+    problems_passed: int = Field(
+        default=0,
+        description="Number of ground-truth problem instances passing Soundness and Completeness"
     )
 
     # -------------------------------------------------------------
-    # 2. Structural Reconstruction Metrics
-    # -------------------------------------------------------------
-    macro_structural_f1: Optional[float] = Field(
-        default=None,
-        description="Macro Structural F1 via Kuhn-Munkres maximum weight bipartite matching"
-    )
-    precondition_f1: Optional[float] = Field(
-        default=None,
-        description="Pre_F1: F1 score on precondition predicate sets across aligned operators"
-    )
-    add_effect_f1: Optional[float] = Field(
-        default=None,
-        description="Add_F1: F1 score on add-effect predicate sets across aligned operators"
-    )
-    delete_effect_f1: Optional[float] = Field(
-        default=None,
-        description="Del_F1: F1 score on delete-effect predicate sets across aligned operators"
-    )
-    action_f1: Optional[float] = Field(
-        default=None,
-        description="Action_F1: Harmonic mean of operator precision and recall (Level 1 AST Element F1)"
-    )
-    parameter_arity_match: Optional[float] = Field(
-        default=None,
-        description="Level 2: Parameter count and signature alignment rate"
-    )
-
-    # -------------------------------------------------------------
-    # 2b. Hierarchical Multi-Granular Fault Localization (H-MGFL) Elements
+    # 2. Hierarchical Fault Localization Diagnostics
     # -------------------------------------------------------------
     top1_element: Optional[str] = Field(
         default=None,
-        description="Level 1: Top-1 diagnosed AST element (Action Schema, 'types', or 'predicates')"
+        description="Diagnosed AST element (Action Schema, 'types', or 'predicates')"
     )
     top1_repair_op: Optional[str] = Field(
         default=None,
-        description="Level 2: Top-1 diagnosed Causal Repair Operation Type"
+        description="Diagnosed Causal Repair Operation Type"
     )
 
     # -------------------------------------------------------------
@@ -125,11 +89,11 @@ class EvaluationMetrics(BaseModel):
     )
 
     # -------------------------------------------------------------
-    # 4. Computational & Diagnostic Efficiency
+    # 4. Computational Efficiency & Telemetry
     # -------------------------------------------------------------
     iterations_used: int = Field(
         default=1,
-        description="k: Discrete repair iterations consumed in {0, ..., K_max}"
+        description="k: Discrete repair iterations consumed"
     )
     execution_time_seconds: float = Field(
         default=0.0,
@@ -143,18 +107,10 @@ class EvaluationMetrics(BaseModel):
         default=0.0,
         description="Estimated API cost in USD"
     )
-    behavioral_code: Optional[str] = Field(
-        default=None,
-        description="Behavioral classification code (e.g., E.1, E.2, E.B, E.T, E.S, S.1, S.2, S.T, S.S)"
-    )
     error_summary: Optional[str] = Field(
         default=None,
         description="Summary of remaining oracle diagnostic error if verification failed"
     )
-
-    @property
-    def is_syntax_valid(self) -> bool:
-        return self.svr_syntax_valid_rate >= 1.0
 
     @property
     def is_plan_valid(self) -> bool:
@@ -165,15 +121,10 @@ class EvaluationMetrics(BaseModel):
         """
         Canonical Tri-Criteria End-to-End Success Gate:
         True ONLY if:
-          1. SVR syntax validation passes
+          1. Syntax validation passes (VAL parser and type-checker)
           2. Planner solvability passes (Fast Downward found plan)
           3. Executability passes (VAL certifies generated plan on generated domain)
           4. Feasibility passes (VAL certifies generated plan on ground-truth domain)
           5. Interpretability passes (VAL certifies ground-truth plan on generated domain)
-          6. Reference suite coverage (cov_ref) is 100% (for evolution tasks)
         """
-        if not self.e2e_gate_success:
-            return False
-        if self.cov_ref_coverage_rate is not None:
-            return self.cov_ref_coverage_rate >= 100.0
-        return True
+        return self.e2e_gate_success
