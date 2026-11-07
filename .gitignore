@@ -42,3 +42,5 @@ tec.md
 .licenses/
 /PDDLLifeCycleBench_Output_Elicitation
 /pddl_benchmark_instances
+
+/results
