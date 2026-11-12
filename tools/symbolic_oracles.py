@@ -124,8 +124,8 @@ def run_val_validator(domain_path: str, problem_path: str = None) -> Tuple[bool,
         cmd.append(problem_path)
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
-        output = result.stdout + "\n" + result.stderr
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15)
+        output = (result.stdout or "") + "\n" + (result.stderr or "")
 
         # Check for VAL failure signals
         has_error = (
@@ -180,7 +180,7 @@ def run_fast_downward(domain_path: str, problem_path: str, plan_path: Optional[s
     cmd += [domain_path, problem_path, "--search", "lazy_greedy([ff()])"]
 
     try:
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
         try:
             stdout, stderr = proc.communicate(timeout=FD_TIMEOUT_SEC)
             output = (stdout or "") + "\n" + (stderr or "")
@@ -219,8 +219,8 @@ def validate_plan_with_val(domain_path: str, problem_path: str, plan_path: str =
     cmd = [val_exe, "-v", domain_path, problem_path, plan_path]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
-        output = result.stdout + "\n" + result.stderr
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15)
+        output = (result.stdout or "") + "\n" + (result.stderr or "")
         if "Plan valid" in output or "Successful plans:" in output:
             return True, output
         elif result.returncode != 0 and result.returncode != 1:
@@ -298,7 +298,7 @@ def validate_plan_semantic_soundness(
                             f"{arg_count} argument(s), but ground-truth action requires {gt_arities[op_name]} parameter(s)."
                         )
 
-            mapped_plan_path = plan_path + ".mapped.val"
+            mapped_plan_path = f"{plan_path}.mapped.val" if plan_path else "temp_plan.mapped.val"
             with open(mapped_plan_path, "w", encoding="utf-8") as pf:
                 for stp in translated_steps:
                     clean_stp = re.sub(r"^\d+:\s*", "", stp).strip()

@@ -26,26 +26,26 @@
 ;; "Problems in Puzzle-Peg" included in the game Puzzle-Peg (Third
 ;; Edition, 1924, Lubbers & Bell Mfg. Co.,Clinton, Iowa, USA).
 ;; 
-;; Original problem number and name: "36 Mulberry"
+;; Original problem number and name: "14 Move right"
 ;; 
-;; Number of pegs:                  15
+;; Number of pegs:                  6
 ;; Number of diagonal moves needed: 0
 ;; 
 ;; Problem description:
 ;; "*" denotes "occupied"
 ;; "o" denotes "free"
 ;; 
+;;     o o o     
+;;     o o o     
+;; o o o o * o o 
+;; o o * * o o o 
+;; o o o * * o o 
 ;;     o * o     
-;;     * * *     
-;; o * o o o * o 
-;; * o o * o o * 
-;; * * o o o * o 
-;;     * o *     
-;;     o * o     
+;;     o o o     
 ;; 
 ;; Target position = (3,3)
 ;; 
-(define (problem pegsolitaire-sequential-036)
+(define (problem pegsolitaire-sequential-014)
     (:domain pegsolitaire-sequential)
     (:objects
         pos-0-2 - location
@@ -161,38 +161,38 @@
         (IN-LINE pos-6-2 pos-6-3 pos-6-4)
         (IN-LINE pos-6-4 pos-6-3 pos-6-2)
         (free pos-0-2)
+        (free pos-0-3)
         (free pos-0-4)
+        (free pos-1-2)
+        (free pos-1-3)
+        (free pos-1-4)
         (free pos-2-0)
+        (free pos-2-1)
         (free pos-2-2)
         (free pos-2-3)
-        (free pos-2-4)
+        (free pos-2-5)
         (free pos-2-6)
+        (free pos-3-0)
         (free pos-3-1)
-        (free pos-3-2)
         (free pos-3-4)
         (free pos-3-5)
+        (free pos-3-6)
+        (free pos-4-0)
+        (free pos-4-1)
         (free pos-4-2)
-        (free pos-4-3)
-        (free pos-4-4)
+        (free pos-4-5)
         (free pos-4-6)
-        (free pos-5-3)
+        (free pos-5-2)
+        (free pos-5-4)
         (free pos-6-2)
+        (free pos-6-3)
         (free pos-6-4)
-        (occupied pos-0-3)
-        (occupied pos-1-2)
-        (occupied pos-1-3)
-        (occupied pos-1-4)
-        (occupied pos-2-1)
-        (occupied pos-2-5)
-        (occupied pos-3-0)
+        (occupied pos-2-4)
+        (occupied pos-3-2)
         (occupied pos-3-3)
-        (occupied pos-3-6)
-        (occupied pos-4-0)
-        (occupied pos-4-1)
-        (occupied pos-4-5)
-        (occupied pos-5-2)
-        (occupied pos-5-4)
-        (occupied pos-6-3)
+        (occupied pos-4-3)
+        (occupied pos-4-4)
+        (occupied pos-5-3)
     )
     (:goal (and
         (free pos-0-2)

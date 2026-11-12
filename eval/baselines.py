@@ -342,7 +342,7 @@ Respond ONLY with the PDDL domain code block.
             }
 
         repair_attempts += 1
-        raw_error = "\n\n".join(errors)
+        raw_error = "\n\n".join([str(e) for e in errors if e is not None])
         clean_err = raw_error.encode("ascii", "ignore").decode("ascii")[:1500]
         error_history.append(f"[Iter {iteration} Raw Oracle Error]: {re.sub(r'\\s+', ' ', clean_err).strip()[:400]}")
 
@@ -525,7 +525,7 @@ Respond ONLY with the PDDL domain code block.
             cumulative_tokens += t_res.get("total_tokens", 0)
             cumulative_cost += t_res.get("estimated_cost_usd", 0.0)
         except Exception:
-            diag_feedback = "Verification Error:\n" + "\n".join(errors)
+            diag_feedback = "Verification Error:\n" + "\n".join([str(e) for e in errors if e is not None])
             diagnostic_reports = []
 
         error_history.append(f"[Iter {iteration} Fault Localization Feedback]: {diag_feedback[:300]}")

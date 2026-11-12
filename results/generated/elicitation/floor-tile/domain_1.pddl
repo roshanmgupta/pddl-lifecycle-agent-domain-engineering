@@ -26,19 +26,19 @@
 
   (:action paint-up
     :parameters (?r - robot ?y - tile ?x - tile ?c - color)
-    :precondition (and (robot-has ?r ?c) (robot-at ?r ?x) (up ?x ?y) (clear ?y))
-    :effect (and (painted ?y ?c) (not (clear ?y)) (not (robot-at ?r ?x)) (robot-at ?r ?y))
+    :precondition (and (robot-has ?r ?c) (robot-at ?r ?x) (up ?y ?x) (clear ?y))
+    :effect (and (painted ?y ?c) (not (clear ?y)))
   )
 
   (:action paint-down
     :parameters (?r - robot ?y - tile ?x - tile ?c - color)
-    :precondition (and (robot-has ?r ?c) (robot-at ?r ?x) (up ?x ?y) (clear ?y))
-    :effect (and (painted ?y ?c) (not (clear ?y)) (not (robot-at ?r ?x)) (robot-at ?r ?y))
+    :precondition (and (robot-has ?r ?c) (robot-at ?r ?x) (down ?y ?x) (clear ?y))
+    :effect (and (painted ?y ?c) (not (clear ?y)))
   )
 
   (:action up
     :parameters (?r - robot ?x - tile ?y - tile)
-    :precondition (and (robot-at ?r ?x) (up ?x ?y) (clear ?y))
+    :precondition (and (robot-at ?r ?x) (up ?y ?x) (clear ?y))
     :effect (and (robot-at ?r ?y) (clear ?x) (not (robot-at ?r ?x)) (not (clear ?y)))
   )
 
@@ -50,13 +50,13 @@
 
   (:action right
     :parameters (?r - robot ?x - tile ?y - tile)
-    :precondition (and (robot-at ?r ?x) (right ?x ?y) (clear ?y))
+    :precondition (and (robot-at ?r ?x) (right ?y ?x) (clear ?y))
     :effect (and (robot-at ?r ?y) (clear ?x) (not (robot-at ?r ?x)) (not (clear ?y)))
   )
 
   (:action left
     :parameters (?r - robot ?x - tile ?y - tile)
-    :precondition (and (robot-at ?r ?x) (left ?x ?y) (clear ?y))
+    :precondition (and (robot-at ?r ?x) (left ?y ?x) (clear ?y))
     :effect (and (robot-at ?r ?y) (clear ?x) (not (robot-at ?r ?x)) (not (clear ?y)))
   )
 

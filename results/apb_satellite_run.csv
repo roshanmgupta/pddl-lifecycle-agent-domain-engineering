@@ -1,2 +1,6 @@
-Task ID,Domain,Task Type,Architecture,Status,SVR,TPV,Executability,Feasibility,Interpretability,Macro F1,Plan Length,Iterations (k),Latency (s),Cost ($),Error Summary
-apb_satellite_instance-1,satellite,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified ✅,1.0,PASS,Certified,PASS,PASS,N/A,5,2,179.68,$0.00255,
+Task ID,Domain,Task Type,Architecture,Status,Syntax Valid,Executability,Feasibility,Interpretability,Plan Length,Iterations (k),Latency (s),Cost ($),Error Summary
+apb_gripper_instance-1,gripper,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified [PASS],PASS,Certified,PASS,PASS,5,1,4.98,$0.00059,
+apb_logistics_instance-1,logistics,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified [PASS],PASS,Certified,PASS,PASS,4,1,10.27,$0.00106,
+apb_logistics_instance-6,logistics,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified [PASS],PASS,Certified,PASS,PASS,3,1,24.44,$0.00106,
+apb_logistics_instance-21,logistics,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified [PASS],PASS,Certified,PASS,PASS,4,1,8.43,$0.00106,
+apb_satellite_instance-1,satellite,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified [PASS],PASS,Certified,PASS,PASS,5,1,6.25,$0.00076,

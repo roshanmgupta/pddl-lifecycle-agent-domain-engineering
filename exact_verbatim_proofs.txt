@@ -1,0 +1,360 @@
+================================================================================
+CITATION #11: georgievski2026formalisers
+Source Markdown File: From_Formalisers_to_EngineersAn_Agentic_Position_to_HTN_Domain_Model_Generation.md
+--- Header / Authors / Abstract from Markdown ---
+---
+title: "From Formalisers to Engineers: An Agentic Position to HTN Domain Model"
+original_file: "From Formalisers to EngineersAn Agentic Position to HTN Domain Model Generation.pdf"
+pages: 4
+category: "Position / Survey"
+raw_tokens: ~5,355
+clean_tokens: ~3,916
+---
+
+# From Formalisers to Engineers: An Agentic Position to HTN Domain Model
+
+**Category:** Position / Survey | **Pages:** 4 | **Tokens:** ~3,916 (reduced from ~5,355)
+
+### Abstract / Overview
+Service Computing Department, IAAS, University of Stuttgart {ilche.georgievski, ebaa.alnazer}@iaas.uni-stuttgart.de Abstract The ability of HTN planning to exploit rich do- main knowledge is both its greatest strength and...
+
+---
+
+From Formalisers to Engineers: An Agentic Position to HTN Domain Model
+Generation
+Ilche GeorgievskiandEbaa Alnazer
+Service Computing Department, IAAS, University of Stuttgart
+{ilche.georgievski, ebaa.alnazer}@iaas.uni-stuttgart.de
+
+## Abstract
+
+The ability of HTN planning to exploit rich do-
+main knowledge is both its greatest strength and
+its primary limitation. While such knowledge can
+improve planning efficiency, encoding it explic-
+itly in formal domain models is complex, time-
+consuming, and demands expertise in the appli-
+cation domain and automated planning. Recent
+LLM-based approaches largely frame this chal-
+lenge as translating natural-language descriptions
+
+================================================================================
+CITATION #12: georgievski2023software
+Source Markdown File: Software_Development_Life_Cycle_for_Engineering_AI_Planning_Systems.md
+--- Header / Authors / Abstract from Markdown ---
+---
+title: "Software Development Life Cycle for Engineering AI Planning Systems"
+original_file: "Software Development Life Cycle for Engineering AI Planning Systems.pdf"
+pages: 10
+category: "LLM Planning Foundations"
+raw_tokens: ~12,191
+clean_tokens: ~10,248
+---
+
+# Software Development Life Cycle for Engineering AI Planning Systems
+
+**Category:** LLM Planning Foundations | **Pages:** 10 | **Tokens:** ~10,248 (reduced from ~12,191)
+
+### Abstract / Overview
+AI planning is concerned with the automated generation of plans in terms of actions that need to be executed to achieve a given user goal. Considering the central role of this ability in AI and the prominence of AI planning in research and industry, the development of AI planning software and its integration into production architectures are becoming important. However, building and managing AI pl...
+
+---
+
+Software Development Life Cycle for Engineering AI Planning Systems
+Ilche Georgievski
+a
+Service Computing Department, IAAS, University of Stuttgart, Universitaetsstrasse 38, Stuttgart, Germany
+Keywords:
+AI Planning, Software Development Life Cycle, Software Engineering, AI Engineering.
+
+## Abstract:
+
+AI planning is concerned with the automated generation of plans in terms of actions that need to be executed
+to achieve a given user goal. Considering the central role of this ability in AI and the prominence of AI
+planning in research and industry, the development of AI planning software and its integration into production
+architectures are becoming important. However, building and managing AI planning systems is a complex
+process with its own peculiarities, and requires expertise. On the one hand, significant engineering challenges
+exist that relate to the design of planning domain models and system architectures, deployment, integration,
+and system performance. On the other hand, no life cycle or methodology currently exists that encompasses
+all phases relevant to the development process to ensure AI planning systems have high quality and industrial
+
+================================================================================
+CITATION #13: georgievski2024engineering
+Source Markdown File: Georgievski_Engineering_AI_Planning_Systems_Habilitation_2024.md
+--- Header / Authors / Abstract from Markdown ---
+---
+title: "Ilche Georgievski"
+original_file: "Georgievski_Engineering_AI_Planning_Systems_Habilitation_2024.pdf"
+pages: 89
+category: "LLM Planning Foundations"
+raw_tokens: ~50,614
+clean_tokens: ~50,685
+---
+
+# Ilche Georgievski
+
+**Category:** LLM Planning Foundations | **Pages:** 89 | **Tokens:** ~50,685 (reduced from ~50,614)
+
+### Abstract / Overview
+Systems Kumulative Habilitationsschrift Engineering AI Planning Systems zur Erlangung der Venia Legendi für das Fach Informatik an der Universität Stuttgart...
+
+---
+
+Ilche Georgievski
+Engineering 
+AI Planning 
+Systems
+
+Kumulative Habilitationsschrift
+Engineering AI Planning Systems
+zur Erlangung der Venia Legendi für das Fach Informatik
+an der Universität Stuttgart
+vorgelegt von
+Dr. Ilche Georgievski
+geboren in Bitola, Mazedonien
+Stuttgart, 2024
+
+Main Reviewer: Prof. Dr. Marco Aiello
+Co-Reviewer:
+Prof. Dr. Hector Geffner
+
+================================================================================
+CITATION #14: gackbel2026agentic
+Source Markdown File: Agentic_LLM_Planning_via_Step-Wise_PDDL_Simulation-_An_Empirical_Characterisation.md
+--- Header / Authors / Abstract from Markdown ---
+---
+title: "Agentic LLM Planning via Step-Wise PDDL Simulation: An Empirical"
+original_file: "Agentic LLM Planning via Step-Wise PDDL Simulation- An Empirical Characterisation.pdf"
+pages: 8
+category: "Planning Oracles & Verification"
+raw_tokens: ~10,587
+clean_tokens: ~8,982
+---
+
+# Agentic LLM Planning via Step-Wise PDDL Simulation: An Empirical
+
+**Category:** Planning Oracles & Verification | **Pages:** 8 | **Tokens:** ~8,982 (reduced from ~10,587)
+
+### Abstract / Overview
+Task planning, the problem of sequencing actions to reach a goal from an initial state, is a core capability require- ment for autonomous robotic systems. Whether large language models (LLMs) can serve as viable planners alongside classical symbolic methods remains an open question. We present PyPDDLEngine, an open-source Planning Domain Definition Language (PDDL) simulation engine that exposes pl...
+
+---
+
+Agentic LLM Planning via Step-Wise PDDL Simulation: An Empirical
+Characterisation
+Kai G¨
+obel, Pierrick Lorang, Patrik Zips, and Tobias Gl¨
+uck
+
+## Abstract— Task planning, the problem of sequencing actions
+
+to reach a goal from an initial state, is a core capability require-
+ment for autonomous robotic systems. Whether large language
+models (LLMs) can serve as viable planners alongside classical
+symbolic methods remains an open question. We present
+PyPDDLEngine, an open-source Planning Domain Definition
+Language (PDDL) simulation engine that exposes planning
+operations as LLM tool calls through a Model Context Protocol
+(MCP) interface. Rather than committing to a complete action
+sequence upfront, the LLM acts as an interactive search policy
+
+================================================================================
+CITATION #15: guan2023leveraging
+Source Markdown File: Leveraging_Pre-trained_Large_Language_Models_to_Construct_and_Utilize_World_Models_for_Model-based_Planning.md
+--- Header / Authors / Abstract from Markdown ---
+---
+title: "Leveraging Pre-trained Large Language Models to Construct and Utilize World Models for Model-based Planning"
+original_file: "Leveraging Pre-trained Large Language Models to Construct and Utilize World Models for Model-based Planning.pdf"
+pages: 45
+---
+
+# Leveraging Pre-trained Large Language Models to Construct and Utilize World Models for Model-based Planning
+
+A Appendix
+Contents
+1 Introduction 1
+2 Related Work 3
+3 Problem Setting and Background 3
+3.1 Classical planning problems . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+3.2 PDDL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+4 Methodology 4
+4.1 Constructing PDDL models with LLMs . . . . . . . . . . . . . . . . . . . . . . . 4
+4.2 Correcting errors in the initial PDDL models . . . . . . . . . . . . . . . . . . . . . 6
+4.3 Generating plans with the extracted PDDL models . . . . . . . . . . . . . . . . . 7
+5 Empirical Evaluation 7
+5.1 Constructing PDDL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+5.2 Correcting PDDL with domain experts . . . . . . . . . . . . . . . . . . . . . . . . 8
+5.3 Generating plans with the extracted PDDL models . . . . . . . . . . . . . . . . . 9
+6 Conclusion 10
+A Appendix 15
+A.1 Broader impact on using LLMs . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+A.2 Additional discussion on alternative to action-by-action PDDL construction . . . . 16
+A.3 Examples of feedback messages that capture syntax errors . . . . . . . . . . . . . 17
+A.4 Techniques that assist users to locate errors in PDDL models . . . . . . . . . . . . 17
+A.5 Detailed description of the Household domain . . . . . . . . . . . . . . . . . . . . 18
+A.6 Household: Constructing PDDL Models . . . . . . . . . . . . . . . . . . . . . . . 18
+A.6.1 An example prompt for constructing PDDL models of the action "close a
+small receptacle" . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+A.6.2 Navigate to a furniture piece or an appliance . . . . . . . . . . . . . . . . 20
+A.6.3 Pick up an object on or in a furniture piece or an appliance . . . . . . . . . . 21
+
+================================================================================
+CITATION #17: howey2004val
+Source Markdown File: VAL_automatic_plan_validation_continuous_effects_and_mixed_initiative_planning_using_PDDL.md
+--- Header / Authors / Abstract from Markdown ---
+---
+title: "VAL: Automatic Plan Validation, Continuous Effects and Mixed Initiative"
+original_file: "VAL_automatic_plan_validation_continuous_effects_and_mixed_initiative_planning_using_PDDL.pdf"
+pages: 8
+category: "Domain Evolution & Maintenance"
+raw_tokens: ~10,347
+clean_tokens: ~9,715
+---
+
+# VAL: Automatic Plan Validation, Continuous Effects and Mixed Initiative
+
+**Category:** Domain Evolution & Maintenance | **Pages:** 8 | **Tokens:** ~9,715 (reduced from ~10,347)
+
+### Abstract / Overview
+This paper describes aspects of our plan validation tool, VAL. The tool was initially developed to support the 3rd International Planning Competition, but has subsequently been extended in order to exploit its capabilities in plan validation and development. In particular, the tool has been extended to include advanced features of PDDL2.1 which have proved important in mixed-initiative planning in...
+
+---
+
+VAL: Automatic Plan Validation, Continuous Effects and Mixed Initiative
+Planning using PDDL
+Richard Howey, Derek Long and Maria Fox
+Department of Computer and Information Systems, University of Strathclyde, Glasgow, UK
+ﬁrstname.lastname@cis.strath.ac.uk
+
+## Abstract
+
+This paper describes aspects of our plan validation tool,
+VAL. The tool was initially developed to support the 3rd
+International Planning Competition, but has subsequently
+been extended in order to exploit its capabilities in plan
+validation and development.
+In particular, the tool has
+been extended to include advanced features of PDDL2.1
+which have proved important in mixed-initiative planning in
+a space operations project. Amongst these features, treat-
+
+================================================================================
+CITATION #18: haslum2019introduction
+Source Markdown File: 978-3-030-38561-3.md
+--- Header / Authors / Abstract from Markdown ---
+---
+title: "Diane Kitchin   Editors"
+original_file: "978-3-030-38561-3.pdf"
+pages: 275
+category: "Planning Oracles & Verification"
+raw_tokens: ~169,588
+clean_tokens: ~170,191
+---
+
+# Diane Kitchin   Editors
+
+**Category:** Planning Oracles & Verification | **Pages:** 275 | **Tokens:** ~170,191 (reduced from ~169,588)
+
+### Abstract / Overview
+The paper presents a classical planning compilation for learning STRIPS action models from partial observations of plan executions. The compilation is ﬂexible to different amounts and types of input knowledge, from learning samples that comprise partially observed intermediate states of the plan execution to samples in which only the initial and ﬁnal states are observed. The compilation accepts al...
+
+---
+
+Mauro Vallati
+Diane Kitchin   Editors
+Knowledge 
+Engineering 
+Tools and 
+Techniques for AI 
+Planning
+
+Knowledge Engineering Tools and Techniques
+for AI Planning
+
+Mauro Vallati • Diane Kitchin
+Editors
+Knowledge Engineering
+Tools and Techniques
+for AI Planning
+
+
+================================================================================
+CITATION #19: HuangSPAR
+Source Markdown File: Scalable_LLM-based_PDDL_Domain_Generation.md
+--- Header / Authors / Abstract from Markdown ---
+---
+title: "SPAR: Scalable LLM-based PDDL Domain Generation"
+original_file: "Scalable LLM-based PDDL Domain Generation.pdf"
+pages: 8
+category: "PDDL Domain Synthesis"
+raw_tokens: ~11,037
+clean_tokens: ~9,366
+---
+
+# SPAR: Scalable LLM-based PDDL Domain Generation
+
+**Category:** PDDL Domain Synthesis | **Pages:** 8 | **Tokens:** ~9,366 (reduced from ~11,037)
+
+### Abstract / Overview
+We investigate the problem of automatic do- main generation for the Planning Domain Definition Lan- guage (PDDL) using Large Language Models (LLMs), with a particular focus on unmanned aerial vehicle (UAV) tasks. Although PDDL is a widely adopted standard in robotic planning, manually designing domains for diverse applications such as surveillance, delivery, and inspection is labor-intensive and e...
+
+---
+
+SPAR: Scalable LLM-based PDDL Domain Generation
+for Aerial Robotics
+Songhao Huang∗1, Yuwei Wu∗1, Guangyao Shi2, Gaurav S. Sukhatme2, Vijay Kumar1
+
+## Abstract— We investigate the problem of automatic do-
+
+main generation for the Planning Domain Definition Lan-
+guage (PDDL) using Large Language Models (LLMs), with
+a particular focus on unmanned aerial vehicle (UAV) tasks.
+Although PDDL is a widely adopted standard in robotic
+planning, manually designing domains for diverse applications
+such as surveillance, delivery, and inspection is labor-intensive
+and error-prone, which hinders adoption and real-world de-
+ployment. To address these challenges, we propose SPAR, a
+framework that leverages the generative capabilities of LLMs to
+automatically produce valid, diverse, and semantically accurate
+PDDL domains from natural language input. To this end, we
+
+================================================================================
+CITATION #20: huang2025limit
+Source Markdown File: On_the_Limit_of_Language_Models_as_Planning_Formalizers.md
+--- Header / Authors / Abstract from Markdown ---
+---
+title: "On the Limit of Language Models as Planning Formalizers"
+original_file: "On the Limit of Language Models as Planning Formalizers.pdf"
+pages: 25
+---
+
+# On the Limit of Language Models as Planning Formalizers
+
+arXiv:2412.09879v4  [cs.CL]  31 May 2025
+On the Limit of Language Models as Planning Formalizers
+Cassie Huang Li Zhang
+Drexel University
+{Cassie.Huang}@drexel.edu {Harry.Zhang}@drexel.edu
+Abstract
+Large Language Models have been found to
+create plans that are neither executable nor veri-
+fiable in grounded environments. An emerging
+line of work demonstrates success in using the
+LLM as a formalizer to generate a formal rep-
+resentation of the planning domain in some
+language, such as Planning Domain Definition
+Language (PDDL). This formal representation
+can be deterministically solved to find a plan.
+We systematically evaluate this methodology
+while bridging some major gaps. While previ-
+ous work only generates a partial PDDL repre-
+sentation, given templated, and therefore unre-
+alistic environment descriptions, we generate
+the complete representation given descriptions
+of various naturalness levels. Among an ar-
+ray of observations critical to improve LLMs’
+formal planning abilities, we note that most
+large enough models can effectively formalize
+descriptions as PDDL, outperforming those di-
+rectly generating plans, while being robust to
+

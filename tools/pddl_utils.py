@@ -68,8 +68,8 @@ def normalize_atom(atom_str: str) -> Tuple[str, bool]:
         s = f"{s})"
 
     inner = s[1:-1].strip()
-    if inner.lower().startswith("not"):
-        neg_content = inner[3:].strip()
+    if re.match(r"^not(?:\s+|\s*\()", inner, re.IGNORECASE):
+        neg_content = re.sub(r"^not\s*", "", inner, count=1, flags=re.IGNORECASE).strip()
         if not neg_content.startswith("("):
             neg_content = f"({neg_content})"
         norm_inner = normalize_pddl_expression(neg_content)

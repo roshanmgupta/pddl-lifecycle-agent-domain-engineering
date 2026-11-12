@@ -389,8 +389,8 @@ st.sidebar.title("⚙️ Lifecycle Architecture Controls")
 dataset_source = st.sidebar.radio(
     "📂 Dataset Track:",
     options=[
-        "AutoPlanBench (Pure STRIPS NL Descriptions)",
-        "AutoPlanBench (Curated Lifecycle & Flaw Tasks)"
+        "NL Descriptions",
+        "Flaw Tasks"
     ],
     index=0,
     help="Pure STRIPS NL Descriptions: standard IPC domains with natural language action descriptions. Curated Lifecycle Tasks: curated benchmark tasks with specifications and synthetic flaws."
@@ -414,7 +414,7 @@ st.sidebar.markdown("---")
 
 # Operating Modality (for Curated Lifecycle Tasks)
 selected_mode = "🌿 Direct NL Domain Synthesis"
-if dataset_source == "AutoPlanBench (Curated Lifecycle & Flaw Tasks)":
+if dataset_source == "Flaw Tasks":
     selected_mode = st.sidebar.radio(
         "Operating Modality:",
         options=[
@@ -435,14 +435,14 @@ csv_output_filename: str = "benchmark_results.csv"
 # ------------------------------------------------------------------------------
 # DOMAIN & TASK SELECTION LOGIC
 # ------------------------------------------------------------------------------
-if dataset_source == "AutoPlanBench (Pure STRIPS NL Descriptions)":
+if dataset_source == "NL Descriptions":
     apb_domains = list_autoplanbench_domains()
     # Prioritize 6 core domains at the top
     ordered_domains = [d for d in SIX_CORE_DOMAINS if d in apb_domains] + [d for d in apb_domains if d not in SIX_CORE_DOMAINS]
 
     if exec_scope == "🎯 Single Task Run":
-        st.sidebar.markdown("### 🌿 AutoPlanBench Synthesis Task")
-        sel_domain = st.sidebar.selectbox("Choose Benchmark Domain:", ordered_domains, index=0)
+        st.sidebar.markdown("### 🌿 Select Domain")
+        sel_domain = st.sidebar.selectbox("Select Domain:", ordered_domains, index=0)
         avail_problems = list_autoplanbench_problem_files(sel_domain)
         sel_prob = st.sidebar.selectbox("Choose Problem Instance:", avail_problems, index=0 if avail_problems else 0)
 
@@ -481,7 +481,7 @@ if dataset_source == "AutoPlanBench (Pure STRIPS NL Descriptions)":
                 batch_tasks_to_run.append(t)
 
     else: # Custom Batch
-        st.sidebar.markdown("#### 📦 Custom AutoPlanBench Selection")
+        st.sidebar.markdown("#### 📦 Custom Domain Selection")
         selected_batch_domains = st.sidebar.multiselect(
             "Select Domains to Benchmark:",
             ordered_domains,
@@ -642,8 +642,8 @@ col_banner, col_trigger = st.columns([3, 1])
 with col_banner:
     if exec_scope == "🎯 Single Task Run":
         if active_single_task:
-            st.markdown(f"### 🎯 Task: `{active_single_task.title}`")
-            st.caption(f"Source: **{dataset_source}** | Domain: **`{active_single_task.domain_family}`** | Architecture: **`{selected_single_agent}`**")
+            st.markdown(f"### 🎯 Select Domain: `{active_single_task.domain_family.capitalize()}`")
+            st.caption(f"Task: **`{active_single_task.title}`** | Source: **{dataset_source}** | Architecture: **`{selected_single_agent}`**")
         else:
             st.warning("No active task loaded. Please select a valid domain and task from the sidebar.")
     elif exec_scope == "🏛️ Run 6 Core Domains Benchmark":
@@ -679,7 +679,8 @@ def execute_task_with_telemetry(
     task: BenchmarkTask,
     agent_type: str,
     max_iters: int,
-    status_box: Optional[Any] = None
+    status_box: Optional[Any] = None,
+    live_container: Optional[Any] = None
 ) -> Tuple[EvaluationMetrics, dict, List[dict]]:
     """Executes a single benchmark task with full phase-by-phase observability."""
     start_time = time.time()
@@ -781,6 +782,80 @@ def execute_task_with_telemetry(
                         it = final_state.get("iteration_count", 0)
                         status_box.write(f"* **Phase 5 (Targeted AST Repair - Iteration {it})**: Applied causal repair operation to action schemas.")
 
+                if live_container:
+                    with live_container:
+                        if node_name == "elicit":
+                            bp = node_update.get("pddl_domain_representation", {})
+                            n_acts = len(bp.get("actions", [])) if isinstance(bp, dict) else 0
+                            with st.expander("🌿 Phase 1 (Live): Requirements Elicited & Initial AST Synthesized", expanded=True):
+                                st.markdown(f"**Natural Language Requirements** ({len(task.natural_language_requirements)} chars):")
+                                st.code(task.natural_language_requirements[:500] + ("..." if len(task.natural_language_requirements) > 500 else ""), language="text")
+                                if isinstance(bp, dict) and bp.get("actions"):
+                                    act_names = [a.get("name", "") for a in bp["actions"] if isinstance(a, dict)]
+                                    st.write(f"Synthesized **{n_acts} Action Schema(s)**: `{', '.join(act_names)}`")
+                            if bp:
+                                with st.expander("🌳 Phase 1 AST Schema (JSON Blueprint Before AST-to-PDDL Compilation)", expanded=True):
+                                    st.json(bp)
+                        elif node_name == "compile":
+                            it = final_state.get("iteration_count", 0)
+                            dom_p = node_update.get("generated_domain_pddl", "")
+                            with st.expander(f"⚙️ Phase 2 (Live): AST Programmatic Compilation (Iteration {it})", expanded=True):
+                                st.caption(f"Deterministic AST-to-PDDL compilation ({len(dom_p)} characters)")
+                                st.code(dom_p, language="lisp")
+                        elif node_name == "validate":
+                            ot = node_update.get("oracle_trace", {})
+                            it = final_state.get("iteration_count", 0)
+                            val_ok = ot.get("val_ok", False)
+                            fd_ok = ot.get("fd_ok", False)
+                            plan_steps = ot.get("plan_steps", [])
+                            v_hdr = f"⚖️ Phase 3 (Live): Symbolic Oracle Checks (Iteration {it}) — " + ("PASS (Valid & Solvable)" if (val_ok and fd_ok) else ("Syntax PASS | Search INCOMPLETE" if val_ok else "REJECTED (Syntax Error)"))
+                            with st.expander(v_hdr, expanded=True):
+                                c1, c2 = st.columns(2)
+                                with c1:
+                                    st.markdown(f"**VAL Syntax Oracle**: `{'PASSED [OK]' if val_ok else 'FAILED [X]'}`")
+                                    if ot.get("val_log"):
+                                        st.code(ot["val_log"][:400], language="text")
+                                pass
+                                with c2:
+                                    st.markdown(f"**Fast Downward Oracle**: `{'PLAN FOUND [OK]' if fd_ok else 'UNSOLVABLE [X]'}`")
+                                    st.write(f"Plan Steps: **{len(plan_steps)}**")
+                                    if ot.get("fd_log"):
+                                        st.code(ot["fd_log"][:400], language="text")
+                        elif node_name == "fault_localization":
+                            reps = node_update.get("diagnostic_reports", [])
+                            it = final_state.get("iteration_count", 0)
+                            fmt_fb = node_update.get("formatted_diagnostic_feedback", "")
+                            with st.expander(f"🩺 Phase 4 (Live): Model-Based Fault Localization (Iteration {it})", expanded=True):
+                                if reps:
+                                    st.markdown(f"Triaged **{len(reps)} Defect(s)**:")
+                                    for idx, r in enumerate(reps[:4], 1):
+                                        cat = r.get("error_category", "UNKNOWN") if isinstance(r, dict) else getattr(r, "error_category", "UNKNOWN")
+                                        el = r.get("faulty_element", "General") if isinstance(r, dict) else getattr(r, "faulty_element", "General")
+                                        op = r.get("repair_operation_type", "GENERAL") if isinstance(r, dict) else getattr(r, "repair_operation_type", "GENERAL")
+                                        hint = r.get("suggested_repair_hint", "") if isinstance(r, dict) else getattr(r, "suggested_repair_hint", "")
+                                        st.markdown(f"- **Issue #{idx}**: Target=`{el}` | Defect=`{cat}` | Op=`{op}`")
+                                        if hint:
+                                            st.info(f"Hint: {hint}")
+                                elif fmt_fb:
+                                    st.code(fmt_fb[:400], language="text")
+                                else:
+                                    st.success("Zero defects diagnosed. Clean model.")
+                        elif node_name == "repair":
+                            it = final_state.get("iteration_count", 0)
+                            rf_log = node_update.get("repair_feedback_log", []) or final_state.get("repair_feedback_log", [])
+                            latest = rf_log[-1] if rf_log else {}
+                            with st.expander(f"🔄 Phase 5 (Live): Transparent AST Repair (Iteration {it})", expanded=True):
+                                targets = latest.get("target_actions", [])
+                                st.markdown(f"**Target Action Schema(s) to Repair**: `{targets}`")
+                                diag_fb = latest.get("diagnostic_feedback", "")
+                                if diag_fb:
+                                    st.markdown("**Structured Error Feedback Injected into LLM:**")
+                                    st.code(str(diag_fb)[:500], language="text")
+                            rep_bp = node_update.get("pddl_domain_representation", {})
+                            if rep_bp:
+                                with st.expander(f"🌳 Repaired AST Schema (Before Next AST-to-PDDL Generation - Iteration {it})", expanded=True):
+                                    st.json(rep_bp)
+
         exec_time = time.time() - start_time
 
         dom_pddl = final_state.get("generated_domain_pddl", "")
@@ -865,13 +940,37 @@ def execute_task_with_telemetry(
     else:
         def _app_trace_callback(event: Dict[str, Any]) -> None:
             phase_events.append(event)
+            p = event.get("phase")
+            it = event.get("iteration", 0)
             if status_box:
-                p = event.get("phase")
-                it = event.get("iteration", 0)
                 if p == "validate":
                     status_box.write(f"⚖️ Iteration {it}: VAL Valid={event.get('val_ok')} | Fast Downward Solvable={event.get('fd_ok')}")
                 elif p == "fault_feedback_passed_to_llm":
                     status_box.write(f"🔄 Iteration {it}: Passing feedback ({event.get('feedback_type')}) back to LLM...")
+
+            if live_container:
+                with live_container:
+                    if p == "compile":
+                        dom_p = event.get("domain_pddl", "")
+                        with st.expander(f"⚙️ Candidate Domain PDDL (Iteration {it})", expanded=True):
+                            st.code(dom_p[:1200], language="lisp")
+                    elif p == "validate":
+                        val_ok = event.get("val_ok", False)
+                        fd_ok = event.get("fd_ok", False)
+                        p_steps = event.get("plan_steps", [])
+                        h_status = "PASS (Valid & Solvable)" if (val_ok and fd_ok) else "FAIL"
+                        with st.expander(f"⚖️ Oracle Validation (Iteration {it}) — {h_status}", expanded=True):
+                            st.write(f"VAL Valid: `{'PASS' if val_ok else 'FAIL'}` | Fast Downward Solvable: `{'PLAN FOUND' if fd_ok else 'UNSOLVABLE'}` (Steps: {len(p_steps)})")
+                            if event.get("val_log"):
+                                st.caption("VAL Output:")
+                                st.code(event["val_log"][:300], language="text")
+                            if event.get("fd_log"):
+                                st.caption("Fast Downward Output:")
+                                st.code(event["fd_log"][:300], language="text")
+                    elif p == "fault_feedback_passed_to_llm":
+                        fb_payload = event.get("feedback_payload", "")
+                        with st.expander(f"🔄 Error Feedback Sent Back to LLM (Iteration {it})", expanded=True):
+                            st.code(str(fb_payload)[:500], language="text")
 
         if agent_type == "UNSTRUCTURED_RETRY":
             base_res = run_unstructured_retry_baseline(task, max_retries=max_iters, on_event=_app_trace_callback)
@@ -988,12 +1087,15 @@ def save_metrics_to_csv_file(filename: str, rows: List[dict]):
 # TRIGGER 1: RUN SINGLE TASK
 # ------------------------------------------------------------------------------
 if run_single and active_single_task:
-    status_container = st.status(f"🚀 Running {selected_single_agent} on '{active_single_task.task_id}'...", expanded=True)
-    status_container.write("Initializing symbolic environment and agent workflow...")
+    live_container = st.container()
+    with live_container:
+        st.markdown("### ⚡ Real-Time Lifecycle Execution")
+        status_container = st.status(f"🚀 Running {selected_single_agent} on '{active_single_task.task_id}'...", expanded=True)
+        status_container.write("Initializing symbolic environment and agent workflow...")
 
     try:
         metrics, final_state, events = execute_task_with_telemetry(
-            active_single_task, selected_single_agent, max_iterations, status_container
+            active_single_task, selected_single_agent, max_iterations, status_container, live_container
         )
 
         saved_info = save_output_to_disk(final_state, active_single_task)
@@ -1100,13 +1202,30 @@ if run_batch and batch_tasks_to_run and batch_agents_to_run:
     batch_status.success(f"🎉 Batch Benchmark Complete! Saved to `results/{csv_output_filename}`.")
 
 
+# Historical execution log preview if not currently executing
+if not run_single and not run_six and not run_batch and st.session_state.get("active_state"):
+    last_task = st.session_state.get("active_task")
+    last_metrics = st.session_state.get("active_result")
+    t_name = last_task.domain_family if last_task else "Task"
+    succ_str = "Verified [PASS]" if (last_metrics and last_metrics.e2e_success) else "Unverified [FAIL]"
+    with st.expander(f"🔍 Real-Time Lifecycle Execution Log (Last Run: `{t_name}` — {succ_str})", expanded=False):
+        last_state = st.session_state.get("active_state", {})
+        ot = last_state.get("oracle_trace", {})
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Syntax Valid", "PASS" if ot.get("val_ok") else "FAIL")
+        c2.metric("Planner Solvable", "PLAN FOUND" if ot.get("fd_ok") else "UNSOLVABLE")
+        c3.metric("Iterations Used", f"{last_state.get('iteration_count', 1)}")
+        if last_state.get("generated_domain_pddl"):
+            st.caption("Compiled Domain PDDL (`domain.pddl`):")
+            st.code(last_state["generated_domain_pddl"][:1200], language="lisp")
+
+
 # ==============================================================================
 # MAIN DISPLAY TABS
 # ==============================================================================
-tab_results, tab_pddl, tab_phases, tab_fault_loc, tab_telemetry = st.tabs([
+tab_results, tab_pddl, tab_fault_loc, tab_telemetry = st.tabs([
     "📊 Evaluation Results & Metrics",
     "📄 Generated Models & Plan Validation",
-    "🔍 Phase Observability & Transparent Feedback",
     "🩺 Layered Model-Based Fault Localization",
     "⏱️ Telemetry & Cost Analytics"
 ])
@@ -1116,6 +1235,38 @@ tab_results, tab_pddl, tab_phases, tab_fault_loc, tab_telemetry = st.tabs([
 # TAB 1: 📊 EVALUATION RESULTS & METRICS TABLE
 # ==============================================================================
 with tab_results:
+    active_result = st.session_state.get("active_result")
+    if active_result:
+        st.markdown("### 🏆 Comprehensive Evaluation Metrics Scorecard")
+        st.caption("Formal Bidirection Semantic Verification metrics calculated on the final model.")
+
+        m = active_result
+        col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+        col_m1.metric("Syntax Valid", "PASS" if m.is_syntax_valid else "FAIL")
+        col_m2.metric("Plan Solvable", "PASS" if m.is_solvable else "FAIL")
+        col_m3.metric("Internal Validity", "PASS" if m.executability_valid else ("FAIL" if m.is_syntax_valid else "N/A"))
+        col_m4.metric("Soundness", "PASS" if m.feasibility_valid else ("FAIL" if m.feasibility_valid is False else "N/A"))
+        col_m5.metric("Completeness", "PASS" if m.interpretability_valid else ("FAIL" if m.interpretability_valid is False else "N/A"))
+
+        col_len, col_it, col_lat, col_cost = st.columns(4)
+        col_len.metric("Plan Length", f"{m.plan_length} steps" if m.plan_length is not None else "N/A")
+        col_it.metric("Iterations (k)", f"{m.iterations_used}")
+        col_lat.metric("Latency", f"{m.execution_time_seconds:.2f}s")
+        col_cost.metric("Estimated Cost", f"${m.estimated_cost_usd:.5f}")
+
+        metrics_table = [
+            {"Metric": "Syntax Validity", "Value": "PASS" if m.is_syntax_valid else "FAIL", "Formal Criterion": "VAL Syntax Check"},
+            {"Metric": "Planner Solvability", "Value": "PASS" if m.is_solvable else "FAIL", "Formal Criterion": "Fast Downward Search"},
+            {"Metric": "Internal Solvability (Executability)", "Value": "PASS" if m.executability_valid else "FAIL", "Formal Criterion": "VAL(D_gen, P_gen, pi_gen)"},
+            {"Metric": "Forward Soundness (Feasibility)", "Value": "PASS" if m.feasibility_valid else ("FAIL" if m.feasibility_valid is False else "N/A"), "Formal Criterion": "VAL(D_gold, P_gold, pi_gen)"},
+            {"Metric": "Inverse Completeness (Interpretability)", "Value": "PASS" if m.interpretability_valid else ("FAIL" if m.interpretability_valid is False else "N/A"), "Formal Criterion": "VAL(D_gen, P_gold, pi_gold)"},
+            {"Metric": "Repair Iterations Used", "Value": f"{m.iterations_used}", "Formal Criterion": "Convergence Speed (k)"},
+            {"Metric": "Execution Wall Time", "Value": f"{m.execution_time_seconds:.2f} seconds", "Formal Criterion": "Latency"},
+            {"Metric": "API Token Consumption", "Value": f"{m.total_tokens:,} tokens", "Formal Criterion": "Compute Cost"},
+        ]
+        st.dataframe(metrics_table, use_container_width=True)
+        st.markdown("---")
+
     st.markdown("### 📊 Benchmark Evaluation Scorecard & Comparative Matrix")
     st.caption("Standardized automated planning evaluation metrics grounded in VAL and Fast Downward symbolic oracles.")
 
@@ -1178,14 +1329,13 @@ with tab_results:
 
 
 # ==============================================================================
-# TAB 2: 📄 GENERATED MODELS, PLAN VALIDATION & METRICS SCORECARD
+# TAB 2: 📄 GENERATED MODELS & PLAN VALIDATION
 # ==============================================================================
 with tab_pddl:
     st.markdown("### 📄 Generated PDDL Models, Oracle Validation & Plan Report")
-    st.caption("Inspect the compiled domain and problem files, symbolic oracle logs (VAL & Fast Downward), synthesized plan, and the complete evaluation metrics scorecard below.")
+    st.caption("Inspect the AST schema, compiled domain and problem files, symbolic oracle logs (VAL & Fast Downward), and synthesized plan below.")
 
     active_state = st.session_state.get("active_state")
-    active_result = st.session_state.get("active_result")
     saved_info = st.session_state.get("last_saved_info")
 
     if active_state:
@@ -1231,194 +1381,36 @@ with tab_pddl:
             clean_dom_path = os.path.relpath(s_dom).replace("\\", "/")
             st.caption(f"💾 Saved to local disk: `{clean_dom_path}`")
 
-        # 2. GENERATED DOMAIN CODE
+        # 2. AST SCHEMA (BEFORE PDDL GENERATION)
         st.markdown("---")
-        st.markdown("#### `domain.pddl` (Generated / Repaired)")
-        st.code(dom_pddl, language="lisp")
-
-        with st.expander("Domain Representation AST (JSON)", expanded=False):
+        with st.expander("🌳 Domain AST Schema Representation (JSON Blueprint Before AST-to-PDDL Generation)", expanded=True):
             st.json(domain_bp if domain_bp else {"info": "Representation empty or generated via direct text baseline."})
 
-        # 3. GENERATED PROBLEM CODE
-        st.markdown("#### `problem.pddl`")
-        st.code(prob_pddl, language="lisp")
+        # 3. GENERATED DOMAIN CODE
+        with st.expander("⚙️ Compiled Domain Definition: domain.pddl (Generated / Repaired)", expanded=True):
+            st.code(dom_pddl, language="lisp")
 
-        # 4. SYNTHESIZED CLASSICAL PLAN
+        # 4. GENERATED PROBLEM CODE
+        with st.expander("📄 Target Problem Instance: problem.pddl", expanded=True):
+            st.code(prob_pddl, language="lisp")
+
+        # 5. SYNTHESIZED CLASSICAL PLAN
         if plan_res and plan_res.get("is_solvable") and plan_res.get("plan_steps"):
-            st.markdown("---")
-            st.markdown("#### 📋 Synthesized Classical Plan (`sas_plan`)")
-            p_len = plan_res.get("plan_length", len(plan_res["plan_steps"]))
-            p_time = plan_res.get("search_time", 0.0)
-            st.caption(f"Plan Length: **{p_len} steps** | Fast Downward Search Time: **{p_time:.4f}s** | VAL Certificate: **Valid 🛡️**")
+            with st.expander("📋 Synthesized Classical Plan (sas_plan)", expanded=True):
+                p_len = plan_res.get("plan_length", len(plan_res["plan_steps"]))
+                p_time = plan_res.get("search_time", 0.0)
+                st.caption(f"Plan Length: **{p_len} steps** | Fast Downward Search Time: **{p_time:.4f}s** | VAL Certificate: **Valid 🛡️**")
 
-            steps = plan_res["plan_steps"]
-            formatted_steps = [{"Step": i, "Action Schema & Grounded Parameters": s} for i, s in enumerate(steps, 1)]
-            st.dataframe(formatted_steps, use_container_width=True)
-
-        # 5. ALL METRICS OUTPUT PRINTED CLEARLY BELOW (AS REQUESTED)
-        if active_result:
-            st.markdown("---")
-            st.markdown("### 🏆 Comprehensive Evaluation Metrics Scorecard")
-            st.caption("Formal Tri-Criteria Semantic Verification metrics calculated on the final model.")
-
-            m = active_result
-            col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
-            col_m1.metric("Syntax Valid", "PASS" if m.is_syntax_valid else "FAIL")
-            col_m2.metric("Plan Solvable", "PASS" if m.is_solvable else "FAIL")
-            col_m3.metric("Executability", "PASS" if m.executability_valid else ("FAIL" if m.is_syntax_valid else "N/A"))
-            col_m4.metric("Feasibility", "PASS" if m.feasibility_valid else ("FAIL" if m.feasibility_valid is False else "N/A"))
-            col_m5.metric("Interpretability", "PASS" if m.interpretability_valid else ("FAIL" if m.interpretability_valid is False else "N/A"))
-
-            col_len, col_it, col_lat, col_cost = st.columns(4)
-            col_len.metric("Plan Length", f"{m.plan_length} steps" if m.plan_length is not None else "N/A")
-            col_it.metric("Iterations (k)", f"{m.iterations_used}")
-            col_lat.metric("Latency", f"{m.execution_time_seconds:.2f}s")
-            col_cost.metric("Estimated Cost", f"${m.estimated_cost_usd:.5f}")
-
-            metrics_table = [
-                {"Metric": "Syntax Validity", "Value": "PASS" if m.is_syntax_valid else "FAIL", "Formal Criterion": "VAL Syntax Check"},
-                {"Metric": "Planner Solvability", "Value": "PASS" if m.is_solvable else "FAIL", "Formal Criterion": "Fast Downward Search"},
-                {"Metric": "Internal Solvability (Executability)", "Value": "PASS" if m.executability_valid else "FAIL", "Formal Criterion": "VAL(D_gen, P_gen, pi_gen)"},
-                {"Metric": "Forward Soundness (Feasibility)", "Value": "PASS" if m.feasibility_valid else ("FAIL" if m.feasibility_valid is False else "N/A"), "Formal Criterion": "VAL(D_gold, P_gold, pi_gen)"},
-                {"Metric": "Inverse Completeness (Interpretability)", "Value": "PASS" if m.interpretability_valid else ("FAIL" if m.interpretability_valid is False else "N/A"), "Formal Criterion": "VAL(D_gen, P_gold, pi_gold)"},
-                {"Metric": "Repair Iterations Used", "Value": f"{m.iterations_used}", "Formal Criterion": "Convergence Speed (k)"},
-                {"Metric": "Execution Wall Time", "Value": f"{m.execution_time_seconds:.2f} seconds", "Formal Criterion": "Latency"},
-                {"Metric": "API Token Consumption", "Value": f"{m.total_tokens:,} tokens", "Formal Criterion": "Compute Cost"},
-            ]
-            st.dataframe(metrics_table, use_container_width=True)
+                steps = plan_res["plan_steps"]
+                formatted_steps = [{"Step": i, "Action Schema & Grounded Parameters": s} for i, s in enumerate(steps, 1)]
+                st.dataframe(formatted_steps, use_container_width=True)
 
     else:
-        st.info("👈 Run a task to inspect the generated domain, problem, validation report, and metrics scorecard here.")
+        st.info("👈 Run a task to inspect the AST schema, generated domain, problem, validation report, and plan here.")
 
 
 # ==============================================================================
-# TAB 3: 🔍 PHASE OBSERVABILITY & TRANSPARENT FEEDBACK LOOP
-# ==============================================================================
-with tab_phases:
-    st.markdown("### 🔍 Phase-by-Phase Observability & Transparent Feedback Loop")
-    st.caption("Complete breakdown of what was produced in each lifecycle phase and exactly what error feedback was passed back to the model/AST.")
-
-    active_state = st.session_state.get("active_state")
-    events = st.session_state.get("phase_events_history", [])
-    active_agent = (active_state.get("system_type") if active_state else None) or selected_single_agent
-
-    # 1. High-Level Mode Feedback Mechanism Card
-    fb_meta = FEEDBACK_EXPLANATIONS.get(active_agent, FEEDBACK_EXPLANATIONS["CLOSED_LOOP_AST_AGENT"])
-    st.markdown(f"""
-    <div style="background-color: #F0F4F8; border-left: 5px solid #1976D2; padding: 1rem; border-radius: 6px; margin-bottom: 1.2rem;">
-        <h4 style="margin: 0; color: #0D47A1;">🔄 Feedback Loop Policy: <code>{active_agent}</code></h4>
-        <p style="margin: 0.4rem 0 0.2rem 0; font-size: 0.95rem;"><strong>Mechanism</strong>: {fb_meta['mechanism']}</p>
-        <p style="margin: 0; font-size: 0.92rem; color: #37474F;"><strong>Target Representation Handled by Model</strong>: <code>{fb_meta['target']}</code></p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if active_state:
-        # Phase 1: Requirements & Elicitation
-        with st.expander("🌿 Phase 1: Natural Language Requirements & Problem Instance", expanded=True):
-            req_str = active_state.get("requirements", "")
-            st.markdown(f"**Natural Language Specification ({len(req_str)} chars):**")
-            st.code(req_str[:1500] + ("..." if len(req_str) > 1500 else ""), language="text")
-            prob_str = active_state.get("initial_problem_pddl") or active_state.get("generated_problem_pddl", "")
-            if prob_str:
-                st.markdown("**Target Problem Instance (`problem.pddl`):**")
-                st.code(prob_str, language="lisp")
-
-        # Phase 2: Compilation & Generated Artifact
-        with st.expander("⚙️ Phase 2: Domain Compilation & Generated Artifact", expanded=False):
-            dom_code = active_state.get("generated_domain_pddl", "")
-            st.markdown("**Compiled Domain Definition (`domain.pddl`):**")
-            st.code(dom_code[:1200] + ("..." if len(dom_code) > 1200 else ""), language="lisp")
-
-        # Phase 3: Symbolic Oracle Checks
-        with st.expander("⚖️ Phase 3: Symbolic Oracle Checks (VAL & Fast Downward)", expanded=True):
-            trace = active_state.get("oracle_trace", {})
-            c1, c2 = st.columns(2)
-            with c1:
-                st.markdown("**VAL Syntax Oracle:**")
-                st.write(f"- Status: `{'PASSED' if trace.get('val_ok') else 'FAILED'}`")
-                if trace.get("val_log"):
-                    st.code(trace["val_log"][:600], language="text")
-            with c2:
-                st.markdown("**Fast Downward Solver Oracle:**")
-                st.write(f"- Status: `{'SOLVABLE' if trace.get('fd_ok') else 'UNSOLVABLE'}`")
-                st.write(f"- Plan Steps: `{len(trace.get('plan_steps', []))}`")
-                if trace.get("fd_log"):
-                    st.code(trace["fd_log"][:600], language="text")
-
-        # Phase 4: Diagnostic Triage / Fault Localization
-        with st.expander("🩺 Phase 4: Model-Based Diagnostic Triage & Causal Analysis", expanded=True):
-            diag_reports = active_state.get("historical_diagnostic_reports", []) or active_state.get("diagnostic_reports", [])
-            fmt_diag = active_state.get("formatted_diagnostic_feedback", "")
-            if diag_reports:
-                st.markdown(f"**{len(diag_reports)} Diagnostic Issues Triaged:**")
-                for i, r in enumerate(diag_reports, 1):
-                    cat = r.get("error_category") if isinstance(r, dict) else getattr(r, "error_category", "UNKNOWN")
-                    op = r.get("repair_operation_type") if isinstance(r, dict) else getattr(r, "repair_operation_type", "GENERAL")
-                    el = r.get("faulty_element") if isinstance(r, dict) else getattr(r, "faulty_element", "General")
-                    hint = r.get("suggested_repair_hint") if isinstance(r, dict) else getattr(r, "suggested_repair_hint", "")
-                    st.markdown(f"- **Issue #{i}**: Category=`{cat}` | Target Action=`{el}` | Operation=`{op}`")
-                    if hint:
-                        st.info(f"Hint: {hint}")
-            elif fmt_diag:
-                st.markdown("**Diagnostic Feedback:**")
-                st.code(fmt_diag[:800], language="text")
-            else:
-                st.success("Zero diagnostic errors found in the final model.")
-
-        # Phase 5: Transparent Feedback Loop - What was Passed Back
-        with st.expander("🔄 Phase 5: Transparent Feedback Passed Back to the Model / AST", expanded=True):
-            st.markdown(f"#### 🔍 What was given back to `{active_agent}`:")
-
-            # Check if Closed-Loop Agent feedback log exists
-            rf_log = active_state.get("repair_feedback_log", [])
-            fb_events = [e for e in events if e.get("phase") == "fault_feedback_passed_to_llm"]
-
-            if rf_log:
-                st.markdown(f"Found **{len(rf_log)} Repair Iteration Logs** in agent state:")
-                for entry in rf_log:
-                    it = entry.get("iteration", 1)
-                    src = entry.get("feedback_source", "ast_triage")
-                    targets = entry.get("target_actions", [])
-                    fb_text = entry.get("diagnostic_feedback", "")
-                    prompt_text = entry.get("repair_prompt", "")
-
-                    st.markdown(f"##### 🔁 Iteration {it} Feedback Package:")
-                    st.markdown(f"- **Feedback Source**: `{src}`")
-                    st.markdown(f"- **Target Actions for Surgical Repair**: `{targets}`")
-                    st.markdown("**Diagnostic Feedback Text Injected into Prompt:**")
-                    st.code(str(fb_text), language="text")
-                    if prompt_text:
-                        with st.expander(f"Inspect Full LLM Repair Prompt (Iteration {it})", expanded=False):
-                            st.code(prompt_text, language="text")
-
-            elif fb_events:
-                st.markdown(f"Found **{len(fb_events)} Feedback Events** recorded during baseline execution:")
-                for fe in fb_events:
-                    it = fe.get("iteration", 1)
-                    fb_type = fe.get("feedback_type", "raw_trace")
-                    payload = fe.get("feedback_payload", "")
-                    prompt = fe.get("prompt", "")
-
-                    st.markdown(f"##### 🔁 Iteration {it} Feedback Package:")
-                    st.markdown(f"- **Feedback Type**: `{fb_type}`")
-                    st.markdown(f"- **Model Target**: `{fe.get('model_target', 'pddl_text')}`")
-                    st.markdown("**Feedback Payload Delivered to Model:**")
-                    st.code(str(payload), language="text")
-                    if prompt:
-                        with st.expander(f"Inspect Full Baseline Prompt (Iteration {it})", expanded=False):
-                            st.code(prompt, language="text")
-            else:
-                if active_agent == "ZERO_SHOT":
-                    st.info("🎯 **Zero-Shot Baseline**: Single generation pass. Strictly zero feedback is passed back to the model.")
-                else:
-                    st.info("Domain model was solved on iteration 1 without needing a repair feedback pass.")
-
-    else:
-        st.info("👈 Run a task to observe the phase-by-phase trace and feedback payloads here.")
-
-
-# ==============================================================================
-# TAB 4: 🩺 LAYERED MODEL-BASED FAULT LOCALIZATION
+# TAB 3: 🩺 LAYERED MODEL-BASED FAULT LOCALIZATION
 # ==============================================================================
 with tab_fault_loc:
     st.markdown("### 🩺 Layered Model-Based Fault Localization & Causal Diagnostics")
@@ -1472,12 +1464,41 @@ with tab_fault_loc:
                         st.code(raw_log, language="text")
         elif not init_errors:
             st.success("🎉 Zero diagnostic issues found! Domain and problem models verified cleanly.")
+
+        # Transparent Feedback Loop Passed Back to LLM
+        rf_log = active_state.get("repair_feedback_log", [])
+        events = st.session_state.get("phase_events_history", [])
+        fb_events = [e for e in events if e.get("phase") == "fault_feedback_passed_to_llm"]
+
+        if rf_log or fb_events:
+            st.markdown("---")
+            st.markdown("#### 🔄 Transparent Feedback Injected into LLM for Repair")
+            if rf_log:
+                for entry in rf_log:
+                    it = entry.get("iteration", 1)
+                    src = entry.get("feedback_source", "ast_triage")
+                    targets = entry.get("target_actions", [])
+                    fb_text = entry.get("diagnostic_feedback", "")
+                    prompt_text = entry.get("repair_prompt", "")
+                    with st.expander(f"🔁 Iteration {it} Feedback Package (Target: {targets})", expanded=False):
+                        st.markdown(f"- **Source**: `{src}` | **Target Actions**: `{targets}`")
+                        st.markdown("**Diagnostic Feedback Text Injected into Prompt:**")
+                        st.code(str(fb_text), language="text")
+                        if prompt_text:
+                            with st.expander("Full Prompt Text", expanded=False):
+                                st.code(prompt_text, language="text")
+            elif fb_events:
+                for fe in fb_events:
+                    it = fe.get("iteration", 1)
+                    payload = fe.get("feedback_payload", "")
+                    with st.expander(f"🔁 Iteration {it} Baseline Feedback Package", expanded=False):
+                        st.code(str(payload), language="text")
     else:
         st.info("👈 Run a task to inspect diagnostic fault localization feedback.")
 
 
 # ==============================================================================
-# TAB 5: ⏱️ TELEMETRY & COST ANALYTICS
+# TAB 4: ⏱️ TELEMETRY & COST ANALYTICS
 # ==============================================================================
 with tab_telemetry:
     st.markdown("### ⚡ LLM Execution Telemetry & Cost Analytics")

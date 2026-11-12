@@ -1,7 +1,7 @@
 import os
 import time
 import re
-from typing import Type, TypeVar
+from typing import Type, TypeVar, Optional, Any, Dict, List, Tuple
 from dotenv import load_dotenv
 load_dotenv()
 from pydantic import BaseModel
@@ -194,7 +194,7 @@ def invoke_structured_llm_with_telemetry(schema: Type[T], prompt: str, target_mo
     schema_json_hint = ""
     if hasattr(schema, "model_json_schema"):
         schema_json_hint = f"\n\nCRITICAL REQUIREMENT: Respond ONLY with a valid JSON object strictly matching this schema. Do not write markdown explanations or conversational text outside the JSON:\n{json.dumps(schema.model_json_schema())}"
-    json_prompt = prompt + schema_json_hint
+    json_prompt = (prompt or "") + schema_json_hint
 
     max_api_retries = 5
     for attempt in range(max_api_retries):

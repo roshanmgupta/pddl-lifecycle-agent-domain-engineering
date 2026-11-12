@@ -200,6 +200,10 @@ def compile_pddl_programmatically(representation_data: dict, problem_pddl: Optio
         if not tokens or tokens[0].lower() in RESERVED_WORDS:
             continue
         pname = tokens[0]
+        if pname.startswith("-"):
+            pname = pname.lstrip("-")
+            if not pname or pname.lower() in RESERVED_WORDS:
+                continue
         params = parse_typed_params(tokens[1:])
         if pname not in pred_map:
             pred_map[pname] = params
@@ -221,6 +225,10 @@ def compile_pddl_programmatically(representation_data: dict, problem_pddl: Optio
             if not tokens or tokens[0].lower() in RESERVED_WORDS:
                 continue
             pname = tokens[0]
+            if pname.startswith("-"):
+                pname = pname.lstrip("-")
+                if not pname or pname.lower() in RESERVED_WORDS:
+                    continue
             args = tokens[1:]
             inferred_types = [obj_types.get(arg, "object") for arg in args]
             matching_key = next((k for k in pred_map.keys() if k.lower() == pname.lower()), None)

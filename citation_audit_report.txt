@@ -1,0 +1,559 @@
+================================================================================
+#1: [AJO19] Key: aineto2019learningstripsactionmodels
+Publication Genre: Journal Article (Artificial Intelligence)
+Authors: Aineto, Diego and Jim{\'e}nez, Sergio and Onaindia, Eva (2019)
+Title: Learning {STRIPS} Action Models with Classical Planning
+Thesis Pages Cited (backref): 41
+Text Occurrences (1 citations across .tex files):
+  * [40 - first real chapter.tex#L8]: Conversely, classical inductive action-model learning methods require extensive execution traces that are rarely available during initial domain design~\cite{aineto2019learningstripsactionmodels,shetye2025llm}, whereas manual knowledge engineering remains labor-intensive and error-prone~\cite{silva2020formal}.
+
+================================================================================
+#2: [AMR+26] Key: acitelli2026generating
+Publication Genre: Conference Proceedings (2026 IEEE Conference on Artificial Intelligence (CAI))
+Authors: Acitelli, Giacomo and Marrella, Andrea and Rossi, Jacopo and Troilo, Giada and van der Aa, Han (2026)
+Title: Generating domain models for automated planning from natural language descriptions
+Thesis Pages Cited (backref): 19
+Text Occurrences (1 citations across .tex files):
+  * [10 - introduction.tex#L52]: Structured prompting frameworks such as SPAR by Huang et al.~\cite{HuangSPAR}, Kelly et al.~\cite{kelly2023there}, and Acitelli et al.~\cite{acitelli2026generating} decompose domain extraction into sequential prompting stages.
+
+================================================================================
+#3: [AS24] Key: agarwal2024tic
+Publication Genre: Conference Proceedings (International Conference on Neural-Symbolic Learning and Reasoning)
+Authors: Agarwal, Sudhir and Sreepathy, Anu (2024)
+Title: TIC: Translate-Infer-Compile for accurate “text to plan” using LLMs and Logical Representations
+Thesis Pages Cited (backref): 19, 35, 39, 45, 59
+Text Occurrences (5 citations across .tex files):
+  * [10 - introduction.tex#L56]: In parallel, Agarwal and Sreepathy~\cite{agarwal2024tic} and Shetye~\cite{shetye2025llm} seek to avoid direct \gls{pddl} generation by prompting the language model to output intermediate rules in \gls{asp}, which are solved and translated into \gls{pddl}.
+  * [30 - problem exposition.tex#L42]: Although routing generation through \gls{asp} reduces problem-level errors across seven benchmarks, their framework generates only problem files given an existing static domain model, leaving automated domain model generation, action schema repair, and closed-loop domain verification unaddressed~\cite{agarwal2024tic}.
+  * [30 - problem exposition.tex#L133]: Agarwal \& Sreepathy (TIC)~\cite{agarwal2024tic} & Intermediate ASP rules & ASP solver + Compiler (Problems only) & Clingo (ASP), Fast Downward & None (Feed-forward problem translation) & Problem equivalence, Plan generation accuracy \\
+  * [40 - first real chapter.tex#L110]: Introducing a structured intermediate representation separates semantic knowledge extraction from surface syntax emission~\cite{agarwal2024tic}.
+  * [50 - second real chapter.tex#L151]: Alternative neuro-symbolic pipelines, such as \gls{tic} by Agarwal and Sreepathy~\cite{agarwal2024tic} and the \gls{asp}-based pipeline by Shetye~\cite{shetye2025llm}, introduce intermediate declarative logic encodings before compiling into \gls{pddl}.
+
+================================================================================
+#4: [AZL+25] Key: Applis
+Publication Genre: arXiv Preprint / Working Paper
+Authors: Leonhard Applis and Yuntong Zhang and Shanchao Liang and Nan Jiang and Lin Tan and Abhik Roychoudhury (2025)
+Title: Unified Software Engineering Agent as AI Software Engineer
+Thesis Pages Cited (backref): 22, 32, 38, 58, 83
+Text Occurrences (6 citations across .tex files):
+  * [10 - introduction.tex#L129]: Coordinated as a stateful cyclic graph~\cite{wang2024survey,Applis,benyamin2025toward}, the repair module prompts the \gls{llm} to revise only the preconditions and effects of those localized actions while preserving all other actions unchanged in the in-memory \gls{ast} before re-compilation (Chapters~4 and~5).
+  * [20 - background.tex#L198]: To coordinate multi-step generation, validation, fault diagnosis, and repair deterministically, autonomous software engineering agents increasingly use \textbf{stateful cyclic computational graphs}~\cite{wang2024survey,Applis,benyamin2025toward}.
+  * [30 - problem exposition.tex#L95]: Complementing general agent surveys, Applis et al. investigate the realization of software engineering agents within complex repository-level workflows~\cite{Applis}.
+  * [50 - second real chapter.tex#L128]: Furthermore, as highlighted in recent agentic software engineering surveys~\cite{wang2024survey,Applis,georgievski2026formalisers}, linear directed acyclic graph frameworks (such as standard LangChain chains) disallow cyclic feedback edges, while conversational multi-agent frameworks (such as AutoGen) pass unconstrained natural-language messages between agents, quickly accumulating redundant context tokens and obscuring structured data representations.
+  * [50 - second real chapter.tex#L130]: To overcome these architectural limitations, we realize the lifecycle workflow using \textbf{LangGraph}~\cite{benyamin2025toward,Applis}, a stateful orchestration library built upon cyclic computational graphs.
+  * [60 - evaluation.tex#L584]: A potential threat to internal validity in foundation-model evaluations is training data contamination~\cite{Applis,oswald}.
+
+================================================================================
+#5: [BB25] Key: bavandpour2025finding
+Publication Genre: Conference Proceedings (ICAPS 2025 Workshop on Human-Aware and Explainable Planning)
+Authors: Bavandpour, Nader Karimi and Bercher, Pascal (2025)
+Title: Finding Semantically Guided Repairs in PDDL Domains Using LLMs
+Thesis Pages Cited (backref): 19, 36, 39, 54
+Text Occurrences (4 citations across .tex files):
+  * [10 - introduction.tex#L65]: However, recent evaluations of language-model-based \gls{pddl} error correction and repair expose two closely related limitations~\cite{patil2024llms,shetye2025llm,bavandpour,bavandpour2025finding}.
+  * [30 - problem exposition.tex#L69]: In a companion study, Bavandpour and Bercher propose combining language-model semantic cues with conditional hitting-set solvers over pre-collected positive and negative action traces to select human-plausible atomic repairs on lifted domains~\cite{bavandpour2025finding}.
+  * [30 - problem exposition.tex#L139]: Bavandpour \& Bercher~\cite{bavandpour,bavandpour2025finding} & Direct PDDL text / Atomic repair sets & None (Lifted domain editing) & Trace flaw checker, Hitting-set solver & Whitelist/blacklist trace conflicts & Repair precision, recall, F1, Test plan pass rate \\
+  * [50 - second real chapter.tex#L45]: Prior work by Patil~\cite{patil2024llms} investigated error detection and correction across flawed \gls{ipc} domain models containing syntactic and semantic errors, while Bavandpour and Bercher~\cite{bavandpour2025finding,bavandpour} evaluated domain repair on models corrupted by the addition or removal of action preconditions and effects.
+
+================================================================================
+#6: [BB26] Key: bavandpour
+Publication Genre: arXiv Preprint / Working Paper
+Authors: Nader Karimi Bavandpour and Pascal Bercher (2026)
+Title: LLM-Only PDDL Domain Repair with Open-Weight Models
+Thesis Pages Cited (backref): 19, 20, 36, 39, 47, 54, 56, 57, 61
+Text Occurrences (11 citations across .tex files):
+  * [10 - introduction.tex#L65]: However, recent evaluations of language-model-based \gls{pddl} error correction and repair expose two closely related limitations~\cite{patil2024llms,shetye2025llm,bavandpour,bavandpour2025finding}.
+  * [10 - introduction.tex#L66]: First, when unlocalized domain files, trace constraints, or raw validator logs are passed to the language model without isolating which actions contain faulty preconditions or effects, repair accuracy drops sharply on complex semantic defects, falling to a 10.53\% error-reduction score on Machine-Shop in the study by Patil~\cite{patil2024llms} and a 6\% test plan pass rate on Thoughtful in the investigation by Bavandpour and Bercher~\cite{bavandpour}.
+  * [10 - introduction.tex#L67]: Second, because existing systems manipulate raw \gls{pddl} text files or regenerate the entire domain specification across repair iterations, refinement attempts can overwrite previously valid actions or drift from the intended domain semantics~\cite{shetye2025llm,bavandpour,laule2026pddlcoder}.
+  * [10 - introduction.tex#L71]: Second, existing iterative repair loops do not localize validator and planner failures to the specific actions with faulty preconditions or effects, and cannot selectively repair only those actions' preconditions and effects in memory without risking regressions in other valid actions~\cite{patil2024llms,bavandpour,laule2026pddlcoder}.
+  * [30 - problem exposition.tex#L68]: Their experiments show that even the strongest reasoning model achieves a mean test plan pass rate of 82\% without traces and falls to 6\% on complex domains such as Thoughtful, demonstrating that unlocalized full-domain \gls{llm} repair cannot reliably satisfy plan execution constraints~\cite{bavandpour}.
+  * [30 - problem exposition.tex#L139]: Bavandpour \& Bercher~\cite{bavandpour,bavandpour2025finding} & Direct PDDL text / Atomic repair sets & None (Lifted domain editing) & Trace flaw checker, Hitting-set solver & Whitelist/blacklist trace conflicts & Repair precision, recall, F1, Test plan pass rate \\
+  * [40 - first real chapter.tex#L186]: Passing unparsed engine traces directly back to an \gls{llm} inflates the prompt context and provides no explicit mapping from low-level search failures to the specific action that caused the error~\cite{bavandpour}.
+  * [50 - second real chapter.tex#L45]: Prior work by Patil~\cite{patil2024llms} investigated error detection and correction across flawed \gls{ipc} domain models containing syntactic and semantic errors, while Bavandpour and Bercher~\cite{bavandpour2025finding,bavandpour} evaluated domain repair on models corrupted by the addition or removal of action preconditions and effects.
+  * [50 - second real chapter.tex#L95]: Conversely, Shetye~\cite{shetye2025llm} and Bavandpour and Bercher~\cite{bavandpour} emphasized the importance of evaluating code- and logic-optimized models to assess reproducibility and domain formalization efficacy.
+  * [50 - second real chapter.tex#L104]: Selected as a leading code- and logic-optimized foundation model pre-trained heavily on programming languages, source code repositories, and formal mathematical reasoning corpora~\cite{shetye2025llm,bavandpour}.
+  * [50 - second real chapter.tex#L242]: However, as observed by Bavandpour and Bercher~\cite{bavandpour} and G{\"o}bel et al.~\cite{gackbel2026agentic}, standalone \gls{val} cannot diagnose a domain via candidate plan simulation when a semantic flaw renders the problem unsolvable, because the planner produces no candidate plan $\pi_{\text{gen}}$ for \gls{val} to simulate.
+
+================================================================================
+#7: [BMSS25] Key: benyamin2025toward
+Publication Genre: Journal Article (arXiv preprint arXiv:2509.12987)
+Authors: Benyamin, Yarin and Mordoch, Argaman and Shperberg, Shahaf S and Stern, Roni (2025)
+Title: Toward PDDL Planning Copilot
+Thesis Pages Cited (backref): 19, 22, 32, 37, 39, 58
+Text Occurrences (6 citations across .tex files):
+  * [10 - introduction.tex#L63]: For interactive authoring, Benyamin et al.~\cite{benyamin2025toward} present a LangGraph copilot that invokes planning tools on user request.
+  * [10 - introduction.tex#L129]: Coordinated as a stateful cyclic graph~\cite{wang2024survey,Applis,benyamin2025toward}, the repair module prompts the \gls{llm} to revise only the preconditions and effects of those localized actions while preserving all other actions unchanged in the in-memory \gls{ast} before re-compilation (Chapters~4 and~5).
+  * [20 - background.tex#L198]: To coordinate multi-step generation, validation, fault diagnosis, and repair deterministically, autonomous software engineering agents increasingly use \textbf{stateful cyclic computational graphs}~\cite{wang2024survey,Applis,benyamin2025toward}.
+  * [30 - problem exposition.tex#L86]: While Benyamin et al. demonstrate the effectiveness of LangGraph for routing symbolic planning tools, their system operates as an interactive human-in-the-loop assistant over pre-existing \gls{pddl} files rather than generating or repairing domain models~\cite{benyamin2025toward}.
+  * [30 - problem exposition.tex#L145]: Benyamin et al.~\cite{benyamin2025toward} & None (Given PDDL files) & None (MCP + LangGraph tool router) & Fast Downward, Metric-FF, VAL, Simulator & Interactive user-directed inspection & Solve, validation, and simulation task accuracy \\
+  * [50 - second real chapter.tex#L130]: To overcome these architectural limitations, we realize the lifecycle workflow using \textbf{LangGraph}~\cite{benyamin2025toward,Applis}, a stateful orchestration library built upon cyclic computational graphs.
+
+================================================================================
+#8: [CTJ+21] Key: chen2021evaluating
+Publication Genre: Journal Article (arXiv preprint arXiv:2107.03374)
+Authors: Chen, Mark and Tworek, Jerry and Jun, Heewoo and Yuan, Qiming and Pinto, Henrique Ponde De Oliveira and Kaplan, Jared and Edwards, Harri and Burda, Yuri and Joseph, Nicholas and Brockman, Greg and others (2021)
+Title: Evaluating large language models trained on code
+Thesis Pages Cited (backref): 17, 31
+Text Occurrences (2 citations across .tex files):
+  * [10 - introduction.tex#L27]: Recent advancements in \glspl{llm} trained on large text and code corpora~\cite{chen2021evaluating} have raised expectations for automating knowledge-intensive modelling tasks, making their application to \gls{pddl} domain engineering a natural direction~\cite{Tantakoun}.
+  * [20 - background.tex#L184]: where $x$ is the input prompt context~\cite{chen2021evaluating}.
+
+================================================================================
+#9: [CYJ+24] Key: chen2024language
+Publication Genre: Journal Article (arXiv preprint arXiv:2407.09792)
+Authors: Chen, Guanqi and Yang, Lei and Jia, Ruixing and Hu, Zhe and Chen, Yizhou and Zhang, Wei and Wang, Wenping and Pan, Jia (2024)
+Title: Language-augmented symbolic planner for open-world task planning
+Thesis Pages Cited (backref): 19
+Text Occurrences (1 citations across .tex files):
+  * [10 - introduction.tex#L62]: Mahdavi et al.~\cite{Mahdavi} use environment interaction feedback to search over candidate domain files, while Chen et al.~\cite{chen2024language} introduce LASP to diagnose physical execution failures at runtime and update missing preconditions in a robotics kitchen domain.
+
+================================================================================
+#10: [FL03] Key: fox2003pddl2
+Publication Genre: Journal Article (Journal of artificial intelligence research)
+Authors: Fox, Maria and Long, Derek (2003)
+Title: PDDL2. 1: An extension to PDDL for expressing temporal planning domains
+Thesis Pages Cited (backref): 17, 27, 28, 47
+Text Occurrences (6 citations across .tex files):
+  * [10 - introduction.tex#L17]: The \gls{pddl}~\cite{aeronautiques1998pddl,fox2003pddl2} is the standard formalism used to specify these planning models, defining typed objects, relational predicates that describe state facts, and parameterized action schemas that specify state transitions through explicit preconditions and add or delete effects.
+  * [20 - background.tex#L60]: When a ground atom $f \in \text{eff}^+(a) \cap \text{eff}^-(a)$ appears in both the add and delete lists of a ground action, standard PDDL~2.1 semantics applies the delete effect prior to the add effect, so $f \in \gamma(s, a)$~\cite{fox2003pddl2}.
+  * [20 - background.tex#L66]: Introduced by McDermott et al.~\cite{aeronautiques1998pddl} for the 1998 International Planning Competition (IPC) and formalized in \gls{pddl}~2.1 by Fox and Long~\cite{fox2003pddl2}, \gls{pddl} is the standard modelling language for classical and temporal planning~\cite{haslum2019introduction}.
+  * [20 - background.tex#L77]: Under the \texttt{:typing} requirement, every domain object and variable is assigned a sort from a finite type hierarchy~\cite{fox2003pddl2}:
+  * [20 - background.tex#L88]: For a \gls{pddl} domain model $\mathcal{D} = (T, \preceq_T, \mathcal{P}_{sym}, \mathcal{A})$ to be accepted by symbolic parsers and validators, every lifted action schema $\alpha \in \mathcal{A}$ must satisfy five formal well-formedness invariants~\cite{fox2003pddl2,haslum2019introduction}:
+  * [40 - first real chapter.tex#L169]: Although the set-union order implies that a literal present in both $\text{eff}^+(A)$ and $\text{eff}^-(A)$ holds in $s'$, formal \gls{pddl}~2.1 validators reject actions containing simultaneous contradictory effects ($\text{eff}^+(A) \cap \text{eff}^-(A) \neq \emptyset$)~\cite{fox2003pddl2,howey2004val}.
+
+================================================================================
+#11: [GA26] Key: georgievski2026formalisers
+Publication Genre: Conference Proceedings (Workshop on Neuro-Symbolic Intelligence for LLMs and Autonomous Agents)
+Authors: Georgievski, Ilche and Alnazer, Ebaa (2026)
+Title: From Formalisers to Engineers: An Agentic Position to HTN Domain Model Generation
+Thesis Pages Cited (backref): 17, 18, 20, 31, 33, 58
+Text Occurrences (6 citations across .tex files):
+  * [10 - introduction.tex#L29]: At the same time, the emergence of agentic \gls{ai}, in which a language model serves as the reasoning core of an autonomous agent that maintains state across steps, invokes external tools, interprets their output, and iterates toward a goal without human intervention~\cite{wang2024survey,georgievski2026formalisers}, shifts automation from single-step generation to sustained multi-step operation.
+  * [10 - introduction.tex#L37]: A recent survey by Tantakoun, Muise, and Zhu~\cite{Tantakoun} maps over 80 studies on language-model-driven planning model construction across model generation, model editing, and benchmarking, while Georgievski and Alnazer~\cite{georgievski2026formalisers} emphasize the need to move from isolated formalizers to agentic systems that manage the domain engineering life cycle end to end.
+  * [10 - introduction.tex#L69]: Despite this progress, three limitations remain unresolved across the \gls{pddl} domain engineering life cycle~\cite{Tantakoun,georgievski2026formalisers}.
+  * [20 - background.tex#L165]: Viewing domain generation through this life-cycle lens explains why single-pass text translation is insufficient: without integrated verification, fault localization, and targeted repair stages, any modelling error introduced during initial generation causes the resulting domain to fail downstream planning tasks~\cite{georgievski2026formalisers}.
+  * [30 - problem exposition.tex#L14]: Furthermore, in their position paper, Georgievski and Alnazer~\cite{georgievski2026formalisers} advocate a transition ``from formalisers to engineers'', arguing that language models should move beyond passive, single-step translation and instead operate within closed-loop engineering workflows.
+  * [50 - second real chapter.tex#L128]: Furthermore, as highlighted in recent agentic software engineering surveys~\cite{wang2024survey,Applis,georgievski2026formalisers}, linear directed acyclic graph frameworks (such as standard LangChain chains) disallow cyclic feedback edges, while conversational multi-agent frameworks (such as AutoGen) pass unconstrained natural-language messages between agents, quickly accumulating redundant context tokens and obscuring structured data representations.
+
+================================================================================
+#12: [Geo23] Key: georgievski2023software
+Publication Genre: Conference Proceedings (ICSOFT)
+Authors: Georgievski, Ilche (2023)
+Title: Software Development Life Cycle for Engineering AI Planning Systems.
+Thesis Pages Cited (backref): 17, 30, 33
+Text Occurrences (4 citations across .tex files):
+  * [10 - introduction.tex#L25]: Related aspects of this iterative process have been examined in pre- and post-design knowledge engineering analysis~\cite{silva2020formal} and in the broader software development life cycle for AI planning systems~\cite{georgievski2023software}.
+  * [20 - background.tex#L151]: Knowledge Engineering for Automated Planning (KEAP) studies systematic methodologies for acquiring, structuring, verifying, and maintaining formal planning models~\cite{silva2020formal,georgievski2023software}.
+  * [20 - background.tex#L155]: At the system level, Georgievski~\cite{georgievski2023software,georgievski2024engineering} proposes a ten-phase \gls{sdlc} for engineering AI planning systems spanning requirements analysis, AI planning domain modelling, domain model design, system architecture and design, AI planning tools selection, implementation, testing, deployment, monitoring, and analysis.
+  * [30 - problem exposition.tex#L13]: That observation aligns with knowledge engineering analyses by Silva et al.~\cite{silva2020formal} and the ten-phase \gls{sdlc} for engineering AI planning systems proposed by Georgievski~\cite{georgievski2023software}, which covers requirements analysis, planning domain modelling, domain model design, architecture design, tool selection, implementation, testing, deployment, monitoring, and analysis.
+
+================================================================================
+#13: [Geo24] Key: georgievski2024engineering
+Publication Genre: Habilitation / Doctoral Thesis (University of Stuttgart)
+Authors: Georgievski, Ilche (2024)
+Title: Engineering {AI} Planning Systems
+Thesis Pages Cited (backref): 17, 30
+Text Occurrences (2 citations across .tex files):
+  * [10 - introduction.tex#L19]: Constructing a correct and complete \gls{pddl} domain model is a laborious and error-prone process~\cite{georgievski2024engineering}.
+  * [20 - background.tex#L155]: At the system level, Georgievski~\cite{georgievski2023software,georgievski2024engineering} proposes a ten-phase \gls{sdlc} for engineering AI planning systems spanning requirements analysis, AI planning domain modelling, domain model design, system architecture and design, AI planning tools selection, implementation, testing, deployment, monitoring, and analysis.
+
+================================================================================
+#14: [GLZG26] Key: gackbel2026agentic
+Publication Genre: Journal Article (arXiv preprint arXiv:2603.06064)
+Authors: G{\"o}kbel, Kai and Lorang, Pierrick and Zips, Patrik and Gl{\"u}ck, Tobias (2026)
+Title: Agentic LLM Planning via Step-Wise PDDL Simulation: An Empirical Characterisation
+Thesis Pages Cited (backref): 61
+Text Occurrences (1 citations across .tex files):
+  * [50 - second real chapter.tex#L242]: However, as observed by Bavandpour and Bercher~\cite{bavandpour} and G{\"o}bel et al.~\cite{gackbel2026agentic}, standalone \gls{val} cannot diagnose a domain via candidate plan simulation when a semantic flaw renders the problem unsolvable, because the planner produces no candidate plan $\pi_{\text{gen}}$ for \gls{val} to simulate.
+
+================================================================================
+#15: [GVSK23] Key: guan2023leveraging
+Publication Genre: Journal Article (Advances in Neural Information Processing Systems)
+Authors: Guan, Lin and Valmeekam, Karthik and Sreedharan, Sarath and Kambhampati, Subbarao (2023)
+Title: Leveraging pre-trained large language models to construct and utilize world models for model-based task planning
+Thesis Pages Cited (backref): 18, 20, 31, 33, 39, 43, 44, 53, 58, 60, 84
+Text Occurrences (12 citations across .tex files):
+  * [10 - introduction.tex#L44]: Extending automation from problem files to domain model generation, Guan et al.~\cite{guan2023leveraging}, Oswald et al.~\cite{oswald}, and Xie et al.~\cite{xie2025making} use language models to construct, generate, and predict action preconditions and effects from natural-language domain descriptions.
+  * [10 - introduction.tex#L45]: Guan et al.~\cite{guan2023leveraging} provide the object types and action descriptions while allowing the language model to invent new predicates dynamically, which prevents direct automated comparison against a ground-truth domain and requires human experts to review the generated models.
+  * [10 - introduction.tex#L81]: Importantly, our operational scope focuses on action-schema synthesis rather than unconstrained full domain generation from arbitrary text: following standard conventions in planning domain generation and action-model acquisition~\cite{oswald,guan2023leveraging,huang2025limit}, the proposed framework assumes that object types, predicates, and action signatures are available and focuses specifically on generating and repairing action preconditions and effects.
+  * [20 - background.tex#L185]: While pre-training enables \glspl{llm} to construct and predict commonsense preconditions and effects from natural language~\cite{guan2023leveraging,xie2025making}, generating raw \gls{pddl} directly via unconstrained token sampling is fragile: a single misplaced parenthesis or undeclared variable symbol invalidates the entire S-expression tree~\cite{oswald}.
+  * [30 - problem exposition.tex#L21]: Because their prompt allows the language model to invent new predicates dynamically as actions are defined, generated domains cannot be compared automatically against a ground-truth domain specification; instead, a syntax validator catches basic formatting mistakes while human domain experts inspect and revise semantic errors across validation rounds~\cite{guan2023leveraging}.
+  * [30 - problem exposition.tex#L123]: Guan et al.~\cite{guan2023leveraging} & Direct PDDL action text & None (Action-by-action prompting) & Syntax checker, Fast Downward, Experts & Syntax check + Human expert review & Human correction count, Expert plan review \\
+  * [40 - first real chapter.tex#L74]: Consequently, even if the generated domain captures valid transition logic, automated evaluation against reference problem instances fails due to symbol mismatches rather than semantic modelling defects~\cite{guan2023leveraging,huang2025limit,oswald}.
+  * [40 - first real chapter.tex#L96]: As established in recent action-model acquisition studies~\cite{guan2023leveraging,oswald,HuangSPAR}, predefining the relational vocabulary isolates state-transition modelling from lexical drift and allows candidate domains to be verified directly on reference problem instances.
+  * [50 - second real chapter.tex#L25]: Early investigations into \gls{llm}-based planning domain modelling and action-model acquisition relied on informal, human-authored natural-language descriptions of domain dynamics and planning tasks~\cite{guan2023leveraging,kelly2023there}.
+  * [50 - second real chapter.tex#L126]: Traditional \gls{llm} pipelines in automated planning rely on linear prompt chains or unstructured Python \texttt{while}-loops that pass raw text between a generator and an external validator~\cite{guan2023leveraging,smirnov2024generatingconsistentpddldomains}.
+  * [50 - second real chapter.tex#L239]: Developed by Howey et al.~\cite{howey2004val}, \textbf{\gls{val}} is the standard verification tool adopted across the \gls{ipc} and neuro-symbolic planning literature~\cite{guan2023leveraging,oswald,patil2024llms,shetye2025llm,HuangSPAR}.
+  * [60 - evaluation.tex#L596]: While this scope aligns with established domain acquisition baselines in the planning literature~\cite{oswald,guan2023leveraging,HuangSPAR}, scaling autonomous lifecycle engineering to expressive planning formalisms (such as temporal or hybrid planning) will require expanding the typed \gls{ast} grammar and adapting external verifiers beyond standard Fast Downward configurations.
+
+================================================================================
+#16: [Hel06] Key: Helmert_2006
+Publication Genre: Journal Article (Journal of Artificial Intelligence Research)
+Authors: Helmert, M. (2006)
+Title: The Fast Downward Planning System
+Thesis Pages Cited (backref): 17, 19, 22, 28, 36, 62, 66
+Text Occurrences (8 citations across .tex files):
+  * [10 - introduction.tex#L23]: Consequently, practical domain engineering extends far beyond initial model creation and follows an iterative \emph{domain engineering life cycle}: domain engineers elicit domain semantics from natural-language requirements, model \gls{pddl} action preconditions and effects, validate candidate models using formal validators such as \gls{val}~\cite{howey2004val} and classical planners~\cite{Helmert_2006}, diagnose the causes of failures, and repair faulty preconditions or effects.
+  * [10 - introduction.tex#L61]: Smirnov et al.~\cite{smirnov2024generatingconsistentpddldomains} perform consistency checking during \gls{pddl} generation and feed error descriptions back to the language model before checking plan reachability with Fast Downward~\cite{Helmert_2006}.
+  * [10 - introduction.tex#L121]: Next, the compiled domain is verified against the ground-truth problems using the plan validator \gls{val}~\cite{howey2004val} and the classical planner Fast Downward~\cite{Helmert_2006}.
+  * [20 - background.tex#L111]: Given a candidate domain model $\mathcal{D}_{gen}$ and a reference problem instance $\mathcal{P}_{gold}$, a classical planner such as Fast Downward~\cite{Helmert_2006} performs three sequential stages:
+  * [30 - problem exposition.tex#L60]: We apply this LLM-Modulo architecture to domain engineering by pairing language-model \gls{ast} generation with Fast Downward~\cite{Helmert_2006} and \gls{val}~\cite{howey2004val} as verification oracles.
+  * [50 - second real chapter.tex#L270]: Following the implementation practices of Shetye~\cite{shetye2025llm}, Oswald et al.~\cite{oswald}, and Liu et al.~\cite{liu2024llm+}, our framework integrates the \textbf{Fast Downward} planner~\cite{Helmert_2006}.
+  * [50 - second real chapter.tex#L277]: Unlike planners that search directly over raw propositional representations, Fast Downward first translates the \gls{pddl} task into a multi-valued SAS+ finite-domain representation, constructing causal graphs and domain transition graphs~\cite{Helmert_2006}.
+  * [60 - evaluation.tex#L48]: \item \textbf{Classical Symbolic Planner}: Fast Downward (Release 24.06)~\cite{Helmert_2006} executed via managed subprocess calls under a strict 30-second search timeout per problem instance, configured with lazy greedy best-first search guided by the Fast-Forward heuristic (\texttt{--search "lazy\_greedy([ff()])"}) for online candidate plan generation. Ground-truth reference plans ($\pi_{\text{gold}}$) utilized for inverse plan completeness verification are pre-computed reference solutions provided directly by the AutoPlanBench benchmark suite~\cite{stein2023autoplanbench}.
+
+================================================================================
+#17: [HLF04] Key: howey2004val
+Publication Genre: Conference Proceedings (16th IEEE international conference on tools with artificial intelligence)
+Authors: Howey, Richard and Long, Derek and Fox, Maria (2004)
+Title: VAL: Automatic plan validation, continuous effects and mixed initiative planning using PDDL
+Thesis Pages Cited (backref): 17, 19, 22, 29, 30, 36, 47, 60, 65, 66, 84
+Text Occurrences (13 citations across .tex files):
+  * [10 - introduction.tex#L21]: Symbolic planners search strictly within the transition rules encoded in the domain specification, meaning that an extraneous precondition in an action schema can render valid plans unreachable, whereas an omitted precondition or delete effect allows the planner to generate invalid plans that fail during execution~\cite{howey2004val,patil2024llms}.
+  * [10 - introduction.tex#L23]: Consequently, practical domain engineering extends far beyond initial model creation and follows an iterative \emph{domain engineering life cycle}: domain engineers elicit domain semantics from natural-language requirements, model \gls{pddl} action preconditions and effects, validate candidate models using formal validators such as \gls{val}~\cite{howey2004val} and classical planners~\cite{Helmert_2006}, diagnose the causes of failures, and repair faulty preconditions or effects.
+  * [10 - introduction.tex#L55]: To detect both types of semantic error on reference problem instances using \gls{val}~\cite{howey2004val}, Oswald et al.~\cite{oswald} and Huang et al.~\cite{HuangSPAR} evaluate generated domains for both \emph{soundness}, verifying that plans generated from the candidate domain execute validly in the ground-truth domain, and \emph{completeness}, verifying that plans generated from the ground-truth domain execute validly in the candidate domain.
+  * [10 - introduction.tex#L121]: Next, the compiled domain is verified against the ground-truth problems using the plan validator \gls{val}~\cite{howey2004val} and the classical planner Fast Downward~\cite{Helmert_2006}.
+  * [20 - background.tex#L125]: To verify plans independently of a planner's search heuristics, formal plan verification relies on \textbf{\gls{val}}, the standard plan validation tool introduced by Howey, Long, and Fox~\cite{howey2004val}.
+  * [20 - background.tex#L161]: \item \textbf{Verification and Validation:} Checking syntactic well-formedness, problem solvability with a planner, and plan validity with \gls{val}~\cite{howey2004val}.
+  * [30 - problem exposition.tex#L60]: We apply this LLM-Modulo architecture to domain engineering by pairing language-model \gls{ast} generation with Fast Downward~\cite{Helmert_2006} and \gls{val}~\cite{howey2004val} as verification oracles.
+  * [40 - first real chapter.tex#L169]: Although the set-union order implies that a literal present in both $\text{eff}^+(A)$ and $\text{eff}^-(A)$ holds in $s'$, formal \gls{pddl}~2.1 validators reject actions containing simultaneous contradictory effects ($\text{eff}^+(A) \cap \text{eff}^-(A) \neq \emptyset$)~\cite{fox2003pddl2,howey2004val}.
+  * [50 - second real chapter.tex#L235]: Syntactic validity alone does not ensure that a compiled domain model accurately captures the causal dynamics of the target environment~\cite{howey2004val,oswald}.
+  * [50 - second real chapter.tex#L239]: Developed by Howey et al.~\cite{howey2004val}, \textbf{\gls{val}} is the standard verification tool adopted across the \gls{ipc} and neuro-symbolic planning literature~\cite{guan2023leveraging,oswald,patil2024llms,shetye2025llm,HuangSPAR}.
+  * [60 - evaluation.tex#L24]: \item \textbf{\Gls{svr}}: The percentage of generated domain specifications that compile without syntax errors, type violations, or parse failures under the formal \gls{pddl} validator \gls{val}~\cite{howey2004val}. An \gls{svr} of 100\% indicates that every generated domain conforms strictly to the \gls{pddl} 2.1 standard.
+  * [60 - evaluation.tex#L49]: \item \textbf{Plan Validation Oracle}: Plan Validation Tool (\gls{val}, Version 5.3) invoked via \texttt{Validate -v} to certify state-transition validity and goal satisfaction~\cite{howey2004val}.
+  * [60 - evaluation.tex#L603]: Crucially, all candidate plans that do execute are validated against ground-truth problem definitions using the formal \gls{val} oracle~\cite{howey2004val}, ensuring that reported successes are strictly sound and free of subjective scoring bias.
+
+================================================================================
+#18: [HLM+19] Key: haslum2019introduction
+Publication Genre: Book
+Authors: Haslum, Patrik and Lipovetzky, Nir and Magazzeni, Daniele and Muise, Christian and Brachman, Ronald and Rossi, Francesca and Stone, Peter (2019)
+Title: An introduction to the planning domain definition language
+Thesis Pages Cited (backref): 17, 25, 27, 28, 47
+Text Occurrences (5 citations across .tex files):
+  * [10 - introduction.tex#L20]: In classical planning, symbolic planners rely on a strict separation between the \emph{domain model} and the \emph{problem instance}~\cite{haslum2019introduction}.
+  * [20 - background.tex#L16]: \Gls{ap} studies computational techniques for selecting and organizing actions to achieve specified goals by reasoning over explicit symbolic models of state transitions~\cite{nau2004automated,haslum2019introduction}.
+  * [20 - background.tex#L66]: Introduced by McDermott et al.~\cite{aeronautiques1998pddl} for the 1998 International Planning Competition (IPC) and formalized in \gls{pddl}~2.1 by Fox and Long~\cite{fox2003pddl2}, \gls{pddl} is the standard modelling language for classical and temporal planning~\cite{haslum2019introduction}.
+  * [20 - background.tex#L88]: For a \gls{pddl} domain model $\mathcal{D} = (T, \preceq_T, \mathcal{P}_{sym}, \mathcal{A})$ to be accepted by symbolic parsers and validators, every lifted action schema $\alpha \in \mathcal{A}$ must satisfy five formal well-formedness invariants~\cite{fox2003pddl2,haslum2019introduction}:
+  * [40 - first real chapter.tex#L168]: Under classical \gls{strips} transition semantics~\cite{haslum2019introduction}, applying an action in state $s$ yields the successor state $s' = (s \setminus \text{eff}^-(A)) \cup \text{eff}^+(A)$.
+
+================================================================================
+#19: [HWS+25] Key: HuangSPAR
+Publication Genre: arXiv Preprint / Working Paper
+Authors: Songhao Huang and Yuwei Wu and Guangyao Shi and Gaurav S. Sukhatme and Vijay Kumar (2025)
+Title: SPAR: Scalable LLM-based PDDL Domain Generation for Aerial Robotics
+Thesis Pages Cited (backref): 19, 20, 22, 29, 30, 35, 39, 44, 45, 55, 57, 60, 84
+Text Occurrences (15 citations across .tex files):
+  * [10 - introduction.tex#L52]: Structured prompting frameworks such as SPAR by Huang et al.~\cite{HuangSPAR}, Kelly et al.~\cite{kelly2023there}, and Acitelli et al.~\cite{acitelli2026generating} decompose domain extraction into sequential prompting stages.
+  * [10 - introduction.tex#L55]: To detect both types of semantic error on reference problem instances using \gls{val}~\cite{howey2004val}, Oswald et al.~\cite{oswald} and Huang et al.~\cite{HuangSPAR} evaluate generated domains for both \emph{soundness}, verifying that plans generated from the candidate domain execute validly in the ground-truth domain, and \emph{completeness}, verifying that plans generated from the ground-truth domain execute validly in the candidate domain.
+  * [10 - introduction.tex#L72]: Third, existing closed-loop pipelines iterate until a single plan is found rather than verifying both soundness and completeness across ground-truth problem instances~\cite{oswald,HuangSPAR}.
+  * [10 - introduction.tex#L132]: For domain modelling under \textbf{(H1)}, generated domains are compared against single-pass and iterative raw \gls{pddl} baselines across all ground-truth problems using two bidirectional plan-validation checks~\cite{oswald,HuangSPAR}:
+  * [20 - background.tex#L124]: Even when a planner finds a candidate plan $\pi_{gen}$ using a generated domain $\mathcal{D}_{gen}$, solvability alone does not prove that $\mathcal{D}_{gen}$ is accurate: if an action schema in $\mathcal{D}_{gen}$ omits a necessary precondition, the planner can exploit that omission to produce a plan that is invalid in the true environment~\cite{oswald,HuangSPAR}.
+  * [20 - background.tex#L145]: In our framework (Chapter~4), \gls{val} serves two distinct purposes: first, it extracts the exact failing action $a_k$ and unsatisfied precondition literal $p$ during fault localization; second, it enables \textbf{bidirectional plan validation}~\cite{oswald,HuangSPAR} by testing both whether candidate plans $\pi_{gen}$ execute validly in the ground-truth domain $\mathcal{D}_{gold}$ (\emph{soundness}) and whether ground-truth plans $\pi_{gold}$ execute validly in the candidate domain $\mathcal{D}_{gen}$ (\emph{completeness}).
+  * [30 - problem exposition.tex#L51]: However, SPAR's automated feedback loop checks only syntax during generation, whereas executability, feasibility, and interpretability are applied strictly as post-hoc evaluation metrics without a closed-loop semantic fault localization or action-repair mechanism~\cite{HuangSPAR}.
+  * [30 - problem exposition.tex#L129]: Huang et al. (SPAR)~\cite{HuangSPAR} & Direct PDDL action text & None (RAG + CoT action prompting) & Syntax checker, ENHSP-20, VAL, Gazebo & Action syntax loop only (No semantic repair) & Syntax errors, Executability, Feasibility, Interpretability \\
+  * [40 - first real chapter.tex#L96]: As established in recent action-model acquisition studies~\cite{guan2023leveraging,oswald,HuangSPAR}, predefining the relational vocabulary isolates state-transition modelling from lexical drift and allows candidate domains to be verified directly on reference problem instances.
+  * [40 - first real chapter.tex#L106]: Prompting an \gls{llm} to generate raw \gls{pddl} code directly from natural language forces the model to solve two distinct tasks simultaneously: constructing the underlying relational preconditions and effects, and formatting nested Lisp S-expressions~\cite{shetye2025llm,HuangSPAR}.
+  * [50 - second real chapter.tex#L62]: Prompt design plays a central role in guiding language models to produce valid specifications for automated planning tasks~\cite{HuangSPAR,shetye2025llm}.
+  * [50 - second real chapter.tex#L67]: Furthermore, following the structured reasoning principles demonstrated by Shetye~\cite{shetye2025llm} and Huang et al.~\cite{HuangSPAR}, the prompting architecture separates initial formalization from iterative fault repair using two distinct prompt templates:
+  * [50 - second real chapter.tex#L101]: It represents a high-capacity multimodal foundation model featuring a 128k token context window, native support for constrained \gls{json} Schema decoding, and strong zero-shot and few-shot reasoning over formal grammars and action dynamics~\cite{patil2024llms,HuangSPAR}.
+  * [50 - second real chapter.tex#L239]: Developed by Howey et al.~\cite{howey2004val}, \textbf{\gls{val}} is the standard verification tool adopted across the \gls{ipc} and neuro-symbolic planning literature~\cite{guan2023leveraging,oswald,patil2024llms,shetye2025llm,HuangSPAR}.
+  * [60 - evaluation.tex#L596]: While this scope aligns with established domain acquisition baselines in the planning literature~\cite{oswald,guan2023leveraging,HuangSPAR}, scaling autonomous lifecycle engineering to expressive planning formalisms (such as temporal or hybrid planning) will require expanding the typed \gls{ast} grammar and adapting external verifiers beyond standard Fast Downward configurations.
+
+================================================================================
+#20: [HZ25] Key: huang2025limit
+Publication Genre: Conference Proceedings (Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers))
+Authors: Huang, Cassie and Zhang, Li (2025)
+Title: On the limit of language models as planning formalizers
+Thesis Pages Cited (backref): 18, 20, 34, 39, 43
+Text Occurrences (5 citations across .tex files):
+  * [10 - introduction.tex#L47]: Similarly, Huang and Zhang~\cite{huang2025limit} note that providing ground-truth action names and parameter lists is minimally necessary to validate generated plans against reference files using \gls{val}, and show that when models must invent predicates from natural descriptions without ground-truth predicates, they frequently omit required state predicates.
+  * [10 - introduction.tex#L81]: Importantly, our operational scope focuses on action-schema synthesis rather than unconstrained full domain generation from arbitrary text: following standard conventions in planning domain generation and action-model acquisition~\cite{oswald,guan2023leveraging,huang2025limit}, the proposed framework assumes that object types, predicates, and action signatures are available and focuses specifically on generating and repairing action preconditions and effects.
+  * [30 - problem exposition.tex#L31]: Their error analysis shows that as descriptions become more natural, language models frequently omit required state predicates or misdefine predicate arities, causing downstream planning or plan validation to fail~\cite{huang2025limit}.
+  * [30 - problem exposition.tex#L127]: Huang \& Zhang~\cite{huang2025limit} & Direct PDDL text (Domain \& Problem) & None (Direct text prompting) & Fast Downward, VAL & None (Open-loop / Post-hoc error analysis) & Solvability rate, VAL plan correctness \\
+  * [40 - first real chapter.tex#L74]: Consequently, even if the generated domain captures valid transition logic, automated evaluation against reference problem instances fails due to symbol mismatches rather than semantic modelling defects~\cite{guan2023leveraging,huang2025limit,oswald}.
+
+================================================================================
+#21: [KCWM23] Key: kelly2023there
+Publication Genre: Conference Proceedings (Proceedings of the AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment)
+Authors: Kelly, Jack and Calderwood, Alex and Wardrip-Fruin, Noah and Mateas, Michael (2023)
+Title: There and back again: extracting formal domains for controllable neurosymbolic story authoring
+Thesis Pages Cited (backref): 19, 53
+Text Occurrences (2 citations across .tex files):
+  * [10 - introduction.tex#L52]: Structured prompting frameworks such as SPAR by Huang et al.~\cite{HuangSPAR}, Kelly et al.~\cite{kelly2023there}, and Acitelli et al.~\cite{acitelli2026generating} decompose domain extraction into sequential prompting stages.
+  * [50 - second real chapter.tex#L25]: Early investigations into \gls{llm}-based planning domain modelling and action-model acquisition relied on informal, human-authored natural-language descriptions of domain dynamics and planning tasks~\cite{guan2023leveraging,kelly2023there}.
+
+================================================================================
+#22: [KVG+24] Key: kambhampati2024llmscantplanhelp
+Publication Genre: arXiv Preprint / Working Paper
+Authors: Subbarao Kambhampati and Karthik Valmeekam and Lin Guan and Mudit Verma and Kaya Stechly and Siddhant Bhambri and Lucas Saldyt and Anil Murthy (2024)
+Title: LLMs Can't Plan, But Can Help Planning in LLM-Modulo Frameworks
+Thesis Pages Cited (backref): 19, 32, 35
+Text Occurrences (3 citations across .tex files):
+  * [10 - introduction.tex#L60]: Moving beyond open-loop generation, several recent works follow the LLM-Modulo paradigm~\cite{kambhampati2024llmscantplanhelp} by coupling language models with external planners or validators in iterative refinement loops.
+  * [20 - background.tex#L195]: Because single-pass generation cannot recover from semantic modelling errors, recent planning research adopts the \textbf{LLM-Modulo} framework proposed by Kambhampati et al.~\cite{kambhampati2024llmscantplanhelp}.
+  * [30 - problem exposition.tex#L59]: Kambhampati et al. introduce the LLM-Modulo framework, showing that standalone language models cannot reliably plan or self-verify without external formal critics and arguing that language models should act as candidate generators coupled with sound symbolic verifiers in a closed loop~\cite{kambhampati2024llmscantplanhelp}.
+
+================================================================================
+#23: [LJZ+23] Key: liu2024llm+
+Publication Genre: Journal Article (arXiv preprint arXiv:2304.11477)
+Authors: Liu, Bo and Jiang, Yuqian and Zhang, Xiaohan and Liu, Qiang and Zhang, Shiqi and Biswas, Joydeep and Stone, Peter (2023)
+Title: {LLM+P}: Empowering Large Language Models with Optimal Planning Proficiency
+Thesis Pages Cited (backref): 18, 62
+Text Occurrences (0 citations across .tex files):
+
+================================================================================
+#24: [LSHS26] Key: laule2026pddlcoder
+Publication Genre: Journal Article (arXiv preprint arXiv:2608.16637)
+Authors: Laule, Veit and Shuai, Jiangtao and Hauswirth, Manfred and Schimmler, Sonja (2026)
+Title: PDDLCoder: Agentic PDDL Generation for LLM-Assisted Symbolic Planning
+Thesis Pages Cited (backref): 19, 20, 37, 39, 47
+Text Occurrences (6 citations across .tex files):
+  * [10 - introduction.tex#L64]: More recently, La Malfa et al.~\cite{LaMalfa} and Laule et al.~\cite{laule2026pddlcoder} employ agentic refinement loops that pass planner and validator outputs back to the language model to iteratively revise \gls{pddl} models.
+  * [10 - introduction.tex#L67]: Second, because existing systems manipulate raw \gls{pddl} text files or regenerate the entire domain specification across repair iterations, refinement attempts can overwrite previously valid actions or drift from the intended domain semantics~\cite{shetye2025llm,bavandpour,laule2026pddlcoder}.
+  * [10 - introduction.tex#L71]: Second, existing iterative repair loops do not localize validator and planner failures to the specific actions with faulty preconditions or effects, and cannot selectively repair only those actions' preconditions and effects in memory without risking regressions in other valid actions~\cite{patil2024llms,bavandpour,laule2026pddlcoder}.
+  * [30 - problem exposition.tex#L77]: While PDDLCoder substantially improves plan applicability over single-pass baselines, it manipulates raw \gls{pddl} text files rather than a schema-validated action \gls{ast}, relies on heuristic language-model plan critiques rather than formal two-way \gls{val} verification during refinement, and evaluates only forward plan applicability rather than completeness~\cite{laule2026pddlcoder}.
+  * [30 - problem exposition.tex#L143]: Laule et al. (PDDLCoder)~\cite{laule2026pddlcoder} & Direct PDDL text (Domain \& Problem) & None (ReAct file-editing tools) & VAL, Fast Downward, LLM PlanAgent, PDDLGym & VAL line errors + FD stats + LLM critique & NL-pddlgym plan applicability, Failure levels \\
+  * [40 - first real chapter.tex#L185]: When a candidate domain fails symbolic verification, raw output logs from external verifiers and automated planners are often cryptic or overly verbose~\cite{shetye2025llm,laule2026pddlcoder}.
+
+================================================================================
+#25: [LZM+24] Key: LaMalfa
+Publication Genre: Journal Article (arXiv preprint arXiv:2410.13745)
+Authors: La Malfa, Emanuele and Zhu, Ping and Marro, Samuele and Bernardini, Sara and Wooldridge, Michael (2024)
+Title: An End-to-End Planning Framework with Agentic {LLMs} and {PDDL}
+Thesis Pages Cited (backref): 19, 36, 39
+Text Occurrences (3 citations across .tex files):
+  * [10 - introduction.tex#L64]: More recently, La Malfa et al.~\cite{LaMalfa} and Laule et al.~\cite{laule2026pddlcoder} employ agentic refinement loops that pass planner and validator outputs back to the language model to iteratively revise \gls{pddl} models.
+  * [30 - problem exposition.tex#L74]: However, their sub-agents rewrite raw \gls{pddl} domain and problem text from solver and validator logs without a deterministic \gls{ast} compiler, exhibit routing sensitivity to changes in the agent pool, and evaluate plan correctness using an \gls{llm}-as-a-judge comparison rather than formal two-way \gls{val} domain validation~\cite{LaMalfa}.
+  * [30 - problem exposition.tex#L141]: La Malfa et al.~\cite{LaMalfa} & JSON summary + Direct PDDL text & None (Orchestrator + Sub-agent rewrites) & Fast Downward, POPF, VAL/uVAL & Solver/VAL debug logs (Full PDDL rewrite) & LLM-as-a-judge plan accuracy, Plan cost reduction \\
+
+================================================================================
+#26: [MATC24] Key: Mahdavi
+Publication Genre: arXiv Preprint / Working Paper
+Authors: Sadegh Mahdavi and Raquel Aoki and Keyi Tang and Yanshuai Cao (2024)
+Title: Leveraging Environment Interaction for Automated PDDL Translation and Planning with Large Language Models
+Thesis Pages Cited (backref): 19
+Text Occurrences (1 citations across .tex files):
+  * [10 - introduction.tex#L62]: Mahdavi et al.~\cite{Mahdavi} use environment interaction feedback to search over candidate domain files, while Chen et al.~\cite{chen2024language} introduce LASP to diagnose physical execution failures at runtime and update missing preconditions in a robotics kitchen domain.
+
+================================================================================
+#27: [MGH+98] Key: aeronautiques1998pddl
+Publication Genre: Technical Report
+Authors: McDermott, Drew and Ghallab, Malik and Howe, Adele and Knoblock, Craig and Ram, Ashwin and Veloso, Manuela and Weld, Daniel and Wilkins, David (1998)
+Title: {PDDL}---The Planning Domain Definition Language
+Thesis Pages Cited (backref): 17, 27, 54
+Text Occurrences (3 citations across .tex files):
+  * [10 - introduction.tex#L17]: The \gls{pddl}~\cite{aeronautiques1998pddl,fox2003pddl2} is the standard formalism used to specify these planning models, defining typed objects, relational predicates that describe state facts, and parameterized action schemas that specify state transitions through explicit preconditions and add or delete effects.
+  * [20 - background.tex#L66]: Introduced by McDermott et al.~\cite{aeronautiques1998pddl} for the 1998 International Planning Competition (IPC) and formalized in \gls{pddl}~2.1 by Fox and Long~\cite{fox2003pddl2}, \gls{pddl} is the standard modelling language for classical and temporal planning~\cite{haslum2019introduction}.
+  * [50 - second real chapter.tex#L29]: To eliminate prompt-level linguistic ambiguity, our implementation sources natural-language domain descriptions directly from the open-source \textbf{AutoPlanBench}\footnote{\url{https://github.com/minecraft-saar/autoplanbench}} benchmark repository~\cite{stein2023autoplanbench}, paired with ground-truth reference models from the official \gls{ipc} benchmark repository~\cite{potassco_pddl_instances,aeronautiques1998pddl}.
+
+================================================================================
+#28: [NT04] Key: nau2004automated
+Publication Genre: Book
+Authors: Nau, Dana and Traverso, Paolo (2004)
+Title: Automated planning
+Thesis Pages Cited (backref): 17, 25, 26
+Text Occurrences (6 citations across .tex files):
+  * [10 - introduction.tex#L16]: \Gls{ap} is a foundational subfield of \gls{ai} concerned with computing sequences of actions that transition a system from a given initial state to a desired goal state~\cite{nau2004automated}.
+  * [20 - background.tex#L16]: \Gls{ap} studies computational techniques for selecting and organizing actions to achieve specified goals by reasoning over explicit symbolic models of state transitions~\cite{nau2004automated,haslum2019introduction}.
+  * [20 - background.tex#L21]: At the foundation of symbolic planning lies the formal abstraction of a state-transition system~\cite{nau2004automated}:
+  * [20 - background.tex#L33]: \emph{Classical planning} restricts $\Sigma$ via the standard assumptions of a finite state space, full observability, determinism ($|\gamma(s, a)| \leq 1$), static dynamics ($E = \emptyset$), attainment goals, and sequential instantaneous actions~\cite{nau2004automated}.
+  * [20 - background.tex#L45]: Because enumerating states in $S$ explicitly is intractable for combinatorial environments, classical planners represent states and transitions compactly using First-Order Logic (FOL) under the \gls{strips} formalism~\cite{nau2004automated}.
+  * [20 - background.tex#L49]: Under the \textbf{Closed-World Assumption (CWA)}, a world state $s \subseteq \mathcal{F}$ is uniquely defined by the set of ground atoms that hold true in $s$; any ground atom $f \notin s$ is assumed false~\cite{nau2004automated}.
+
+================================================================================
+#29: [OSK24] Key: oswald
+Publication Genre: Conference Proceedings (Proceedings of the 34th International Conference on Automated Planning and Scheduling (ICAPS 2024))
+Authors: Oswald, Jennifer and Sreedharan, Sarath and Kambhampati, Subbarao (2024)
+Title: Can {LLMs} Generate {PDDL} Domains?
+Thesis Pages Cited (backref): 18, 19, 20, 22, 29, 30, 31, 34, 39, 43, 44, 45, 53, 55, 56, 59, 60, 62, 67, 83, 84
+Text Occurrences (28 citations across .tex files):
+  * [10 - introduction.tex#L44]: Extending automation from problem files to domain model generation, Guan et al.~\cite{guan2023leveraging}, Oswald et al.~\cite{oswald}, and Xie et al.~\cite{xie2025making} use language models to construct, generate, and predict action preconditions and effects from natural-language domain descriptions.
+  * [10 - introduction.tex#L46]: To enable automated evaluation against reference domain and problem files without human intervention, Oswald et al.~\cite{oswald} provide the natural-language description together with the ground-truth types, predicates, and action signatures specifying the allowed predicate arguments and typed action parameters.
+  * [10 - introduction.tex#L48]: Even when the ground-truth types, predicates, and action signatures are provided, however, Oswald et al.~\cite{oswald} show that direct single-pass \gls{pddl} text generation reconstructs semantically equivalent domains in at most 24.8\% of tested benchmarks.
+  * [10 - introduction.tex#L53]: Although multi-step prompting improves syntax parseability and internal solvability, language models frequently produce under-constrained action schemas that omit necessary preconditions or over-constrained schemas that include extraneous preconditions~\cite{oswald}.
+  * [10 - introduction.tex#L55]: To detect both types of semantic error on reference problem instances using \gls{val}~\cite{howey2004val}, Oswald et al.~\cite{oswald} and Huang et al.~\cite{HuangSPAR} evaluate generated domains for both \emph{soundness}, verifying that plans generated from the candidate domain execute validly in the ground-truth domain, and \emph{completeness}, verifying that plans generated from the ground-truth domain execute validly in the candidate domain.
+  * [10 - introduction.tex#L72]: Third, existing closed-loop pipelines iterate until a single plan is found rather than verifying both soundness and completeness across ground-truth problem instances~\cite{oswald,HuangSPAR}.
+  * [10 - introduction.tex#L81]: Importantly, our operational scope focuses on action-schema synthesis rather than unconstrained full domain generation from arbitrary text: following standard conventions in planning domain generation and action-model acquisition~\cite{oswald,guan2023leveraging,huang2025limit}, the proposed framework assumes that object types, predicates, and action signatures are available and focuses specifically on generating and repairing action preconditions and effects.
+  * [10 - introduction.tex#L132]: For domain modelling under \textbf{(H1)}, generated domains are compared against single-pass and iterative raw \gls{pddl} baselines across all ground-truth problems using two bidirectional plan-validation checks~\cite{oswald,HuangSPAR}:
+  * [20 - background.tex#L124]: Even when a planner finds a candidate plan $\pi_{gen}$ using a generated domain $\mathcal{D}_{gen}$, solvability alone does not prove that $\mathcal{D}_{gen}$ is accurate: if an action schema in $\mathcal{D}_{gen}$ omits a necessary precondition, the planner can exploit that omission to produce a plan that is invalid in the true environment~\cite{oswald,HuangSPAR}.
+  * [20 - background.tex#L145]: In our framework (Chapter~4), \gls{val} serves two distinct purposes: first, it extracts the exact failing action $a_k$ and unsatisfied precondition literal $p$ during fault localization; second, it enables \textbf{bidirectional plan validation}~\cite{oswald,HuangSPAR} by testing both whether candidate plans $\pi_{gen}$ execute validly in the ground-truth domain $\mathcal{D}_{gold}$ (\emph{soundness}) and whether ground-truth plans $\pi_{gold}$ execute validly in the candidate domain $\mathcal{D}_{gen}$ (\emph{completeness}).
+  * [20 - background.tex#L170]: Studies of human and language-model \gls{pddl} authoring~\cite{patil2024llms,oswald,smirnov2024generatingconsistentpddldomains} distinguish two primary categories of domain defects:
+  * [20 - background.tex#L185]: While pre-training enables \glspl{llm} to construct and predict commonsense preconditions and effects from natural language~\cite{guan2023leveraging,xie2025making}, generating raw \gls{pddl} directly via unconstrained token sampling is fragile: a single misplaced parenthesis or undeclared variable symbol invalidates the entire S-expression tree~\cite{oswald}.
+  * [30 - problem exposition.tex#L26]: Across seven language models, direct raw-text generation achieves heuristic domain equivalence in at most 24.8\% of tested benchmarks, and planners fail to find valid plans in up to 58.6\% of syntactically valid outputs~\cite{oswald}.
+  * [30 - problem exposition.tex#L125]: Oswald et al.~\cite{oswald} & Direct PDDL action text & None (Single-action prompting) & $K^*$ planner, VAL & None (Open-loop / No repair) & Action Reconstruction Error, Heuristic domain equivalence \\
+  * [40 - first real chapter.tex#L74]: Consequently, even if the generated domain captures valid transition logic, automated evaluation against reference problem instances fails due to symbol mismatches rather than semantic modelling defects~\cite{guan2023leveraging,huang2025limit,oswald}.
+  * [40 - first real chapter.tex#L96]: As established in recent action-model acquisition studies~\cite{guan2023leveraging,oswald,HuangSPAR}, predefining the relational vocabulary isolates state-transition modelling from lexical drift and allows candidate domains to be verified directly on reference problem instances.
+  * [40 - first real chapter.tex#L107]: Empirical analyses show that direct text generation frequently fails due to low-level syntactic defects, including unbalanced parentheses, omitted keyword delimiters, undeclared parameter variables, and inconsistent predicate arities~\cite{oswald,patil2024llms}.
+  * [50 - second real chapter.tex#L26]: However, subsequent studies by Oswald et al.~\cite{oswald} and Stein et al.~\cite{stein2023autoplanbench} demonstrated that manually drafted descriptions frequently suffer from inconsistent linguistic granularity, implicit causal assumptions, and omitted predicate relationships.
+  * [50 - second real chapter.tex#L63]: Without explicit guidance, a language model often invents arbitrary predicate and action names (for example, generating \texttt{(holding-block ?b)} instead of the declared predicate \texttt{(holding ?b)}), preventing automated validation against reference benchmarks~\cite{oswald}.
+  * [50 - second real chapter.tex#L64]: Following the predefined signature protocol of Oswald et al.~\cite{oswald}, the input prompt supplies the natural-language domain rules alongside the declared types $\mathcal{T}_{\text{gold}}$, predicates $\mathcal{P}_{\text{gold}}$, and action signatures $\mathcal{A}_{\text{sig}}$.
+  * [50 - second real chapter.tex#L93]: In recent literature, Oswald et al.~\cite{oswald} evaluated a broad spectrum of proprietary and open-weight models on \gls{pddl} action reconstruction, finding that only high-capacity frontier models (such as the GPT-4 family) and specialized code-reasoning models achieved competitive semantic validity.
+  * [50 - second real chapter.tex#L149]: Direct text generation baselines~\cite{oswald,patil2024llms} require the \gls{llm} to simultaneously construct action preconditions and effects while formatting nested Lisp S-expressions.
+  * [50 - second real chapter.tex#L235]: Syntactic validity alone does not ensure that a compiled domain model accurately captures the causal dynamics of the target environment~\cite{howey2004val,oswald}.
+  * [50 - second real chapter.tex#L239]: Developed by Howey et al.~\cite{howey2004val}, \textbf{\gls{val}} is the standard verification tool adopted across the \gls{ipc} and neuro-symbolic planning literature~\cite{guan2023leveraging,oswald,patil2024llms,shetye2025llm,HuangSPAR}.
+  * [50 - second real chapter.tex#L270]: Following the implementation practices of Shetye~\cite{shetye2025llm}, Oswald et al.~\cite{oswald}, and Liu et al.~\cite{liu2024llm+}, our framework integrates the \textbf{Fast Downward} planner~\cite{Helmert_2006}.
+  * [60 - evaluation.tex#L64]: \item \textbf{Zero-Shot Baseline (\texttt{ZERO\_SHOT})}: Reflects unguided single-turn generative prompting without iterative verification loops~\cite{oswald,smirnov2024generatingconsistentpddldomains}.
+  * [60 - evaluation.tex#L584]: A potential threat to internal validity in foundation-model evaluations is training data contamination~\cite{Applis,oswald}.
+  * [60 - evaluation.tex#L596]: While this scope aligns with established domain acquisition baselines in the planning literature~\cite{oswald,guan2023leveraging,HuangSPAR}, scaling autonomous lifecycle engineering to expressive planning formalisms (such as temporal or hybrid planning) will require expanding the typed \gls{ast} grammar and adapting external verifiers beyond standard Fast Downward configurations.
+
+================================================================================
+#30: [Pat24] Key: patil2024llms
+Publication Genre: Master's Thesis (University of Stuttgart)
+Authors: Patil, Kshitij (2024)
+Title: {LLMs} for {AI} Planning: A Study on Error Detection and Correction in {PDDL} Domain Models
+Thesis Pages Cited (backref): 17, 19, 20, 31, 36, 39, 45, 49, 54, 56, 57, 59, 60
+Text Occurrences (18 citations across .tex files):
+  * [10 - introduction.tex#L21]: Symbolic planners search strictly within the transition rules encoded in the domain specification, meaning that an extraneous precondition in an action schema can render valid plans unreachable, whereas an omitted precondition or delete effect allows the planner to generate invalid plans that fail during execution~\cite{howey2004val,patil2024llms}.
+  * [10 - introduction.tex#L58]: Although \gls{pddl} itself is already a structured language, its nested S-expression syntax cannot be enforced directly through the JSON-schema constrained decoding supported by modern language model interfaces, and text generation alone cannot enforce context-sensitive \gls{pddl} rules such as verifying that every variable used in a precondition or effect is declared in the action signature, matching predicate argument types against the ground-truth types and predicates, or preventing contradictory add and delete effects~\cite{smirnov2024generatingconsistentpddldomains,patil2024llms}.
+  * [10 - introduction.tex#L65]: However, recent evaluations of language-model-based \gls{pddl} error correction and repair expose two closely related limitations~\cite{patil2024llms,shetye2025llm,bavandpour,bavandpour2025finding}.
+  * [10 - introduction.tex#L66]: First, when unlocalized domain files, trace constraints, or raw validator logs are passed to the language model without isolating which actions contain faulty preconditions or effects, repair accuracy drops sharply on complex semantic defects, falling to a 10.53\% error-reduction score on Machine-Shop in the study by Patil~\cite{patil2024llms} and a 6\% test plan pass rate on Thoughtful in the investigation by Bavandpour and Bercher~\cite{bavandpour}.
+  * [10 - introduction.tex#L71]: Second, existing iterative repair loops do not localize validator and planner failures to the specific actions with faulty preconditions or effects, and cannot selectively repair only those actions' preconditions and effects in memory without risking regressions in other valid actions~\cite{patil2024llms,bavandpour,laule2026pddlcoder}.
+  * [20 - background.tex#L170]: Studies of human and language-model \gls{pddl} authoring~\cite{patil2024llms,oswald,smirnov2024generatingconsistentpddldomains} distinguish two primary categories of domain defects:
+  * [30 - problem exposition.tex#L64]: Patil's results show that while prompt-tuned GPT-4 effectively resolves surface syntactic mistakes, whole-file rewriting performs inconsistently on complex semantic defects, incomplete domain models, and undefined parameters, dropping to a 10.53\% error-reduction score on Machine-Shop and 30.00\% on Barman when unguided by localized symbolic diagnostics~\cite{patil2024llms}.
+  * [30 - problem exposition.tex#L137]: Patil~\cite{patil2024llms} & Direct PDDL text & None (Prompt-tuned whole-file rewrite) & PDDL Studio, Temporal Fast Downward, VAL & Manual PDDL Studio check (Whole-file rewrite) & Error-reduction score (EPCS), Makespan, Plan cost \\
+  * [40 - first real chapter.tex#L107]: Empirical analyses show that direct text generation frequently fails due to low-level syntactic defects, including unbalanced parentheses, omitted keyword delimiters, undeclared parameter variables, and inconsistent predicate arities~\cite{oswald,patil2024llms}.
+  * [40 - first real chapter.tex#L255]: Standard iterative prompting pipelines ask the language model to regenerate the entire PDDL domain file on every repair turn~\cite{patil2024llms,smirnov2024generatingconsistentpddldomains}.
+  * [40 - first real chapter.tex#L256]: Full-domain regeneration consumes substantial completion tokens and frequently introduces secondary regressions, where fixing one defective action inadvertently alters a previously working action~\cite{patil2024llms,shetye2025llm}.
+  * [50 - second real chapter.tex#L45]: Prior work by Patil~\cite{patil2024llms} investigated error detection and correction across flawed \gls{ipc} domain models containing syntactic and semantic errors, while Bavandpour and Bercher~\cite{bavandpour2025finding,bavandpour} evaluated domain repair on models corrupted by the addition or removal of action preconditions and effects.
+  * [50 - second real chapter.tex#L80]: Rather than re-sending unparsed solver logs or rewriting raw \gls{pddl} domain text from scratch (which Patil~\cite{patil2024llms} and Shetye~\cite{shetye2025llm} showed can induce prompt context expansion and unintended modifications to working actions), the repair generator collects the localized actions (\texttt{target\_actions}) from the active diagnostic reports, injects an explicit targeted editing directive restricting modifications strictly to the preconditions and effects of \texttt{target\_actions} alongside the static reachability summary and prior repair history, and deterministically restores all non-targeted actions from the in-memory action map after structured generation.
+  * [50 - second real chapter.tex#L94]: Similarly, Patil~\cite{patil2024llms} selected GPT-4 for domain error detection and correction due to its large context window, strong comprehension and error-correction capabilities, and logical reasoning over structured \gls{pddl} text.
+  * [50 - second real chapter.tex#L101]: It represents a high-capacity multimodal foundation model featuring a 128k token context window, native support for constrained \gls{json} Schema decoding, and strong zero-shot and few-shot reasoning over formal grammars and action dynamics~\cite{patil2024llms,HuangSPAR}.
+  * [50 - second real chapter.tex#L149]: Direct text generation baselines~\cite{oswald,patil2024llms} require the \gls{llm} to simultaneously construct action preconditions and effects while formatting nested Lisp S-expressions.
+  * [50 - second real chapter.tex#L239]: Developed by Howey et al.~\cite{howey2004val}, \textbf{\gls{val}} is the standard verification tool adopted across the \gls{ipc} and neuro-symbolic planning literature~\cite{guan2023leveraging,oswald,patil2024llms,shetye2025llm,HuangSPAR}.
+  * [50 - second real chapter.tex#L240]: While lightweight parsing libraries such as \texttt{PDDL4J} or regular-expression parsers can verify surface grammar, they cannot simulate state transitions or explain why a multi-step plan fails at an intermediate execution state~\cite{patil2024llms}.
+
+================================================================================
+#31: [Pot21] Key: potassco_pddl_instances
+Publication Genre: Online Code/Benchmark Repository
+Authors: {Potassco Team} (2021)
+Title: {PDDL Instances: A Collection of Classical Planning Benchmark Domains and Problems}
+Thesis Pages Cited (backref): 54
+Text Occurrences (1 citations across .tex files):
+  * [50 - second real chapter.tex#L29]: To eliminate prompt-level linguistic ambiguity, our implementation sources natural-language domain descriptions directly from the open-source \textbf{AutoPlanBench}\footnote{\url{https://github.com/minecraft-saar/autoplanbench}} benchmark repository~\cite{stein2023autoplanbench}, paired with ground-truth reference models from the official \gls{ipc} benchmark repository~\cite{potassco_pddl_instances,aeronautiques1998pddl}.
+
+================================================================================
+#32: [RSO+26] Key: rosa2026grounded
+Publication Genre: Journal Article (arXiv preprint arXiv:2609.09898)
+Authors: Rosa, Joana and Santos, Pedro and Oliveira, Valdemar and Silva, Rom{\~a}o and Silveira, L Miguel and Martins, Bruno (2026)
+Title: Grounded Evaluation and Repair for NL-to-PDDL Problem Generation
+Thesis Pages Cited (backref): 18
+Text Occurrences (1 citations across .tex files):
+  * [10 - introduction.tex#L42]: Similarly, Rosa et al.~\cite{rosa2026grounded} evaluate and iteratively repair language-model-generated \gls{pddl} problem files against ground-truth states and goals, demonstrating that syntax checks alone are insufficient while still assuming a fixed reference domain model.
+
+================================================================================
+#33: [SDS+24] Key: silver2024generalized
+Publication Genre: Conference Proceedings (Proceedings of the AAAI conference on artificial intelligence)
+Authors: Silver, Tom and Dan, Soham and Srinivas, Kavitha and Tenenbaum, Joshua B and Kaelbling, Leslie and Katz, Michael (2024)
+Title: Generalized planning in pddl domains with pretrained large language models
+Thesis Pages Cited (backref): 18
+Text Occurrences (1 citations across .tex files):
+  * [10 - introduction.tex#L40]: Silver et al.~\cite{silver2024generalized} extend language-model prompting to generalized planning by synthesizing Python programs that solve families of tasks within a fixed \gls{pddl} domain through automated debugging loops.
+
+================================================================================
+#34: [SFHK25] Key: stein2023autoplanbench
+Publication Genre: Conference Proceedings (Proceedings of the International Conference on Automated Planning and Scheduling)
+Authors: Stein, Katharina and Fi{\v{s}}er, Daniel and Hoffmann, J{\"o}rg and Koller, Alexander (2025)
+Title: Automating the generation of prompts for llm-based action choice in pddl planning
+Thesis Pages Cited (backref): 18, 22, 54, 66
+Text Occurrences (5 citations across .tex files):
+  * [10 - introduction.tex#L41]: Taking the reverse direction, AutoPlanBench by Stein et al.~\cite{stein2023autoplanbench} automatically converts formal \gls{pddl} domains and problems into natural-language prompts to evaluate language-model planners, providing benchmark infrastructure without addressing domain generation or repair.
+  * [10 - introduction.tex#L131]: We evaluate the system on 21 classical planning domains from AutoPlanBench~\cite{stein2023autoplanbench} adhering strictly to \gls{strips} and typing requirements (Chapter~6).
+  * [50 - second real chapter.tex#L26]: However, subsequent studies by Oswald et al.~\cite{oswald} and Stein et al.~\cite{stein2023autoplanbench} demonstrated that manually drafted descriptions frequently suffer from inconsistent linguistic granularity, implicit causal assumptions, and omitted predicate relationships.
+  * [50 - second real chapter.tex#L29]: To eliminate prompt-level linguistic ambiguity, our implementation sources natural-language domain descriptions directly from the open-source \textbf{AutoPlanBench}\footnote{\url{https://github.com/minecraft-saar/autoplanbench}} benchmark repository~\cite{stein2023autoplanbench}, paired with ground-truth reference models from the official \gls{ipc} benchmark repository~\cite{potassco_pddl_instances,aeronautiques1998pddl}.
+  * [60 - evaluation.tex#L48]: \item \textbf{Classical Symbolic Planner}: Fast Downward (Release 24.06)~\cite{Helmert_2006} executed via managed subprocess calls under a strict 30-second search timeout per problem instance, configured with lazy greedy best-first search guided by the Fast-Forward heuristic (\texttt{--search "lazy\_greedy([ff()])"}) for online candidate plan generation. Ground-truth reference plans ($\pi_{\text{gold}}$) utilized for inverse plan completeness verification are pre-computed reference solutions provided directly by the AutoPlanBench benchmark suite~\cite{stein2023autoplanbench}.
+
+================================================================================
+#35: [She25] Key: shetye2025llm
+Publication Genre: Master's Thesis (University of Stuttgart)
+Authors: Shetye, Srushti (2025)
+Title: An {LLM}-Modulo Framework for Automated {PDDL} Domain Model Generation
+Thesis Pages Cited (backref): 19, 20, 35, 39, 41, 45, 47, 49, 54, 55, 56, 57, 59, 60, 62
+Text Occurrences (21 citations across .tex files):
+  * [10 - introduction.tex#L56]: In parallel, Agarwal and Sreepathy~\cite{agarwal2024tic} and Shetye~\cite{shetye2025llm} seek to avoid direct \gls{pddl} generation by prompting the language model to output intermediate rules in \gls{asp}, which are solved and translated into \gls{pddl}.
+  * [10 - introduction.tex#L65]: However, recent evaluations of language-model-based \gls{pddl} error correction and repair expose two closely related limitations~\cite{patil2024llms,shetye2025llm,bavandpour,bavandpour2025finding}.
+  * [10 - introduction.tex#L67]: Second, because existing systems manipulate raw \gls{pddl} text files or regenerate the entire domain specification across repair iterations, refinement attempts can overwrite previously valid actions or drift from the intended domain semantics~\cite{shetye2025llm,bavandpour,laule2026pddlcoder}.
+  * [30 - problem exposition.tex#L46]: While validator-guided refinement improves plan generation across five language models, translating from \gls{asp} into \gls{pddl} relies on a second probabilistic language model step rather than a deterministic compiler, and regenerating full \gls{pddl} files across multiple feedback rounds can cause semantic drift from the original domain description~\cite{shetye2025llm}.
+  * [30 - problem exposition.tex#L135]: Shetye~\cite{shetye2025llm} & Intermediate ASP rules & Two-stage LLM translation (ASP to PDDL) & Clingo, VAL, Fast Downward & VAL/FD error logs (Full PDDL rewrite) & Plan status, Fuzzy logic accuracy, Makespan, Cost \\
+  * [40 - first real chapter.tex#L8]: Conversely, classical inductive action-model learning methods require extensive execution traces that are rarely available during initial domain design~\cite{aineto2019learningstripsactionmodels,shetye2025llm}, whereas manual knowledge engineering remains labor-intensive and error-prone~\cite{silva2020formal}.
+  * [40 - first real chapter.tex#L106]: Prompting an \gls{llm} to generate raw \gls{pddl} code directly from natural language forces the model to solve two distinct tasks simultaneously: constructing the underlying relational preconditions and effects, and formatting nested Lisp S-expressions~\cite{shetye2025llm,HuangSPAR}.
+  * [40 - first real chapter.tex#L111]: However, unlike two-stage pipelines that translate natural language into an intermediate logical language (such as \gls{asp}) and subsequently prompt a second \gls{llm} to translate into \gls{pddl}~\cite{shetye2025llm}, our framework employs a single-stage relational \gls{ast} representation.
+  * [40 - first real chapter.tex#L185]: When a candidate domain fails symbolic verification, raw output logs from external verifiers and automated planners are often cryptic or overly verbose~\cite{shetye2025llm,laule2026pddlcoder}.
+  * [40 - first real chapter.tex#L256]: Full-domain regeneration consumes substantial completion tokens and frequently introduces secondary regressions, where fixing one defective action inadvertently alters a previously working action~\cite{patil2024llms,shetye2025llm}.
+  * [50 - second real chapter.tex#L27]: When an \gls{llm} fails on an informal description, it is difficult to determine whether the failure arises from model reasoning limitations or from ambiguities in the prompt text itself~\cite{shetye2025llm}.
+  * [50 - second real chapter.tex#L62]: Prompt design plays a central role in guiding language models to produce valid specifications for automated planning tasks~\cite{HuangSPAR,shetye2025llm}.
+  * [50 - second real chapter.tex#L67]: Furthermore, following the structured reasoning principles demonstrated by Shetye~\cite{shetye2025llm} and Huang et al.~\cite{HuangSPAR}, the prompting architecture separates initial formalization from iterative fault repair using two distinct prompt templates:
+  * [50 - second real chapter.tex#L80]: Rather than re-sending unparsed solver logs or rewriting raw \gls{pddl} domain text from scratch (which Patil~\cite{patil2024llms} and Shetye~\cite{shetye2025llm} showed can induce prompt context expansion and unintended modifications to working actions), the repair generator collects the localized actions (\texttt{target\_actions}) from the active diagnostic reports, injects an explicit targeted editing directive restricting modifications strictly to the preconditions and effects of \texttt{target\_actions} alongside the static reachability summary and prior repair history, and deterministically restores all non-targeted actions from the in-memory action map after structured generation.
+  * [50 - second real chapter.tex#L95]: Conversely, Shetye~\cite{shetye2025llm} and Bavandpour and Bercher~\cite{bavandpour} emphasized the importance of evaluating code- and logic-optimized models to assess reproducibility and domain formalization efficacy.
+  * [50 - second real chapter.tex#L104]: Selected as a leading code- and logic-optimized foundation model pre-trained heavily on programming languages, source code repositories, and formal mathematical reasoning corpora~\cite{shetye2025llm,bavandpour}.
+  * [50 - second real chapter.tex#L109]: Both models are accessed through a unified client interface implemented in Python using the OpenAI-compatible SDK and OpenRouter gateway routing, following the multi-provider integration pattern described by Shetye~\cite{shetye2025llm}.
+  * [50 - second real chapter.tex#L151]: Alternative neuro-symbolic pipelines, such as \gls{tic} by Agarwal and Sreepathy~\cite{agarwal2024tic} and the \gls{asp}-based pipeline by Shetye~\cite{shetye2025llm}, introduce intermediate declarative logic encodings before compiling into \gls{pddl}.
+  * [50 - second real chapter.tex#L239]: Developed by Howey et al.~\cite{howey2004val}, \textbf{\gls{val}} is the standard verification tool adopted across the \gls{ipc} and neuro-symbolic planning literature~\cite{guan2023leveraging,oswald,patil2024llms,shetye2025llm,HuangSPAR}.
+  * [50 - second real chapter.tex#L270]: Following the implementation practices of Shetye~\cite{shetye2025llm}, Oswald et al.~\cite{oswald}, and Liu et al.~\cite{liu2024llm+}, our framework integrates the \textbf{Fast Downward} planner~\cite{Helmert_2006}.
+  * [50 - second real chapter.tex#L274]: Fast Downward is selected for three primary technical reasons~\cite{shetye2025llm}:
+
+================================================================================
+#36: [SJCG24] Key: smirnov2024generatingconsistentpddldomains
+Publication Genre: arXiv Preprint / Working Paper
+Authors: Pavel Smirnov and Frank Joublin and Antonello Ceravola and Michael Gienger (2024)
+Title: Generating consistent PDDL domains with Large Language Models
+Thesis Pages Cited (backref): 17, 19, 31, 34, 39, 49, 58, 67
+Text Occurrences (9 citations across .tex files):
+  * [10 - introduction.tex#L22]: Even minor authoring mistakes, such as undeclared variable types, predicate arity mismatches, or missing delete effects, frequently result in parser rejections or unexecutable plans~\cite{smirnov2024generatingconsistentpddldomains}.
+  * [10 - introduction.tex#L58]: Although \gls{pddl} itself is already a structured language, its nested S-expression syntax cannot be enforced directly through the JSON-schema constrained decoding supported by modern language model interfaces, and text generation alone cannot enforce context-sensitive \gls{pddl} rules such as verifying that every variable used in a precondition or effect is declared in the action signature, matching predicate argument types against the ground-truth types and predicates, or preventing contradictory add and delete effects~\cite{smirnov2024generatingconsistentpddldomains,patil2024llms}.
+  * [10 - introduction.tex#L61]: Smirnov et al.~\cite{smirnov2024generatingconsistentpddldomains} perform consistency checking during \gls{pddl} generation and feed error descriptions back to the language model before checking plan reachability with Fast Downward~\cite{Helmert_2006}.
+  * [20 - background.tex#L170]: Studies of human and language-model \gls{pddl} authoring~\cite{patil2024llms,oswald,smirnov2024generatingconsistentpddldomains} distinguish two primary categories of domain defects:
+  * [30 - problem exposition.tex#L36]: However, their correction loop regenerates the entire \gls{json} domain file rather than isolating individual actions, their Fast Downward reachability check is executed only once at the end rather than inside a closed repair loop, and final semantic correctness still requires manual human corrections without \gls{val} plan validation~\cite{smirnov2024generatingconsistentpddldomains}.
+  * [30 - problem exposition.tex#L131]: Smirnov et al.~\cite{smirnov2024generatingconsistentpddldomains} & JSON function-signature markup & Template conversion to PDDL & JSON consistency checker, Fast Downward & Static consistency flags (Full-JSON rewrite) & Error count, Goal non-reachability, Action involvement \\
+  * [40 - first real chapter.tex#L255]: Standard iterative prompting pipelines ask the language model to regenerate the entire PDDL domain file on every repair turn~\cite{patil2024llms,smirnov2024generatingconsistentpddldomains}.
+  * [50 - second real chapter.tex#L126]: Traditional \gls{llm} pipelines in automated planning rely on linear prompt chains or unstructured Python \texttt{while}-loops that pass raw text between a generator and an external validator~\cite{guan2023leveraging,smirnov2024generatingconsistentpddldomains}.
+  * [60 - evaluation.tex#L64]: \item \textbf{Zero-Shot Baseline (\texttt{ZERO\_SHOT})}: Reflects unguided single-turn generative prompting without iterative verification loops~\cite{oswald,smirnov2024generatingconsistentpddldomains}.
+
+================================================================================
+#37: [SSV20] Key: silva2020formal
+Publication Genre: Book Chapter / InCollection (Knowledge Engineering Tools and Techniques for AI Planning)
+Authors: Silva, Jose Reinaldo and Silva, Javier Martinez and Vaquero, Tiago Stegun (2020)
+Title: Formal knowledge engineering for planning: pre and post-design analysis
+Thesis Pages Cited (backref): 17, 30, 33, 41
+Text Occurrences (5 citations across .tex files):
+  * [10 - introduction.tex#L25]: Related aspects of this iterative process have been examined in pre- and post-design knowledge engineering analysis~\cite{silva2020formal} and in the broader software development life cycle for AI planning systems~\cite{georgievski2023software}.
+  * [20 - background.tex#L151]: Knowledge Engineering for Automated Planning (KEAP) studies systematic methodologies for acquiring, structuring, verifying, and maintaining formal planning models~\cite{silva2020formal,georgievski2023software}.
+  * [20 - background.tex#L156]: At the knowledge-engineering level, Silva et al.~\cite{silva2020formal} emphasize pre-design and post-design verification and validation of formal planning models.
+  * [30 - problem exposition.tex#L13]: That observation aligns with knowledge engineering analyses by Silva et al.~\cite{silva2020formal} and the ten-phase \gls{sdlc} for engineering AI planning systems proposed by Georgievski~\cite{georgievski2023software}, which covers requirements analysis, planning domain modelling, domain model design, architecture design, tool selection, implementation, testing, deployment, monitoring, and analysis.
+  * [40 - first real chapter.tex#L8]: Conversely, classical inductive action-model learning methods require extensive execution traces that are rarely available during initial domain design~\cite{aineto2019learningstripsactionmodels,shetye2025llm}, whereas manual knowledge engineering remains labor-intensive and error-prone~\cite{silva2020formal}.
+
+================================================================================
+#38: [TMZ25] Key: Tantakoun
+Publication Genre: Conference Proceedings (Findings of the Association for Computational Linguistics: ACL 2025)
+Authors: Tantakoun, Marcus and Muise, Christian and Zhu, Xiaodan (2025)
+Title: LLMs as planning formalizers: A survey for leveraging large language models to construct automated planning models
+Thesis Pages Cited (backref): 17, 18, 20, 33
+Text Occurrences (5 citations across .tex files):
+  * [10 - introduction.tex#L27]: Recent advancements in \glspl{llm} trained on large text and code corpora~\cite{chen2021evaluating} have raised expectations for automating knowledge-intensive modelling tasks, making their application to \gls{pddl} domain engineering a natural direction~\cite{Tantakoun}.
+  * [10 - introduction.tex#L28]: However, existing language-model-based methods largely treat domain modelling as an isolated single-step translation task rather than an iterative engineering process~\cite{Tantakoun}.
+  * [10 - introduction.tex#L37]: A recent survey by Tantakoun, Muise, and Zhu~\cite{Tantakoun} maps over 80 studies on language-model-driven planning model construction across model generation, model editing, and benchmarking, while Georgievski and Alnazer~\cite{georgievski2026formalisers} emphasize the need to move from isolated formalizers to agentic systems that manage the domain engineering life cycle end to end.
+  * [10 - introduction.tex#L69]: Despite this progress, three limitations remain unresolved across the \gls{pddl} domain engineering life cycle~\cite{Tantakoun,georgievski2026formalisers}.
+  * [30 - problem exposition.tex#L10]: Tantakoun, Muise, and Zhu~\cite{Tantakoun} present a survey of this field, categorizing automated planning model construction into model generation, model editing, and benchmarking.
+
+================================================================================
+#39: [WMF+24] Key: wang2024survey
+Publication Genre: Journal Article (Frontiers of computer science)
+Authors: Wang, Lei and Ma, Chen and Feng, Xueyang and Zhang, Zeyu and Yang, Hao and Zhang, Jingsen and Chen, Zhiyuan and Tang, Jiakai and Chen, Xu and Lin, Yankai and others (2024)
+Title: A survey on large language model based autonomous agents
+Thesis Pages Cited (backref): 17, 22, 32, 37, 58
+Text Occurrences (5 citations across .tex files):
+  * [10 - introduction.tex#L29]: At the same time, the emergence of agentic \gls{ai}, in which a language model serves as the reasoning core of an autonomous agent that maintains state across steps, invokes external tools, interprets their output, and iterates toward a goal without human intervention~\cite{wang2024survey,georgievski2026formalisers}, shifts automation from single-step generation to sustained multi-step operation.
+  * [10 - introduction.tex#L129]: Coordinated as a stateful cyclic graph~\cite{wang2024survey,Applis,benyamin2025toward}, the repair module prompts the \gls{llm} to revise only the preconditions and effects of those localized actions while preserving all other actions unchanged in the in-memory \gls{ast} before re-compilation (Chapters~4 and~5).
+  * [20 - background.tex#L198]: To coordinate multi-step generation, validation, fault diagnosis, and repair deterministically, autonomous software engineering agents increasingly use \textbf{stateful cyclic computational graphs}~\cite{wang2024survey,Applis,benyamin2025toward}.
+  * [30 - problem exposition.tex#L89]: Beyond planning-specific tool interfaces, the broader architecture of our system is grounded in the foundational design principles of autonomous language-model agents surveyed by Wang et al.~\cite{wang2024survey}.
+  * [50 - second real chapter.tex#L128]: Furthermore, as highlighted in recent agentic software engineering surveys~\cite{wang2024survey,Applis,georgievski2026formalisers}, linear directed acyclic graph frameworks (such as standard LangChain chains) disallow cyclic feedback edges, while conversational multi-agent frameworks (such as AutoGen) pass unconstrained natural-language messages between agents, quickly accumulating redundant context tokens and obscuring structured data representations.
+
+================================================================================
+#40: [XYGR25] Key: xie2025making
+Publication Genre: Conference Proceedings (Proceedings of the 31st International Conference on Computational Linguistics)
+Authors: Xie, Kaige and Yang, Ian and Gunerli, John and Riedl, Mark (2025)
+Title: Making large language models into world models with precondition and effect knowledge
+Thesis Pages Cited (backref): 18, 31
+Text Occurrences (2 citations across .tex files):
+  * [10 - introduction.tex#L44]: Extending automation from problem files to domain model generation, Guan et al.~\cite{guan2023leveraging}, Oswald et al.~\cite{oswald}, and Xie et al.~\cite{xie2025making} use language models to construct, generate, and predict action preconditions and effects from natural-language domain descriptions.
+  * [20 - background.tex#L185]: While pre-training enables \glspl{llm} to construct and predict commonsense preconditions and effects from natural language~\cite{guan2023leveraging,xie2025making}, generating raw \gls{pddl} directly via unconstrained token sampling is fragile: a single misplaced parenthesis or undeclared variable symbol invalidates the entire S-expression tree~\cite{oswald}.
+

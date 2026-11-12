@@ -15,13 +15,13 @@
 
   (:action LOAD-TRUCK
     :parameters (?obj ?truck ?loc)
-    :precondition (and (OBJ ?obj) (TRUCK ?truck) (LOCATION ?loc) (at ?obj ?loc) (at ?truck ?loc))
+    :precondition (and (OBJ ?obj) (TRUCK ?truck) (LOCATION ?loc) (at ?truck ?loc) (at ?obj ?loc))
     :effect (and (in ?obj ?truck) (not (at ?obj ?loc)))
   )
 
   (:action LOAD-AIRPLANE
     :parameters (?obj ?airplane ?loc)
-    :precondition (and (OBJ ?obj) (AIRPLANE ?airplane) (LOCATION ?loc) (at ?obj ?loc) (at ?airplane ?loc))
+    :precondition (and (OBJ ?obj) (AIRPLANE ?airplane) (LOCATION ?loc) (at ?airplane ?loc) (at ?obj ?loc))
     :effect (and (in ?obj ?airplane) (not (at ?obj ?loc)))
   )
 

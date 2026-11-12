@@ -4,218 +4,109 @@
 > **Author**: Roshan Gupta  
 > **Supervisor**: Prof. Dr. Ilche Georgievski  
 > **Institution**: Institute of Architecture of Application Systems (IAAS), University of Stuttgart  
+> **Environment**: Conda `agent_env` (Python 3.10+)  
 > **License**: MIT  
 
 ---
 
-## 📌 Project Overview
+## 📌 Project Overview & Problem Statement
 
-Constructing robust, error-free **PDDL (Planning Domain Definition Language)** domain models for classical automated planning is a complex, iterative knowledge engineering process. Conventional approaches treat PDDL creation as an isolated, single-shot natural language translation task, which frequently leads to token-level syntax crashes, predicate arity mismatches, and unreachable state deadlocks.
+Constructing valid, robust **PDDL (Planning Domain Definition Language)** domain models for classical automated planning is a complex, iterative knowledge engineering process. Conventional approaches treat PDDL creation as an isolated, single-turn natural language translation task, which frequently leads to token-level syntax crashes, predicate arity mismatches, and unreachable state deadlocks. Furthermore, existing iterative repair approaches often re-prompt language models with raw, unparsed solver logs, causing cyclic repair oscillation and unintended modifications to already working actions.
 
-This project implements an **Autonomous Closed-Loop Lifecycle Agent** for classical planning (strictly pure **PDDL 2.1** with `:strips` and `:typing`). Rather than emitting raw text directly from unconstrained stochastic prompts, the agent orchestrates the complete PDDL domain engineering lifecycle (Knowledge Engineering for Planning and Scheduling - KEPS):
+This repository implements the **Autonomous PDDL Lifecycle Agent**, an autonomous, closed-loop neuro-symbolic framework for classical planning (strictly pure **PDDL 2.1 Level 1** with `:strips` and `:typing`).
 
-1. **Phase 1: Requirements Elicitation** — Extracts relational semantics from natural language specifications into a strongly typed Pydantic intermediate representation (`DomainBlueprint` and `ProblemBlueprint`).
-2. **Phase 2: Deterministic Compilation** — Compiles the validated Abstract Syntax Tree (AST) schema into 100% syntactically valid PDDL 2.1 code via a deterministic Python compiler, eliminating token-level syntax malformations.
-3. **Phase 3: Symbolic Verification, Layered Model-Based Fault Localization & Repair** — Couples formal symbolic oracles (**VAL** for syntax and plan execution validation, and **Fast Downward** for state reachability) with Deterministic Causal Fault Analysis & SAS+ Invariant Analysis to localize, categorize, and surgically repair domain bugs.
+### Defined Operational Scope
+Importantly, the framework operates within an engineering setting with **predefined domain signatures** following standard action-model acquisition conventions:
+* **Given Inputs**: Natural-language domain requirements alongside ground-truth object types ($\mathcal{T}_{\text{gold}}$), predicate signatures ($\mathcal{P}_{\text{gold}}$), and action parameter headers ($\mathcal{A}_{\text{sig}}$).
+* **Autonomous Task**: Generating, verifying, localizing faults in, and surgically repairing **action preconditions and effects** ($\text{pre}(a)$ and $\text{eff}(a)$) without human intervention.
+* **Verification Guarantee**: Non-circular semantic verification via **bidirectional plan validation** (Soundness and Completeness) evaluated exclusively against ground-truth planning problems using external symbolic oracles (**VAL** and **Fast Downward**).
 
 ---
 
-## 🏗️ System Architecture & Phase Mechanism Diagrams
+## 🏗️ System Architecture & Lifecycle Stages
 
-### 1. Overall End-to-End Autonomous Lifecycle Architecture
-
-The agent functions as a closed-loop state machine powered by LangGraph, coordinating elicitation, deterministic compilation, oracle verification, layered model-based fault localization, and surgical repair.
+The agent is organized as a stateful cyclic computational graph (implemented with LangGraph) across five core functional stages:
 
 ```mermaid
 flowchart TD
-    Req["Natural Language Requirements"] --> Elicit["Phase 1: Requirements Elicitation\n(Extracts Typed Blueprint AST)"]
-    Elicit --> Blueprint["DomainBlueprint & ProblemBlueprint\n(Strongly Typed Pydantic Schema)"]
-    Blueprint --> Gen["Phase 2: Deterministic Compilation\n(Python-to-PDDL Compiler)"]
-    Gen --> PDDL["PDDL 2.1 Files\n(domain.pddl & problem.pddl)"]
-    PDDL --> Oracles["Phase 3: Formal Symbolic Oracles\n(VAL & Fast Downward)"]
-    Oracles -->|Syntax / Plan Error| Triage["FaultLocalizationNode\n(Layered Model-Based Fault Localization)"]
-    Triage -->|Diagnostic Hints| Repair["Surgical AST Repair Node\n(Targeted Blueprint Patching)"]
-    Repair --> Blueprint
-    Oracles -->|Verified & Semantically Sound| Certified["Certified PDDL Domain Model\n(Formally Verified Domain)"]
+    Req["Natural Language Requirements & Ground-Truth Signatures\n(Types, Predicates, Action Headers)"] --> Formalize["Phase 1: Structured AST Formalization\n(nodes/elicitation.py)"]
+    Formalize --> AST["Relational AST Blueprint\n(Pydantic ActionSchemaAST & DomainAST)"]
+    AST --> Compile["Phase 2: Deterministic Compilation\n(nodes/ast_to_pddl_compiler.py)"]
+    Compile --> Candidate["Candidate PDDL 2.1 Domain Specification"]
+    Candidate --> Oracles["Phase 3: External Symbolic Verification\n(VAL Plan Validator & Fast Downward Planner)"]
+    Oracles -->|Syntax/Type Error or Plan Failure| FaultLoc["Phase 4: Five-Tier Action-Level Fault Localization\n(nodes/fault_localization.py)"]
+    FaultLoc -->|Structured Diagnostic Fault Report| Repair["Phase 5: Targeted In-Memory Action Repair\n(nodes/repair.py)"]
+    Repair -->|Spliced AST with Preserved Non-Target Actions| AST
+    Oracles -->|Bidirectional Semantic Pass\nSoundness & Completeness| Verified["Certified PDDL Domain Model\n(Exported Lifecycle Artifacts)"]
 ```
 
----
+### Detailed Lifecycle Phases
 
-### 2. LangGraph State Machine Workflow Diagram (`graph.py`)
-
-The active computational graph in `graph.py` coordinates control flow across discrete agent nodes, conditional routers, and oracle gates:
-
-```mermaid
-flowchart TD
-    Start([Start Task Execution]) --> RouteInit{"route_initial_entry\n(Inspect Task State)"}
-    
-    RouteInit -->|New Requirements / Formulation Task| ElicitNode["elicit\n(run_elicitation_node)"]
-    RouteInit -->|Pre-loaded Domain / Fault Repair Task| ValidateNode["validate\n(run_full_validation_node)"]
-    
-    ElicitNode --> GenerateNode["generate\n(run_generation_node)"]
-    
-    GenerateNode -->|Compiled PDDL 2.1| ValidateNode
-    
-    ValidateNode --> RouteVal{"route_after_validation\n(Check Active Errors)"}
-    
-    RouteVal -->|Errors Found & ZERO_SHOT Baseline| EndFail([END: Baseline Terminated])
-    RouteVal -->|Errors Found & Autonomous Mode| FaultLocNode["fault_localization\n(FaultLocalizationNode)"]
-    RouteVal -->|Zero Errors: Bidirectional Pass| EndSuccess([END: SUCCESS / Certified Domain])
-    
-    FaultLocNode --> RouteFL{"route_after_fault_localization\n(Evaluate Diagnostic Reports & Budget)"}
-    
-    RouteFL -->|No Faults Remaining| EndSuccess
-    RouteFL -->|ZERO_SHOT Mode| EndFail
-    RouteFL -->|System Binary Error| EndHalt([END: Critical System Halt])
-    RouteFL -->|Iteration k >= k_max| EndMax([END: Max Iterations Reached])
-    RouteFL -->|Iteration k < k_max| RepairNode["repair\n(run_repair_node)"]
-    
-    RepairNode -->|Spliced AST Blueprint| GenerateNode
-```
+1. **Phase 1 — Structured AST Formalization (`nodes/elicitation.py`)**:
+   Prompts a Large Language Model (LLM) to extract relational preconditions and add/delete effects into strongly typed Pydantic schemas (`ActionSchemaAST`), decoupling causal transition reasoning from surface syntax formatting.
+2. **Phase 2 — Deterministic Algorithmic Compilation (`nodes/ast_to_pddl_compiler.py`)**:
+   A deterministic Python compiler sorts type hierarchies under `object`, verifies variable scoping against action parameter declarations, aligns predicate signatures, prunes contradictory simultaneous effects ($p \land \neg p$), and serializes valid PDDL 2.1 domain specifications at zero additional LLM token cost.
+3. **Phase 3 — External Symbolic Verification (`nodes/validation.py`)**:
+   Evaluates candidate domains against reference planning problems using two certified symbolic tools:
+   * **VAL (Plan Validation Tool)**: Simulates state transitions step by step to verify action applicability and goal attainment.
+   * **Fast Downward (Classical Planner)**: Performs state-space search to check problem reachability and generate plan traces.
+4. **Phase 4 — Five-Tier Action-Level Fault Localization (`nodes/fault_localization.py`)**:
+   Decomposes oracle errors across five prioritized diagnostic tiers, isolating the responsible action schemas and offending literals:
+   * **Tier 0 (Syntax & Typing Invariants)**: Predicate arity mismatches, undeclared parameter variables, and type inconsistencies (Compiler & VAL).
+   * **Tier 1 (Initial-State Groundability)**: Action parameter types with empty object domains, or preconditions absent from `:init` and never added by any action.
+   * **Tier 2 (Goal Reachability)**: Goal literals absent from `:init` with zero producer actions in the domain.
+   * **Tier 3 (State-Transition Consistency)**: Contradictory simultaneous add/delete effects or missing transition deletes when moving entities.
+   * **Tier 4 (Dynamic Plan Trace Analysis)**: Maps execution failures in candidate plans ($\pi_{\text{gen}}$) or reference plans ($\pi_{\text{gold}}$) back to lifted action schemas; falls back to static causal analysis when Fast Downward finds no plan.
+5. **Phase 5 — Targeted In-Memory Action Repair (`nodes/repair.py`)**:
+   Supplies counterexample-guided diagnostic reports to the LLM with surgical editing directives restricting modifications strictly to the localized actions. All other verified actions are deterministically restored from memory (`orig_action_map`), preventing prompt context expansion and secondary regressions.
+6. **Bidirectional Semantic Verification Gate**:
+   Ensures candidate models satisfy both:
+   * **Soundness**: Plans found using the generated domain execute validly on the ground-truth domain ($\text{VAL}(D_{\text{gold}}, P_{\text{gold}}, \pi_{\text{gen}}) = \text{SUCCESS}$).
+   * **Completeness**: Plans found using the ground-truth domain execute validly on the generated domain ($\text{VAL}(D_{\text{gen}}, P_{\text{gold}}, \pi_{\text{gold}}) = \text{SUCCESS}$).
 
 ---
 
-### 3. Phase 1 & 2 Mechanism: Decoupled Elicitation & Deterministic AST Compilation
+## 🔬 Experimental Evaluation & Baselines
 
-By separating semantic reasoning from concrete PDDL syntax generation, the system ensures that large language models reason exclusively over relational structures, while a deterministic compiler handles exact syntax, parentheses, and typing formatting.
+The framework is evaluated across two primary hypotheses and one descriptive research question:
 
-```mermaid
-flowchart LR
-    subgraph Phase1["Phase 1: Relational Semantic Elicitation"]
-        NL["Natural Language Text\n(Domain Specification)"] --> LLM_Elicit["LLM Elicitation Core\n(Phase-1 Prompting)"]
-        LLM_Elicit --> AST["Relational AST Blueprint\n- Action Names\n- Parameter Types\n- Precondition Atoms\n- Effect Atoms"]
-    end
+* **Hypothesis H1 (Domain Formulation)**: Given ground-truth types, predicates, and action signatures, generating action schemas through a schema-validated AST and deterministic compiler achieves a significantly higher rate of satisfying both soundness and completeness criteria than single-pass raw PDDL generation (`ZERO_SHOT`) and iterative raw PDDL generation without structured AST enforcement (`ABLATION_NO_AST`). Evaluated using **McNemar's exact test**.
+* **Hypothesis H2 (Domain Fault Repair)**: Layered action-level fault localization and targeted AST-based repair achieve a significantly higher repair success rate and require significantly fewer repair iterations than re-prompting with raw planner and validator error logs (`ABLATION_NO_TRIAGE`). Evaluated using **McNemar's exact test** for repair success and the **Wilcoxon signed-rank test** for repair iterations.
+* **Research Question RQ3 (Resource Telemetry)**: Measures computational token overhead, wall-clock latencies, and iteration counts across all configurations.
 
-    subgraph Phase2["Phase 2: Deterministic Compilation"]
-        AST --> PyCompiler["Deterministic Python Compiler\n- Type Hierarchy Formatter\n- Predicate Signature Builder\n- Action Pre/Eff Serializer"]
-        PyCompiler --> LispPDDL["100% Syntactically Valid PDDL 2.1\n(Zero Token Drift & No Syntax Crashes)"]
-    end
-```
+### Evaluated Conditions
 
----
+| Condition Code | Representation Modality | Feedback / Repair Mechanism | Statistical Role |
+| :--- | :--- | :--- | :--- |
+| **`CLOSED_LOOP_AST_AGENT`** | Schema-Validated AST | 5-Tier Fault Localization + Targeted In-Memory Repair | **Full Proposed Framework** |
+| **`ABLATION_NO_AST`** | Direct Raw PDDL Text | Iterative repair loop without AST schema | Tests AST compilation impact (H1) |
+| **`ABLATION_NO_TRIAGE`** | Schema-Validated AST | Re-prompting with raw unparsed validator/planner logs | Tests fault localization impact (H2) |
+| **`ZERO_SHOT`** | Direct Raw PDDL Text | Single-pass generation without repair or feedback | Open-loop baseline (H1) |
 
-### 4. Phase 3 Mechanism: Layered Model-Based Fault Localization & Closed-Loop Repair
+### Benchmark Suites
 
-When formal symbolic oracles detect a failure, the FaultLocalizationNode categorizes the fault into a structured hierarchy, prioritizes root causes via Layered Model-Based Fault Localization, and provides actionable repair hints to the AST repair engine.
-
-```mermaid
-flowchart TD
-    OracleFail["Oracle Failure Signal\n(VAL Syntax Log / Fast Downward Deadlock)"] --> TriageEngine["FaultLocalizationNode\n(Causal Fault & Invariant Analysis)"]
-    
-    subgraph ErrorHierarchy["Layered Fault Hierarchy (Lin, Grastien, & Bercher AAAI 2023)"]
-        T0["Tier 0: Syntax Parse & Arity Inversion\n(Mismatched argument counts, undeclared types)"]
-        T1["Tier 1: Precondition Misalignment & Unproduced Goals\n(Missing or over-constrained state preconditions)"]
-        T2["Tier 2: Frame Invariant & Contradictory Effects\n(SAS+ state balance, simultaneous add/delete)"]
-        T3["Tier 3: Reachability Deadlocks & Causal Cycles\n(Unsolvable state transitions)"]
-    end
-
-    TriageEngine --> ErrorHierarchy
-    ErrorHierarchy --> StratifiedRanking["Layered Fault Prioritization\n(Filters & Isolates Root Cause Flaws)"]
-    SurgicalHints["Structured Diagnostic Report\n- Error Category\n- Faulty Action/Predicate\n- Actionable Repair Hint"]
-    StratifiedRanking --> SurgicalHints
-    SurgicalHints --> RepairNode["Phase 3: Targeted Repair Node\n(Surgically patches AST Blueprint)"]
-    RepairNode --> Recompile["Deterministic Re-Compiler & Oracle Re-Verification"]
-```
+1. **Formulation Suite (H1)**: 21 canonical classical planning domains from the International Planning Competition (IPC) and AutoPlanBench (`barman14-bfs`, `blocksworld`, `depot`, `driverlog02-bfs`, `elevators08`, `floortile`, `goldminer`, `gripper`, `logistics`, `nomystery11-bfs`, `parking11`, `pegsol08`, `pipesworld-notankage04-bfs`, `rovers`, `satellite`, `scanalyzer08`, `tpp06-bfs`, `transport08-bfs`, `visitall`, `woodworking08`, `zenotravel02`), evaluated across all ground-truth reference problems ($P_{\text{gold}} \in \Pi_{\text{ref}}$, 402 problem instances total).
+2. **Domain Fault Repair Suite (H2)**: Curated single-action faulty domain tasks across the 21 benchmark domains (4 tasks per domain, plus 2 for `visitall`, yielding up to 84 curated flaw tasks):
+   * *Operator 1 (41 tasks)*: Unsatisfiable precondition injection blocking forward reachability.
+   * *Operator 2 (41 tasks)*: Critical goal add-effect deletion disconnecting causal graph reachability.
+3. **Model Diversity**: Evaluated across proprietary frontier models (`openai/gpt-4o`) and open-weights code models (`deepseek/deepseek-chat`) ($R = 3$ independent runs per task, $k_{\max} = 3$, $T = 0.0$, failure penalty $P = 6$).
 
 ---
 
-## 🔬 2x2 Factorial Experimental Ablation Matrix
+## 📊 Summary of Empirical Results
 
-To isolate the individual contributions of deterministic compilation (AST) and Layered Model-Based Fault Localization, the framework evaluates four distinct agent architectures across identical benchmark tasks:
-
-| Agent Architecture | Representation Mode | Error Feedback Mode | Iterative Repair | Solvability Preservation Verifier | Primary Research Question |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **UNSTRUCTURED_RETRY** | Direct PDDL Text | Raw Oracle Terminal Logs | Enabled (Iterative) | Disabled | Empirical prompt retry baseline |
-| **ABLATION_NO_AST** | Direct PDDL Text | Structured Fault Localization Reports | Enabled (Iterative) | Disabled | Tests H1 (Impact of AST Compilation) |
-| **ABLATION_NO_TRIAGE** | JSON AST Blueprint | Raw Oracle Terminal Logs | Enabled (Iterative) | Disabled | Tests H2 (Impact of Layered Fault Localization) |
-| **CLOSED_LOOP_AST_AGENT** | JSON AST Blueprint | Structured Fault Localization Reports | Enabled (Iterative) | Enabled | Full Proposed System (H1, H2, H3) |
-
----
-
-## 🧬 Synthetic Fault Taxonomy (Category B Flaw Benchmark)
-
-Faults injected into Category B benchmark domains are systematically classified into five classical planning defect categories:
-
-| Flaw Category Code | Category Identifier | Formal Description & Planning Semantics |
-| :--- | :--- | :--- |
-| **Flaw 1** | `TYPE_SIGNATURE_ARITY_INVERSION` | Parameter arity omissions, undeclared variables, or signature overloading violating first-order typing. |
-| **Flaw 2** | `PRECONDITION_MISALIGNMENT` | Missing, over-constrained, or inverted precondition clauses blocking causal action enablement. |
-| **Flaw 3** | `ACTION_EFFECT_DELETION` | Omission of necessary positive state transitions (add-effects) or resource releases (delete-effects). |
-| **Flaw 4** | `INITIAL_GOAL_DEADLOCK` | Contradictory mutex conditions between initial state facts and goal specifications rendering the task unsolvable. |
-| **Flaw 5** | `STATE_REACHABILITY_COLLAPSE` | Over-constrained action schemas that truncate forward reachability, inducing infinite heuristic search dead-ends. |
-
-*(Note: Flaw 5 specifically tests single-domain state reachability repair, whereas Phase 4 tests multi-problem backward compatibility across an evolving problem suite.)*
-
----
-
-## 📚 Canonical Benchmark Domains (24 Classical Pure STRIPS Domains)
-
-The benchmark suite (`PDDLLifeCycleBench/`) includes 24 classical pure STRIPS (`:strips :typing`) planning domains drawn from the International Planning Competitions (IPC). Each domain folder contains:
-- `domain_encoding.txt`: Isolated natural language domain capabilities and action rules.
-- `domain.pddl`: The gold-standard reference domain model ($D_{gold}$).
-- `orig_problems/`: Canonical problem instances ($P_1, P_2, \dots, P_{20}$).
-- `flaws/`: The 5 synthetic defect instances (`flaw_01` to `flaw_05`), each with `domain_flawed.pddl` and `flaw_metadata.json`.
-- `evolution/`: Incremental capability extension tasks for Phase 4.
-
-| # | Domain Identifier | Origin | Problem Topology & Physical Dynamics |
-| :---: | :--- | :--- | :--- |
-| 1 | `barman14-bfs` | IPC 2014 | Robotic bartending: cocktail mixing, shaker manipulation, and discrete glass cleanliness states. |
-| 2 | `blocksworld` | Classical | Block manipulation: stacking, unstacking, table placement, and single-gripper holding. |
-| 3 | `childsnack14` | IPC 2014 | Meal preparation: sandwich making and serving under dietary and gluten-free allergic constraints. |
-| 4 | `depot` | IPC 2002 | Multi-modal logistics: combines Blocksworld pallet stacking with inter-depot truck transport. |
-| 5 | `driverlog02-bfs` | IPC 2002 | Multi-agent logistics: drivers walk, board trucks, navigate road networks, and load packages. |
-| 6 | `elevators08` | IPC 2008 | Vertical passenger transport: fast express elevators and slow local elevators with floor capacities. |
-| 7 | `ferry` | Classical | Vehicle transport: rolling freight transport between island harbors with single-car deck capacity. |
-| 8 | `floortile` | IPC 2011 | Multi-robot grid painting: robots paint geometric patterns without stepping on wet tiles. |
-| 9 | `goldminer` | IPC 2011 | Subterranean excavation: robotic rock mining, laser clearing, and key-gated vault access. |
-| 10 | `grid` | IPC 1998 | Grid navigation: key collection, lock unlocking, and pathfinding in 2D cell environments. |
-| 11 | `gripper` | Classical | Two-gripper robotic transport: transferring balls between rooms using left and right grippers. |
-| 12 | `hiking14` | IPC 2014 | Trail hiking logistics: coordinating hikers, vehicles, and tent setup across consecutive trail nodes. |
-| 13 | `logistics` | IPC 1998/2000 | Freight delivery: intra-city truck delivery and inter-city airplane transport through airports. |
-| 14 | `movie98` | IPC 1998 | Entertainment preparation: linear ordering of tape rewinding, snack fetching, and projector setup. |
-| 15 | `mprime98` | IPC 1998 | Resource-bounded logistics: vehicle transport governed by fuel, capacity tokens, and space. |
-| 16 | `mystery98` | IPC 1998 | Graph routing: freight transport across topological graphs with strict fuel preservation constraints. |
-| 17 | `parking11` | IPC 2011 | Vehicle maneuvering: rear-parking cars in tight, single-lane curb slots with blocking constraints. |
-| 18 | `pegsol08` | IPC 2008 | Solitaire puzzle: jumping pegs over adjacent pieces into empty holes to minimize remaining pegs. |
-| 19 | `pipesworld-notankage04-bfs` | IPC 2004 | Pipeline routing: batch fluid transmission through coupled pipe segments without surge tankage. |
-| 20 | `rovers` | IPC 2002 | Planetary exploration: sample soil/rock collection, camera imaging, and transmission to lander. |
-| 21 | `satellite` | IPC 2002 | Satellite observation: camera calibration, attitude turning, and spectral imaging across bands. |
-| 22 | `scanalyzer08` | IPC 2008 | Automated greenhouse: plant inspection using rotating conveyor carousels and scan cycles. |
-| 23 | `visitall` | IPC 2011 | Graph exploration: single-agent navigation required to visit all vertices of a grid graph. |
-| 24 | `zenotravel02` | IPC 2002 | Aviation logistics: aircraft passenger transport with discrete fuel consumption and supersonic zoom. |
-
----
-
-## 📊 Comprehensive Experimental Evaluation Metrics
-
-All experiments record formal quantitative metrics grounded in symbolic oracles (VAL and Fast Downward) and bipartite graph matching:
-
-| Metric Name | Formal Definition / Operational Rule | Operational Purpose |
-| :--- | :--- | :--- |
-| **Executability (Self-Consistency)** | `VAL(D_gen, P_gen, pi_gen) == SUCCESS` | Verifies that the synthesized or repaired domain model is internally solvable and causal actions do not violate state preconditions or effect invariants. |
-| **Feasibility (Forward Soundness)** | `VAL(D_gold, P_gold, pi_gen) == SUCCESS` | Verifies plan transfer soundness; prevents model trivialization by ensuring synthesized actions obey physical ground-truth domain dynamics. |
-| **Interpretability (Inverse Completeness)** | `VAL(D_gen, P_gold, pi_gold) == SUCCESS` | Verifies expressive completeness; ensures the synthesized domain can execute canonical human/expert reference plans without over-constrained preconditions. |
-| **Reference Solvability Preservation (SPR / Cov_ref)** | Fraction of benchmark reference instances $\Pi_{ref}$ that remain solvable under $D_{evolved}$. | Ensures domain extensions or evolution updates do not cause backward-compatibility reachability loss on legacy canonical problem instances. |
-| **Fault Localization Accuracy (FLA)** | Boolean flag indicating whether the FaultLocalizationNode correctly identified the target faulty element. | Measures fault localization precision against the ground-truth faulty action or predicate. |
-| **Macro Structural F1 (ARE)** | Mean of operator F1 scores aligned via Kuhn-Munkres maximum bipartite matching against $D_{gold}$. | Measures action reconstruction accuracy without penalizing synonymous action naming. |
-| **STRIPS Component F1** | F1 computed independently for Preconditions, Add Effects, and Delete Effects. | Isolates exact causal failure locations (missing preconditions vs. contradictory delete effects). |
-| **Repair Iterations (k)** | Integer repair cycles required to reach formal validity: $k \in \{1, 2, \dots, N_{max}\}$. | Measures closed-loop repair efficiency and the effectiveness of fault localization feedback. |
-| **Execution Latency & Cost** | Elapsed wall-clock time (seconds); LLM token cost computed via standard API telemetry. | Measures computational overhead, inference latency, and operational token cost. |
-
----
-
-## 🏷️ Standardized Behavioral Outcome Classification
-
-Beyond binary pass/fail indicators, every experiment instance is automatically classified into a standardized 7-tier behavioral outcome code:
-
-* **A.1: First-Attempt Direct Success** — Target plan valid on initial compilation ($k = 1$), passing Executability, Feasibility, and Interpretability.
-* **A.2: Refined Success via Feedback Loops** — Repaired successfully after 1 or more fault localization cycles ($k > 1$), achieving full tri-criteria verification.
-* **B: Unparseable PDDL Syntax Failure** — Emitted model rejected by VAL syntax parser (token errors, unclosed parentheses).
-* **C: Syntactically Valid but Planner Deadlock** — Valid syntax, but Fast Downward proves goal state is unreachable (missing causal producer).
-* **D: Plan Generated but Fails Executability Self-Certification** — Planner output violates action preconditions or effect consistency on the generated domain.
-* **E.1: Plan Feasibility Rejection on Standard Domain** — Generated plan fails execution transfer on gold-standard reference domain (physical unsoundness).
-* **E.2: Standard Plan Interpretability Rejection on Generated Domain** — Gold reference plan fails execution on the generated domain (over-constrained preconditions / incompleteness).
-* **F: Iteration Budget Exhausted (Oscillation)** — Agent reaches maximum iteration limit without convergence.
+* **Formulation Benchmark (H1 - 21 Domains, Majority Voting $\ge 2/3$, $P=6$)**:
+  * **GPT-4o (Full Agent)**: **57.1% majority success** (12/21 domains, 285/402 problems passed), 3.22 mean penalized iterations, 100.0% Syntactic Validity Rate (SVR).
+  * **DeepSeek-Chat (Full Agent)**: **52.4% majority success** (11/21 domains, 259/402 problems passed), 3.30 mean penalized iterations, 95.2% SVR, with a 10.2x API cost reduction.
+  * **Baselines**: Unstructured retry achieves 38.1% (GPT-4o) and 47.4% (DeepSeek-Chat); Zero-Shot single-pass collapses to 14.3% (GPT-4o) and 23.8% (DeepSeek-Chat) with up to 81.0% syntax crashes.
+  * **McNemar Exact Tests**: Full Agent significantly outperforms `ABLATION_NO_AST` ($p = 0.00781$) and `ZERO_SHOT` ($p = 0.00391$ on GPT-4o, $p = 0.03125$ on DeepSeek-Chat).
+* **Fault Repair Benchmark (H2 - 82 Tasks, $P=6$)**:
+  * **GPT-4o (Full Agent)**: **68.3% repair success** (56/82 tasks), 2.72 mean iterations vs. 61.0% (50/82 tasks), 3.26 iterations under `ABLATION_NO_TRIAGE`.
+  * **DeepSeek-Chat (Full Agent)**: **64.6% repair success** (53/82 tasks), 2.83 mean iterations vs. 51.2% (42/82 tasks), 3.51 iterations under `ABLATION_NO_TRIAGE` ($p = 0.01273$, statistically significant).
+  * **Wilcoxon Signed-Rank Test**: The reduction in repair iterations achieved by the Full Agent is statistically significant across both foundation models ($p = 0.0383$ on GPT-4o, $p = 0.0068$ on DeepSeek-Chat).
+* **Resource Telemetry (RQ3)**:
+  * Formulation: mean 43,651 tokens, 68.77s latency per domain run.
+  * Fault Repair: mean 35,267 tokens (GPT-4o) / 17,778 tokens (DeepSeek-Chat), 41.17s / 118.29s latency.
 
 ---
 
@@ -223,298 +114,212 @@ Beyond binary pass/fail indicators, every experiment instance is automatically c
 
 ```text
 pddl_lifecycle_agent/
-├── app.py                             # Interactive Streamlit visual application
+├── app.py                             # Interactive Streamlit UI application
 ├── graph.py                           # LangGraph state machine orchestrating closed-loop execution
-├── run_repair_benchmark.py            # Category B Synthetic Fault Repair benchmark runner
-├── run_evolution_benchmark.py         # Phase 4 Continuous Domain Evolution & Regression benchmark
-├── run_synthesis_benchmark.py         # Phase 1 & 2 Greenfield Natural Language Synthesis benchmark
-├── run_full_ipc_benchmark.py          # Master benchmark runner across canonical IPC domains
+├── run_h2_fault_repair_benchmark.py   # Category B 24-task fault repair benchmark runner
+├── run_canonical_21_domains_benchmark.py # Multi-domain formulation and validation runner
 ├── requirements.txt                   # Python package dependencies
-├── .env.example                       # Example environment file for API keys and oracle paths
+├── .env.example                       # Example configuration for API keys and oracle paths
 │
-├── nodes/                             # Implementation of the 5 KEPS lifecycle nodes
-│   ├── elicitation.py                 # Phase 1: Natural language extraction into AST blueprints
-│   ├── generation.py                  # Phase 2: Deterministic Python-to-PDDL compiler
-│   ├── fault_localization.py          # Phase 3.1: Layered model-based fault localization & prioritization
-│   ├── repair.py                      # Phase 3.2: Targeted, surgical AST blueprint repair
-│   ├── evolution.py                   # Phase 4.1: Action model delta synthesis for new capabilities
-│   └── maintenance.py                 # Phase 4.2: Solvability preservation verification suite
+├── nodes/                             # Implementation of the lifecycle agent nodes
+│   ├── elicitation.py                 # Phase 1: Natural language extraction into typed AST
+│   ├── ast_to_pddl_compiler.py        # Phase 2: Deterministic Python-to-PDDL 2.1 compiler
+│   ├── validation.py                  # Phase 3: Symbolic oracle wrappers (VAL & Fast Downward)
+│   ├── fault_localization.py          # Phase 4: Five-tier action-level fault localization
+│   ├── repair.py                      # Phase 5: Targeted surgical in-memory AST repair
+│   └── schemas/                       # Strongly typed Pydantic intermediate representations
+│       ├── pddl_ast.py                # ActionSchemaAST and DomainAST schemas
+│       └── pddl_standards.py          # Universal PDDL 2.1 semantic and syntax standards
 │
-├── schemas/                           # Strongly typed Pydantic intermediate representations
-│   └── pddl_blueprint.py              # DomainBlueprint and ProblemBlueprint schemas
+├── eval/                              # Evaluation methodology, baselines, and statistics
+│   ├── baselines.py                   # ZERO_SHOT, ABLATION_NO_AST, ABLATION_NO_TRIAGE runners
+│   ├── statistical_significance.py    # McNemar's exact test & Wilcoxon signed-rank test
+│   ├── metrics.py                     # Bidirectional Soundness & Completeness calculators
+│   └── benchmark_runner.py            # Automated multi-task evaluation harness
 │
-├── config/                            # Standards and execution configurations
-│   ├── model_config.py                # Strict phase-to-model LLM mapping (temperature = 0.0)
-│   ├── paths.py                       # Centralized paths and per-run directory isolation
-│   └── pddl_standards.py              # Universal PDDL 2.1 STRIPS and typing semantics rules
-│
-├── tools/                             # Symbolic oracles and analysis tools
-│   ├── symbolic_oracles.py            # Subprocess wrappers for VAL (Validate.exe) & Fast Downward
-│   ├── causal_triage_analyzer.py      # Action-predicate causal dependency & reachability analyzer
-│   ├── blueprint_parser.py            # Bidirectional PDDL-to-Blueprint parser
-│   └── benchmark_loader.py            # Task and domain loader for PDDLLifeCycleBench
-│
-├── eval/                              # Evaluation methodology, baselines, and benchmarking
-│   ├── baselines.py                   # Unstructured retry and ablation baseline runners
-│   ├── action_reconstruction.py       # Kuhn-Munkres bipartite matching for Macro Structural F1
-│   ├── metrics.py                     # Formal evaluation metrics schemas and calculators
-│   └── benchmark_runner.py            # Automated multi-task benchmark runner
-│
-├── benchmark/                         # Benchmark datasets, loaders, and schemas
-│   ├── dataset.py                     # Benchmark task dataset structures
-│   ├── loader.py                      # IPC and AutoPlanBench instance loaders
+├── benchmark/                         # Benchmark loaders and schemas
+│   ├── loader.py                      # AutoPlanBench and IPC instance loaders
 │   └── schema.py                      # Benchmark task metadata schemas
 │
-├── PDDLLifeCycleBench/                # Curated benchmark suite (24 domains, 120 flaw tasks)
-│   ├── barman14-bfs/                  # Domain capabilities, reference models, flaws, evolution
-│   ├── blocksworld/                   # Stacking & causal dependency models and flaws
-│   ├── gripper/                       # Multi-gripper robotic transport models and flaws
-│   ├── logistics/                     # Freight delivery models and flaws
-│   └── ... (24 canonical IPC domain directories)
+├── tools/                             # Symbolic planning executables and drivers
+│   └── bin/
+│       ├── VAL/                       # VAL 5.3 plan validation binaries (Validate.exe)
+│       └── downward/                  # Fast Downward 24.06 planning system
 │
 ├── results/                           # Centralized benchmark experiment outputs
-│   ├── runs/                          # Timestamped run folders (domain, problem, plan, CSVs, reports)
-│   ├── archive/                       # Archived historical experiment CSVs and logs
-│   ├── generated/                     # Elicited, repaired, and evolved PDDL models
-│   └── temp/                          # Isolated scratch space for solver and validator artifacts
+│   ├── eval_artifacts/                # Exported PDDL domain files and plans from evaluation runs
+│   ├── generated/                     # Elicited and repaired AST blueprints and PDDL files
+│   └── *.csv                          # Evaluation summary tables and run logs
 │
-└── tests/                             # Automated test suite
-    ├── test_causal_graph_triage.py    # Unit tests for causal reachability triage analysis
-    ├── test_are_metric.py             # Unit tests for action reconstruction evaluation
-    └── ...                            # Verification test suite
+└── scientific-thesis-template-fresh/  # Master's Thesis LaTeX source document
+    ├── main-english.tex               # Root LaTeX document (University of Stuttgart template)
+    ├── abbreviations.tex              # Global glossary and abbreviation declarations
+    ├── bibliography.bib               # Read-only BibTeX literature database
+    ├── chapters-en/                   # Chapter source files (.tex and canonical .md)
+    │   ├── 00 - abstract.md           # Master thesis abstract
+    │   ├── 10 - introduction.tex      # Chapter 1: Introduction, MRQ, RQ1-3, H1-2
+    │   ├── 20 - background.tex        # Chapter 2: Foundations & KE Lifecycle
+    │   ├── 30 - problem exposition.tex# Chapter 3: Related Work & Positioning
+    │   ├── 40 - first real chapter.tex# Chapter 4: Lifecycle Framework Architecture
+    │   ├── 50 - second real chapter.tex# Chapter 5: Software Implementation Details
+    │   ├── 60 - evaluation.tex        # Chapter 6: Empirical Evaluation & Validation
+    │   └── 90 - conclusion.tex        # Chapter 7: Conclusion and Outlook
+    └── scripts/                       # Automated thesis audit scripts
+        ├── validate_latex.py          # Invariant validator (underscores, labels, cites)
+        └── proofread_thesis.py        # University of Stuttgart v1.1 writing guideline audit
 ```
 
 ---
 
-## 🛠️ Prerequisites & Setup
+## 🛠️ Installation & Quick Start
 
-### 1. Requirements
-* **Operating System**: Windows 10/11, Ubuntu 20.04+, or macOS.
-* **Python**: Python **3.10** or higher (Conda `agent_env` recommended).
-* **Symbolic Planning Oracles**:
-  * **VAL (Plan Validation Tool)**: `Validate.exe` (Windows) or `validate` (Linux/macOS) in `tools/bin/` or on system `PATH`.
-  * **Fast Downward**: Accessible via system `PATH` (`fast-downward.py`).
-* **LLM Provider**:
-  * An active **OpenRouter** API key (`OPENROUTER_API_KEY`). All models execute with temperature 0.0 for deterministic reproducibility.
+### 1. Prerequisites
+* **Operating System**: Windows 10/11, Linux (Ubuntu 20.04+), or macOS.
+* **Conda Environment**: All scripts must be executed strictly within the Conda `agent_env` environment.
+* **Symbolic Oracles**:
+  * `tools/bin/VAL/Validate.exe` (Windows) or `validate` (Linux).
+  * `tools/bin/downward/fast-downward.py` on system `PATH` or configured via `.env`.
 
-### 2. Environment Configuration
+### 2. Environment Setup
+```powershell
+# Activate target environment
+conda activate agent_env
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 3. API Configuration
 Create a `.env` file in the root directory:
 ```bash
 # OpenRouter API Key
 OPENROUTER_API_KEY=your_openrouter_api_key_here
 
-# Strict Phase-to-Model Assignments (Deterministic decoding, temperature = 0.0)
-LLM_PHASE_1=deepseek/deepseek-chat
-LLM_PHASE_3=deepseek/deepseek-chat
-LLM_PHASE_4=deepseek/deepseek-chat
+# Model Assignment (temperature = 0.0)
+LLM_MODEL=openai/gpt-4o
 
-# Oracle Executable Paths
-VAL_PATH=tools/bin/Validate.exe
-FAST_DOWNWARD_PATH=fast-downward.py
-
-# Fast Downward Search Cutoff (seconds)
+# Oracle Paths
+VAL_PATH=tools/bin/VAL/Validate.exe
+FAST_DOWNWARD_PATH=tools/bin/downward/fast-downward.py
 FD_TIMEOUT_SEC=30
 ```
 
 ---
 
-## 💻 Running the Application & Benchmark Scripts
-
-All scripts should be executed within the active Python environment (e.g. Conda `agent_env`).
+## 🚀 Running the Benchmarks & Interface
 
 ### 1. Interactive Streamlit Interface
-To explore domain elicitation, model-based fault localization, and continuous evolution interactively via a visual UI:
-```bash
+Launch the interactive visual application to step through domain formalization, compilation, diagnostic triage, and repair:
+```powershell
 streamlit run app.py
 ```
-Open `http://localhost:8501` to view step-by-step PDDL compilation, AST blueprints, diagnostic logs, and plan validation.
+Open `http://localhost:8501` to view the active LangGraph execution graph, AST schemas, compiler outputs, and VAL execution traces.
 
 ---
 
-### 2. Domain Fault Repair Benchmark (`run_repair_benchmark.py`)
-Evaluates closed-loop autonomous repair across the 5 synthetic flaw categories against symbolic oracles.
+### 2. Domain Task Formulation Benchmark (Hypothesis H1)
 
-#### Command-Line Arguments:
-* `--domains`: Comma-separated domain names (e.g. `blocksworld,gripper,depot`) or `all`.
-* `--flaws`: Comma-separated flaw names (`flaw_01_type_signature_arity`, etc.) or `all`.
-* `--agents`: Comma-separated agent architectures:
-  * `CLOSED_LOOP_AST_AGENT` (Proposed full system: AST Blueprint + Compiler + Layered Model-Based Fault Localization)
-  * `ABLATION_NO_TRIAGE` (AST Blueprint + Compiler + Raw Oracle Logs, tests H2)
-  * `ABLATION_NO_AST` (Direct PDDL Text + Layered Model-Based Fault Localization, tests H1)
-  * `UNSTRUCTURED_RETRY` (Direct PDDL Text + Raw Oracle Logs)
-* `--max-retries`: Maximum repair iterations (default: `5`).
-* `--tag`: Custom label for the timestamped output directory inside `results/runs/`.
+The script `run_canonical_21_domains_benchmark.py` evaluates domain formulation from natural language requirements against ground-truth problem suites across 5 architectural conditions (`CLOSED_LOOP_AST_AGENT`, `ABLATION_NO_TRIAGE`, `ABLATION_NO_AST`, `UNSTRUCTURED_RETRY`, `ZERO_SHOT`).
 
-#### Execution Examples:
-
-```bash
-# Example 1: Run single flaw on single agent (Blocksworld Flaw 1 on Proposed System)
-python run_repair_benchmark.py --domains blocksworld --flaws flaw_01_type_signature_arity --agents CLOSED_LOOP_AST_AGENT --max-retries 5 --tag single_test
-
-# Example 2: Compare all 4 architectures on Flaw 1
-python run_repair_benchmark.py --domains blocksworld --flaws flaw_01_type_signature_arity --agents CLOSED_LOOP_AST_AGENT,ABLATION_NO_TRIAGE,ABLATION_NO_AST,UNSTRUCTURED_RETRY --max-retries 5 --tag flaw1_ablation
-
-# Example 3: Full 4-agent comparison across all 5 flaws on Blocksworld
-python run_repair_benchmark.py --domains blocksworld --flaws all --agents CLOSED_LOOP_AST_AGENT,ABLATION_NO_TRIAGE,ABLATION_NO_AST,UNSTRUCTURED_RETRY --max-retries 5 --tag blocksworld_study
-
-# Example 4: Multi-domain evaluation across 3 classic transport domains
-python run_repair_benchmark.py --domains blocksworld,gripper,logistics --flaws all --agents CLOSED_LOOP_AST_AGENT --max-retries 5 --tag multi_domain_eval
-```
-
----
-
-### 3. Continuous Domain Evolution Benchmark (`run_evolution_benchmark.py`)
-
-Evaluates Phase 4 action model evolution: synthesizing new action schemas and predicates from natural language requirements while enforcing the **Tri-Criteria Semantic Verification Framework** (Executability, Feasibility, and Interpretability / Solvability Preservation).
-
-#### Target Execution Environment:
-Execute strictly within the Conda `agent_env` environment:
+#### A. Run a Single Domain
+Evaluate a single domain (e.g., `floortile` or `blocksworld`):
 ```powershell
-# Direct execution via Conda agent_env Python binary
-C:\Users\Srushti\miniconda3\envs\agent_env\python.exe run_evolution_benchmark.py [options]
+# Run a single domain across all 5 architectures (3 runs, max 3 repair iterations)
+python run_canonical_21_domains_benchmark.py --domains floortile --runs 3 --max-retries 3
 
-# Or with activated Conda environment
-conda activate agent_env
-python run_evolution_benchmark.py [options]
+# Run a single domain exclusively on the Full Agent
+python run_canonical_21_domains_benchmark.py --domains floortile --architectures CLOSED_LOOP_AST_AGENT --runs 3
 ```
 
-#### Command-Line Arguments:
-* `--domains`: Space-separated domain names to evaluate from `PDDLLifeCycleBench` (e.g. `logistics`, `gripper`, `depot`, `rovers`, `satellite`, `pipesworld-notankage04-bfs`, `barman14-bfs`).
-* `--evolutions`: Space-separated task categories to run (e.g. `evolution_01_feature_addition`, `evolution_02_composite_action`).
-* `--agents`: Target agent architectures (`CLOSED_LOOP_AST_AGENT`, `ZERO_SHOT`, `ABLATION_NO_MAINTENANCE`, `ABLATION_NO_TRIAGE`).
-* `--max-retries`: Maximum closed-loop repair iterations per evolution task (default: `5`).
-* `--tag`: Custom label for the timestamped output directory inside `results/runs/`.
-
-#### Execution Examples:
-
+#### B. Run Multiple Specific Domains
+Evaluate a subset of domains by passing space-separated domain names:
 ```powershell
-# Example 1: Run single domain capability extension (Logistics inter-truck cross-docking)
-python run_evolution_benchmark.py --domains logistics --evolutions evolution_01_feature_addition --agents CLOSED_LOOP_AST_AGENT --max-retries 5 --tag logistics_evol_test
+# Run a multi-domain subset across all architectures
+python run_canonical_21_domains_benchmark.py --domains blocksworld gripper logistics depot --runs 3 --max-retries 3
 
-# Example 2: Run Gripper cooperative inter-robot transfer
-python run_evolution_benchmark.py --domains gripper --evolutions evolution_01_feature_addition --agents CLOSED_LOOP_AST_AGENT --max-retries 5 --tag gripper_evol_test
+# Run multiple domains on specific architectures
+python run_canonical_21_domains_benchmark.py --domains blocksworld gripper logistics --architectures CLOSED_LOOP_AST_AGENT ABLATION_NO_AST ZERO_SHOT --runs 3
+```
 
-# Example 3: Multi-domain continuous evolution benchmark across canonical domains
-python run_evolution_benchmark.py --domains logistics gripper rovers depot satellite --evolutions evolution_01_feature_addition evolution_02_composite_action --agents CLOSED_LOOP_AST_AGENT --max-retries 5 --tag full_evolution_matrix
+#### C. Run the Full 21-Domain Benchmark Suite
+Execute the complete formulation evaluation across all 21 canonical IPC domains:
+```powershell
+# Full 21-domain benchmark across all 5 architectures (21 domains x 5 conditions x 3 runs = 315 executions)
+python run_canonical_21_domains_benchmark.py --all-21 --runs 3 --max-retries 3
+
+# Full 21-domain benchmark for the Full Agent only (21 domains x 3 runs = 63 executions)
+python run_canonical_21_domains_benchmark.py --all-21 --architectures CLOSED_LOOP_AST_AGENT --runs 3 --max-retries 3
+```
+
+#### D. Custom Output CSVs and Resuming
+The runner automatically saves progress after every run and resumes unfinished tasks:
+```powershell
+python run_canonical_21_domains_benchmark.py --domains floortile --output-csv results/my_h1_runs.csv --aggregated-csv results/my_h1_aggregated.csv
+```
+
+*Valid domain names*: `barman14-bfs`, `blocksworld`, `depot`, `driverlog02-bfs`, `elevators08`, `floortile`, `goldminer`, `gripper`, `logistics`, `nomystery11-bfs`, `parking11`, `pegsol08`, `pipesworld-notankage04-bfs`, `rovers`, `satellite`, `scanalyzer08`, `tpp06-bfs`, `transport08-bfs`, `visitall`, `woodworking08`, `zenotravel02`.
+
+---
+
+### 3. Domain Fault Repair Benchmark (Hypothesis H2)
+
+The script `run_h2_fault_repair_benchmark.py` evaluates five-tier causal fault localization against raw error re-prompting (`CLOSED_LOOP_AST_AGENT` vs. `ABLATION_NO_TRIAGE`) across curated single-action faulty domain tasks.
+
+#### A. Run a Single Domain
+Evaluate all fault repair tasks for a specific domain (e.g., `floortile`):
+```powershell
+# Run all curated flaw tasks for floortile (4 tasks x 2 architectures = 8 executions)
+python run_h2_fault_repair_benchmark.py --domains floortile --max-iters 3
+```
+
+#### B. Run Multiple Specific Domains
+Evaluate fault repair across several target domains:
+```powershell
+# Run flaw repair for blocksworld, gripper, and logistics
+python run_h2_fault_repair_benchmark.py --domains blocksworld gripper logistics --max-iters 3
+```
+
+#### C. Run the Full Benchmark Suite (All 21 Domains / 82-84 Tasks)
+Run the comprehensive fault repair benchmark across the entire benchmark suite:
+```powershell
+# Full curated flaw suite (84 tasks x 2 architectures = 168 executions)
+python run_h2_fault_repair_benchmark.py --max-iters 3
+
+# With custom destination files
+python run_h2_fault_repair_benchmark.py --output-csv results/h2_evaluation_runs.csv --summary-json results/h2_evaluation_summary.json --max-iters 3
+```
+
+#### D. Quick Smoke Test (Task Limit)
+To run a quick sanity check without running the full suite:
+```powershell
+# Run only the first 4 tasks from the manifest
+python run_h2_fault_repair_benchmark.py --limit 4 --max-iters 3
+```
+*Note: Both H1 and H2 benchmark runners feature automatic checkpointing and state persistence in CSV format. If a run is interrupted, re-running the exact same command automatically skips already completed runs.*
+
+---
+
+### 4. Switching Foundation Models
+
+Select the target language model by updating `.env` or setting the environment variable:
+```powershell
+# Using GPT-4o
+$env:LLM_MODEL="openai/gpt-4o"
+
+# Using DeepSeek-Chat
+$env:LLM_MODEL="deepseek/deepseek-chat"
 ```
 
 ---
 
-### 3.1 Benchmark Directory Layout & File Renaming Conventions
+### 5. LaTeX Thesis Pre-Flight Audit Scripts
+To verify the Master's Thesis document invariants and ensure 100% adherence to University of Stuttgart writing guidelines (Dr. Ilche Georgievski & Prof. Dr. Marco Aiello, v1.1):
+```powershell
+# Verify syntax, underscore escaping, citations, and labels
+python scientific-thesis-template-fresh/scripts/validate_latex.py
 
-The benchmark loader (`benchmark/loader.py`) enforces strict, non-circular discovery of evolution assets. Each domain directory in `PDDLLifeCycleBench/<domain>/evolution/<task>/` requires the following standardized file layout:
-
-```text
-PDDLLifeCycleBench/<domain>/evolution/<task>/
-├── baseline_benchmark_problems/          # Directory containing canonical baseline reference problem instances
-│   ├── instance-1.pddl                   # Canonical baseline problem 1
-│   ├── instance-2.pddl                   # Canonical baseline problem 2
-│   └── ...                               # (Used by Oracle 3: Interpretability / Solvability Preservation)
-├── feature_request_specification.txt     # Pure AutoPlanBench Controlled Natural Language requirement (NO PDDL syntax leaks)
-├── ground_truth_evolved_domain.pddl      # Human-engineered gold-standard evolved domain D_gold (Used by Oracle 2: Feasibility)
-├── target_problem.pddl                   # ACTIVE target planning task loaded by benchmark loader
-├── target_problem_discriminative.pddl    # Upgraded problem that strictly requires the newly evolved action
-└── target_problem_baseline_archive.pddl  # Archived legacy problem (for reference comparison)
-```
-
-#### Why File Renaming Is Required for Discriminative Verification:
-In many legacy benchmark problems, the target problem could be solved entirely using baseline actions (e.g., a single vehicle in one city, or a single robot in one room), meaning the planner never needed to execute the newly evolved action. To formally verify that the evolved action is functional:
-1. **Archive the Legacy Task**: Rename the original non-discriminative problem to `target_problem_baseline_archive.pddl`.
-2. **Create the Discriminative Task**: Author `target_problem_discriminative.pddl` where initial and goal states explicitly require the new capability (e.g., cargo starting in Truck 0 must end up in Truck 1, requiring cross-docking; or an object carried by Robot 1 must end up in Robot 2, requiring cooperative transfer).
-3. **Set Active Target Problem**: Copy `target_problem_discriminative.pddl` to `target_problem.pddl` so that `benchmark/loader.py` automatically injects it into the planning contract.
-4. **Ensure Ground-Truth Gold Domain Exists**: Ensure `ground_truth_evolved_domain.pddl` is present. If absent, `loader.py` marks `D_gold = None`, which disables Oracle 2 feasibility validation.
-
----
-
-### 3.2 Canonical Tri-Criteria Semantic Verification & Standalone Oracle Commands
-
-A synthesized or evolved domain is marked as an end-to-end success (`e2e_success`) ONLY if it satisfies all three formal symbolic criteria:
-
-```text
-Tri-Criteria Semantic Gate:
-Executability (Oracle 1) AND Feasibility (Oracle 2) AND Interpretability (Oracle 3)
-```
-
-#### Oracle 1: Executability (Internal Consistency & Causal Solvability)
-* **Formal Definition**: Fast Downward finds a plan `pi_gen` using the generated domain `D_gen` on `P_target`, and VAL validates the state transitions:
-  `VAL(D_gen, P_target, pi_gen) == SUCCESS`
-* **Operational Purpose**: Verifies that the agent synthesized an operational, causally reachable action model that can solve the new task without precondition deadlocks.
-* **Standalone Python Command**:
-```python
-from tools.symbolic_oracles import run_fast_downward, validate_plan_semantic_soundness
-
-# 1. Solve with Fast Downward
-solvable, fd_output = run_fast_downward("path/to/D_gen.pddl", "path/to/P_target.pddl")
-# 2. Validate plan with VAL
-val_valid, val_report = validate_plan_semantic_soundness("path/to/D_gen.pddl", "path/to/P_target.pddl", "path/to/plan.txt")
-print(f"Executability: Solvable={solvable}, VAL={val_valid}")
-```
-
-#### Oracle 2: Feasibility (Forward Soundness on Ground-Truth Oracle D_gold)
-* **Formal Definition**: The generated plan `pi_gen` (solved on `D_gen`) is executed on the human-engineered reference domain `D_gold`:
-  `VAL(D_gold, P_target, pi_gen) == SUCCESS`
-* **Operational Purpose**: Verifies physical soundness. Prevents model trivialization: if the agent omitted a critical restriction (e.g. allowing cargo teleportation or skipping co-location preconditions), Fast Downward will exploit the loophole, but VAL simulating against `D_gold` immediately rejects the illegal state transition.
-* **Standalone CLI & Python Commands**:
-```bash
-# Standalone CLI Command using Validate.exe directly
-tools/bin/Validate.exe -v path/to/ground_truth_evolved_domain.pddl path/to/target_problem.pddl path/to/plan.txt
-```
-```python
-# Standalone Python Command using framework oracles
-from tools.symbolic_oracles import validate_plan_semantic_soundness
-
-is_feasible, val_log = validate_plan_semantic_soundness(
-    domain_path="path/to/ground_truth_evolved_domain.pddl",
-    problem_path="path/to/target_problem.pddl",
-    plan_path="path/to/plan.txt"
-)
-print(f"Feasibility (Forward Soundness): {is_feasible}")
-```
-
-#### Oracle 3: Interpretability / Solvability Preservation (Regression Verification on Pi_ref)
-* **Formal Definition**: All canonical baseline reference problems $\Pi_{ref}$ must remain solvable under the evolved domain `D_gen`:
-  `VAL(D_gen, P_ref, pi_ref) == SUCCESS` for all `(P_ref, pi_ref)` in `Pi_ref`
-* **Operational Purpose**: Guarantees expressive completeness and backward compatibility. Proves that extending capabilities did not alter, delete, or over-constrain baseline action schemas, preserving 100% reachability across the canonical problem suite.
-* **Standalone Python Command**:
-```python
-import glob
-from tools.symbolic_oracles import run_fast_downward, run_val_validator
-
-ref_problems = sorted(glob.glob("PDDLLifeCycleBench/<domain>/evolution/<task>/baseline_benchmark_problems/*.pddl"))
-passed = 0
-for ref_prob in ref_problems:
-    # 1. Type and syntax check
-    val_ok, _ = run_val_validator("path/to/D_gen.pddl", ref_prob)
-    # 2. Plan solvability check
-    solvable, _ = run_fast_downward("path/to/D_gen.pddl", ref_prob)
-    if val_ok and solvable:
-        passed += 1
-
-spr = passed / len(ref_problems) if ref_problems else 1.0
-print(f"Interpretability (Solvability Preservation Rate): {passed}/{len(ref_problems)} ({spr * 100:.1f}%)")
-```
-
-
----
-
-### 4. Greenfield Domain Synthesis Benchmark (`run_synthesis_benchmark.py`)
-Evaluates greenfield domain generation from pure natural language requirements (`domain_encoding.txt`).
-
-#### Execution Example:
-```bash
-python run_synthesis_benchmark.py --domains blocksworld,gripper,logistics --agents CLOSED_LOOP_AST_AGENT,ABLATION_NO_AST,UNSTRUCTURED_RETRY --tag synthesis_eval
-```
-
----
-
-### 5. Verification Unit Tests
-To verify Kuhn-Munkres action reconstruction and causal dependency analysis:
-```bash
-# Verify Kuhn-Munkres bipartite operator matching (ARE metric)
-python -m tests.test_are_metric
-
-# Verify causal triage graph and invariant checks
-python -m tests.test_causal_graph_triage
+# Verify writing guidelines (no contractions, no "This" openings, acronym protocol)
+python scientific-thesis-template-fresh/scripts/proofread_thesis.py
 ```
 
 ---

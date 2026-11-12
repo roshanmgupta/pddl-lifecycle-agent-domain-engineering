@@ -1,12 +1,20 @@
 {
-  "timestamp": "2026-11-02T01:10:21.948213",
+  "timestamp": "2026-11-08T21:54:18.375897",
   "domain_name": "generated_domain",
   "run_index": 1,
   "verification_status": "PASSED",
   "repair_iterations_used": 1,
   "initial_verification_errors": [],
   "final_verification_errors": [],
-  "diagnostic_issues_count": 0,
-  "diagnostic_reports": [],
+  "diagnostic_issues_count": 1,
+  "diagnostic_reports": [
+    {
+      "error_category": "TYPE_SIGNATURE",
+      "repair_operation_type": "TYPE_ARITY_ALIGNMENT",
+      "faulty_element": "IN-LINE predicate",
+      "raw_log": "VAL Error: Type-checking jump-new-move\nx has bad type definition\n\nErrors: 0, warnings: 0\n\nError: Error in type-checking!",
+      "suggested_repair_hint": "The IN-LINE predicate in the domain declaration has arity 3 with parameters (?x ?y ?z), but the problem P_gold shows IN-LINE facts with three location arguments. However, the error suggests a type mismatch. Check that all three parameters of IN-LINE are declared with type 'location' in the predicate signature. In the domain predicates section, ensure it's declared as '(IN-LINE ?x - location ?y - location ?z - location)' with explicit typing for each parameter."
+    }
+  ],
   "formatted_diagnostic_feedback": ""
 }

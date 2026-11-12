@@ -1,0 +1,129 @@
+================================================================================
+EXAMINER COMMENT #1 (Type: Highlight)
+Bounding Box (Rect): 58.9502 649.502 256.967 669.146
+Comment Text:
+Why should the reader know about this?
+
+================================================================================
+EXAMINER COMMENT #2 (Type: Highlight)
+Bounding Box (Rect): 78.3333 640.096 292.588 668.39
+Comment Text:
+Just "Background"\r\rThe length of the chapter is on the longer end. Just make sure all content in it is really needed to understand the main content.
+
+================================================================================
+EXAMINER COMMENT #3 (Type: Highlight)
+Bounding Box (Rect): 145.831 540.682 189.087 557.593
+Comment Text:
+I would not use this adjective; it is subjective and suggestive.
+
+================================================================================
+EXAMINER COMMENT #4 (Type: Highlight)
+Bounding Box (Rect): 255.665 489.174 292.925 504.659
+Comment Text:
+Which literature?
+
+================================================================================
+EXAMINER COMMENT #5 (Type: Highlight)
+Bounding Box (Rect): 59.0725 692.411 424.749 707.896
+Comment Text:
+I hope this is really the case.
+
+================================================================================
+EXAMINER COMMENT #6 (Type: Highlight)
+Bounding Box (Rect): 366.349 706.08 414.786 721.611
+Comment Text:
+What is that?
+
+================================================================================
+EXAMINER COMMENT #7 (Type: Highlight)
+Bounding Box (Rect): 252.138 692.53 371.009 708.061
+Comment Text:
+Why? This is not motivated...
+
+================================================================================
+EXAMINER COMMENT #8 (Type: Highlight)
+Bounding Box (Rect): 142.6 502.723 536.203 531.757
+Comment Text:
+What is this?
+
+================================================================================
+EXAMINER COMMENT #9 (Type: Highlight)
+Bounding Box (Rect): 365.94 604.342 424.58 619.827
+Comment Text:
+No contents
+
+================================================================================
+EXAMINER COMMENT #10 (Type: Highlight)
+Bounding Box (Rect): 59.0725 590.793 104.181 606.278
+Comment Text:
+No contents
+
+================================================================================
+EXAMINER COMMENT #11 (Type: Highlight)
+Bounding Box (Rect): 59.0712 516.391 96.5713 531.922
+Comment Text:
+What do you mean by lifecycle? This has not been explained.
+
+================================================================================
+EXAMINER COMMENT #12 (Type: Highlight)
+Bounding Box (Rect): 205.985 502.842 211.227 518.373
+Comment Text:
+No contents
+
+================================================================================
+EXAMINER COMMENT #13 (Type: Highlight)
+Bounding Box (Rect): 59.0712 475.743 476.687 504.824
+Comment Text:
+What do you mean by this?
+
+================================================================================
+EXAMINER COMMENT #14 (Type: Highlight)
+Bounding Box (Rect): 197.262 388.571 370.0 404.056
+Comment Text:
+What is that? Why that integration?
+
+================================================================================
+EXAMINER COMMENT #15 (Type: Highlight)
+Bounding Box (Rect): 223.997 660.797 273.645 676.282
+Comment Text:
+Do they do acquisition or generation?
+
+================================================================================
+EXAMINER COMMENT #16 (Type: Highlight)
+Bounding Box (Rect): 363.861 545.223 408.387 560.708
+Comment Text:
+Why is this reference used to support the claim?\r\rThis question holds in multiple places in the draft.
+
+================================================================================
+EXAMINER COMMENT #17 (Type: Highlight)
+Bounding Box (Rect): 348.352 511.35 360.541 526.835
+Comment Text:
+Your reference lists "C. Aeronautiques," as an author... That is not an author, but an institution. Please check your references and fix where necessary.
+
+================================================================================
+EXAMINER COMMENT #18 (Type: Highlight)
+Bounding Box (Rect): 376.21 226.817 420.146 242.302
+Comment Text:
+The paper has been published, so use its venue, not arXiv.
+
+================================================================================
+EXAMINER COMMENT #19 (Type: Highlight)
+Bounding Box (Rect): 317.156 620.149 356.582 635.634
+Comment Text:
+?
+
+================================================================================
+EXAMINER COMMENT #20 (Type: Highlight)
+Bounding Box (Rect): 133.414 606.6 175.74 622.085
+Comment Text:
+?
+
+================================================================================
+EXAMINER COMMENT #21 (Type: Highlight)
+Bounding Box (Rect): 58.4852 704.941 112.074 724.585
+Comment Text:
+Problem statement: The central problems are named with coined, undefined terms (�syntactic collapse,� �repair thrashing�). I cannot tell what failure is actually being observed, and no evidence is given that these failures are prevalent.\r\rThe abstract\
+ lacks a motivation of the approach.. The design is presented as a list of components (typed AST, deterministic compiler, four-layer triage engine) with no argument for why each exists. The AST is the clearest case. PDDL is already a structured, parseab\
+le language, so the claim that an intermediate representation helps needs a reason. The abstract does not link a specific problem to a specific component...\r\rThere is also lack of clarity of contributions. Phrases like �decouples relational semantic rea\
+soning,� �surgical action-level repair directives,� and �four-layer diagnostic triage� are opaque. I don't think the reader can reconstruct what the system does.
+

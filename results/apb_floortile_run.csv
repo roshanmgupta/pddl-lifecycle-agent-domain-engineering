@@ -1,5 +1,5 @@
-Task ID,Domain,Task Type,Architecture,Status,SVR,TPV,Executability,Feasibility,Interpretability,Macro F1,Plan Length,Iterations (k),Latency (s),Cost ($),Error Summary
-apb_floortile_instance-1,floortile,ELICITATION,CLOSED_LOOP_AST_AGENT,Unverified ⚠️,1.0,FAIL,FAIL,FAIL,FAIL,N/A,0,5,337.09,$0.00871,"Planner Error: Could not find a plan. INFO     planner time limit: None
-INFO     planner memory limit: None
-
-INFO     Ru"
+Task ID,Domain,Task Type,Architecture,Status,Syntax Valid,Executability,Feasibility,Interpretability,Plan Length,Iterations (k),Latency (s),Cost ($),Error Summary
+apb_nomystery11-bfs_instance-1,nomystery11-bfs,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified [PASS],PASS,Certified,PASS,PASS,11,1,12.23,$0.00067,
+apb_pipesworld-notankage04-bfs_instance-1,pipesworld-notankage04-bfs,ELICITATION,CLOSED_LOOP_AST_AGENT,Unverified [FAIL],FAIL,N/A,FAIL,FAIL,0,5,301.56,$0.03189,VAL Error: VAL Parser Crash (exit code 3221225477): Syntax violation detected. Check for undeclared variables or inline 
+apb_pipesworld-notankage04-bfs_instance-1,pipesworld-notankage04-bfs,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified [PASS],PASS,Certified,PASS,PASS,5,1,18.55,$0.00190,
+apb_floortile_instance-1,floortile,ELICITATION,CLOSED_LOOP_AST_AGENT,Verified [PASS],PASS,Certified,PASS,PASS,8,1,8.66,$0.00112,

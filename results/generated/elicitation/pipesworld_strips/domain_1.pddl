@@ -2,17 +2,17 @@
   (:requirements :strips :typing)
 
   (:types
-    a area atom b batch-atom pipe product slot tank-slot - object
+    a area atom b batch-atom pipe product - object
   )
 
   (:constants
-    gasoleo lco rat - a oca1 oc1b
+    gasoleo lco oc1b oca1 rat-a - product
   )
 
   (:predicates
     (connect ?from - object ?to - object ?pipe - object)
     (unitary ?pipe - object)
-    (-unitary ?pipe - object)
+    (not-unitary ?pipe - object)
     (last ?batch-atom - object ?pipe - object)
     (first ?batch-atom - object ?pipe - object)
     (follow ?next - object ?previous - object)
@@ -22,45 +22,42 @@
     (normal ?pipe - object)
     (push-updating ?pipe - object)
     (pop-updating ?pipe - object)
-    (tank-slot-product-location ?tank-slot - object ?product - object ?area - object)
-    (occupied ?tank-slot - object)
-    (-occupied ?tank-slot - object)
   )
 
   (:action PUSH-START
-    :parameters (?pipe - pipe ?batch-atom-in - batch-atom ?from-area - area ?to-area - area ?first-batch-atom - batch-atom ?product-batch-atom-in - product ?product-first-batch - product ?tank-slot - tank-slot)
-    :precondition (and (normal ?pipe) (connect ?from-area ?to-area ?pipe) (first ?first-batch-atom ?pipe) (on ?batch-atom-in ?from-area) (is-product ?batch-atom-in ?product-batch-atom-in) (is-product ?first-batch-atom ?product-first-batch) (may-interface ?product-batch-atom-in ?product-first-batch) (tank-slot-product-location ?tank-slot ?product-batch-atom-in ?from-area) (occupied ?tank-slot))
-    :effect (and (push-updating ?pipe) (first ?batch-atom-in ?pipe) (follow ?first-batch-atom ?batch-atom-in) (not (-occupied ?tank-slot)) (not (normal ?pipe)) (not (first ?first-batch-atom ?pipe)) (not (on ?batch-atom-in ?from-area)) (not (occupied ?tank-slot)))
+    :parameters (?pipe - pipe ?batch-atom-in - batch-atom ?from-area - area ?to-area - area ?first-batch-atom - batch-atom ?product-batch-atom-in - product ?product-first-batch - product)
+    :precondition (and (normal ?pipe) (first ?first-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (on ?batch-atom-in ?from-area) (not-unitary ?pipe) (is-product ?batch-atom-in ?product-batch-atom-in) (is-product ?first-batch-atom ?product-first-batch) (may-interface ?product-batch-atom-in ?product-first-batch))
+    :effect (and (push-updating ?pipe) (first ?batch-atom-in ?pipe) (follow ?first-batch-atom ?batch-atom-in) (not (normal ?pipe)) (not (first ?first-batch-atom ?pipe)) (not (on ?batch-atom-in ?from-area)))
   )
 
   (:action PUSH-END
-    :parameters (?pipe - pipe ?from-area - area ?to-area - area ?last-batch-atom - batch-atom ?next-last-batch-atom - batch-atom ?product-last-batch - product ?tank-slot - tank-slot)
-    :precondition (and (push-updating ?pipe) (connect ?from-area ?to-area ?pipe) (last ?last-batch-atom ?pipe) (follow ?last-batch-atom ?next-last-batch-atom) (is-product ?last-batch-atom ?product-last-batch) (tank-slot-product-location ?tank-slot ?product-last-batch ?to-area))
-    :effect (and (normal ?pipe) (last ?next-last-batch-atom ?pipe) (on ?last-batch-atom ?to-area) (occupied ?tank-slot) (not (push-updating ?pipe)) (not (follow ?last-batch-atom ?next-last-batch-atom)) (not (last ?last-batch-atom ?pipe)) (not (not-occupied ?tank-slot)))
+    :parameters (?pipe - pipe ?from-area - area ?to-area - area ?last-batch-atom - batch-atom ?next-last-batch-atom - batch-atom)
+    :precondition (and (push-updating ?pipe) (last ?last-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (not-unitary ?pipe) (follow ?last-batch-atom ?next-last-batch-atom))
+    :effect (and (normal ?pipe) (last ?next-last-batch-atom ?pipe) (on ?last-batch-atom ?to-area) (not (push-updating ?pipe)) (not (follow ?last-batch-atom ?next-last-batch-atom)) (not (last ?last-batch-atom ?pipe)))
   )
 
   (:action POP-START
-    :parameters (?pipe - pipe ?batch-atom-in - batch-atom ?from-area - area ?to-area - area ?last-batch-atom - batch-atom ?product-batch-atom-in - product ?product-last-batch - product ?tank-slot - tank-slot)
-    :precondition (and (normal ?pipe) (connect ?from-area ?to-area ?pipe) (last ?last-batch-atom ?pipe) (on ?batch-atom-in ?to-area) (is-product ?batch-atom-in ?product-batch-atom-in) (is-product ?last-batch-atom ?product-last-batch) (may-interface ?product-batch-atom-in ?product-last-batch) (tank-slot-product-location ?tank-slot ?product-batch-atom-in ?to-area) (occupied ?tank-slot))
-    :effect (and (pop-updating ?pipe) (last ?batch-atom-in ?pipe) (follow ?batch-atom-in ?last-batch-atom) (not (-occupied ?tank-slot)) (not (normal ?pipe)) (not (last ?last-batch-atom ?pipe)) (not (on ?batch-atom-in ?to-area)) (not (occupied ?tank-slot)))
+    :parameters (?pipe - pipe ?batch-atom-in - batch-atom ?from-area - area ?to-area - area ?last-batch-atom - batch-atom ?product-batch-atom-in - product ?product-last-batch - product)
+    :precondition (and (normal ?pipe) (last ?last-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (on ?batch-atom-in ?to-area) (not-unitary ?pipe) (is-product ?batch-atom-in ?product-batch-atom-in) (is-product ?last-batch-atom ?product-last-batch) (may-interface ?product-batch-atom-in ?product-last-batch))
+    :effect (and (pop-updating ?pipe) (last ?batch-atom-in ?pipe) (follow ?batch-atom-in ?last-batch-atom) (not (normal ?pipe)) (not (last ?last-batch-atom ?pipe)) (not (on ?batch-atom-in ?to-area)))
   )
 
   (:action POP-END
-    :parameters (?pipe - pipe ?from-area - area ?to-area - area ?first-batch-atom - batch-atom ?next-first-batch-atom - batch-atom ?product-first-batch - product ?tank-slot - tank-slot)
-    :precondition (and (pop-updating ?pipe) (connect ?from-area ?to-area ?pipe) (first ?first-batch-atom ?pipe) (follow ?next-first-batch-atom ?first-batch-atom) (tank-slot-product-location ?tank-slot ?product-first-batch ?from-area))
-    :effect (and (normal ?pipe) (first ?next-first-batch-atom ?pipe) (on ?first-batch-atom ?from-area) (occupied ?tank-slot) (not (pop-updating ?pipe)) (not (follow ?next-first-batch-atom ?first-batch-atom)) (not (first ?first-batch-atom ?pipe)) (not (not-occupied ?tank-slot)))
+    :parameters (?pipe - pipe ?from-area - area ?to-area - area ?first-batch-atom - batch-atom ?next-first-batch-atom - batch-atom)
+    :precondition (and (pop-updating ?pipe) (first ?first-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (not-unitary ?pipe) (follow ?next-first-batch-atom ?first-batch-atom))
+    :effect (and (normal ?pipe) (first ?next-first-batch-atom ?pipe) (on ?first-batch-atom ?from-area) (not (pop-updating ?pipe)) (not (follow ?next-first-batch-atom ?first-batch-atom)) (not (first ?first-batch-atom ?pipe)))
   )
 
   (:action PUSH-UNITARYPIPE
-    :parameters (?pipe - pipe ?batch-atom-in - batch-atom ?from-area - area ?to-area - area ?first-batch-atom - batch-atom ?product-batch-atom-in - product ?product-first-batch - product ?from-tank-slot - tank-slot ?to-tank-slot - tank-slot)
-    :precondition (and (first ?first-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (on ?batch-atom-in ?from-area) (unitary ?pipe) (is-product ?batch-atom-in ?product-batch-atom-in) (is-product ?first-batch-atom ?product-first-batch) (may-interface ?product-batch-atom-in ?product-first-batch) (tank-slot-product-location ?from-tank-slot ?product-batch-atom-in ?from-area) (occupied ?from-tank-slot) (tank-slot-product-location ?to-tank-slot ?product-first-batch ?to-area))
-    :effect (and (first ?batch-atom-in ?pipe) (last ?batch-atom-in ?pipe) (not (-occupied ?from-tank-slot)) (on ?first-batch-atom ?to-area) (occupied ?to-tank-slot) (not (first ?first-batch-atom ?pipe)) (not (last ?first-batch-atom ?pipe)) (not (on ?batch-atom-in ?from-area)) (not (occupied ?from-tank-slot)) (not (not-occupied ?to-tank-slot)))
+    :parameters (?pipe - pipe ?batch-atom-in - batch-atom ?from-area - area ?to-area - area ?first-batch-atom - batch-atom ?product-batch-atom-in - product ?product-first-batch - product)
+    :precondition (and (first ?first-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (on ?batch-atom-in ?from-area) (unitary ?pipe) (is-product ?batch-atom-in ?product-batch-atom-in) (is-product ?first-batch-atom ?product-first-batch) (may-interface ?product-batch-atom-in ?product-first-batch))
+    :effect (and (first ?batch-atom-in ?pipe) (last ?batch-atom-in ?pipe) (on ?first-batch-atom ?to-area) (not (first ?first-batch-atom ?pipe)) (not (last ?first-batch-atom ?pipe)) (not (on ?batch-atom-in ?from-area)))
   )
 
   (:action POP-UNITARYPIPE
-    :parameters (?pipe - pipe ?batch-atom-in - batch-atom ?from-area - area ?to-area - area ?first-batch-atom - batch-atom ?product-batch-atom-in - product ?product-first-batch - product ?from-tank-slot - tank-slot ?to-tank-slot - tank-slot)
-    :precondition (and (first ?first-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (on ?batch-atom-in ?to-area) (unitary ?pipe) (is-product ?batch-atom-in ?product-batch-atom-in) (is-product ?first-batch-atom ?product-first-batch) (may-interface ?product-batch-atom-in ?product-first-batch) (tank-slot-product-location ?from-tank-slot ?product-batch-atom-in ?to-area) (occupied ?from-tank-slot) (tank-slot-product-location ?to-tank-slot ?product-first-batch ?from-area))
-    :effect (and (last ?batch-atom-in ?pipe) (first ?batch-atom-in ?pipe) (not (-occupied ?from-tank-slot)) (on ?first-batch-atom ?from-area) (occupied ?to-tank-slot) (not (last ?first-batch-atom ?pipe)) (not (first ?first-batch-atom ?pipe)) (not (on ?batch-atom-in ?to-area)) (not (occupied ?from-tank-slot)) (not (not-occupied ?to-tank-slot)))
+    :parameters (?pipe - pipe ?batch-atom-in - batch-atom ?from-area - area ?to-area - area ?last-batch-atom - batch-atom ?product-batch-atom-in - product ?product-last-batch - product)
+    :precondition (and (last ?last-batch-atom ?pipe) (connect ?from-area ?to-area ?pipe) (on ?batch-atom-in ?to-area) (unitary ?pipe) (is-product ?batch-atom-in ?product-batch-atom-in) (is-product ?last-batch-atom ?product-last-batch) (may-interface ?product-batch-atom-in ?product-last-batch))
+    :effect (and (last ?batch-atom-in ?pipe) (first ?batch-atom-in ?pipe) (on ?last-batch-atom ?from-area) (not (last ?last-batch-atom ?pipe)) (not (first ?last-batch-atom ?pipe)) (not (on ?batch-atom-in ?to-area)))
   )
 
 )
